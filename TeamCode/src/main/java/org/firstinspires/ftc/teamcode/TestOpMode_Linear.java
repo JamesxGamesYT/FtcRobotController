@@ -23,6 +23,7 @@ public class TestOpMode_Linear extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor frontLeftDrive = null,frontRightDrive = null,backLeftDrive = null,backRightDrive = null;
+    private double dPadPower=1;
 
     @Override
     public void runOpMode() {
@@ -54,6 +55,7 @@ public class TestOpMode_Linear extends LinearOpMode {
             // Setup a variable for each drive wheel to save power level for telemetry
             double g1StickLX,g1StickLY,g1StickLDirection;//gamepad 1 left stick position varibles
             double frontLeftPower = 0,frontRightPower = 0,backLeftPower = 0,BackRightPower = 0,generalPower=0;//wheel motor power vatibles
+
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
@@ -61,21 +63,45 @@ public class TestOpMode_Linear extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             g1StickLY = -gamepad1.left_stick_y;
             g1StickLX  =  gamepad1.left_stick_x;
-            g1StickLDirection=Math.atan2(g1StickLX,g1StickLY);
+            g1StickLDirection=Math.atan2(g1StickLY,g1StickLX);//get the angle the left stick is at
 
 
             generalPower=Range.clip(Math.sqrt(Math.pow(g1StickLX,2)+Math.pow(g1StickLY,2)),0,1);
-            if(generalPower<=0.05){
+            if(generalPower<=0.05){//joystick dead zone
                 generalPower=0;
             }
-            // Tank Mode uses one stick to control each wheel.
-            // - This requires no math, but it is hard to drive forward slowly and keep straight.
-            // Range.clip(
-            //
+
+            //set the power for each wheel absed on the angle of the stick and how far the stick is from center
             frontLeftPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
             frontRightPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
             backLeftPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
             BackRightPower= Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
+
+            // conditionals to overwrite wheel powers if dpad buttons are pressed
+            if(gamepad1.dpad_up){
+                frontLeftPower  = dPadPower;
+                frontRightPower = dPadPower;
+                backLeftPower   = dPadPower;
+                BackRightPower  = dPadPower;
+            }
+            if(gamepad1.dpad_down){
+                frontLeftPower  = -dPadPower;
+                frontRightPower = -dPadPower;
+                backLeftPower   = -dPadPower;
+                BackRightPower  = -dPadPower;
+            }
+            if(gamepad1.dpad_right){
+                frontLeftPower  = dPadPower;
+                frontRightPower = -dPadPower;
+                backLeftPower   = -dPadPower;
+                BackRightPower  = dPadPower;
+            }
+            if(gamepad1.dpad_left){
+                frontLeftPower  = -dPadPower;
+                frontRightPower = dPadPower;
+                backLeftPower   = dPadPower;
+                BackRightPower  = -dPadPower;
+            }
 
             // Send calculated power to wheels
             frontLeftDrive.setPower(frontLeftPower);
