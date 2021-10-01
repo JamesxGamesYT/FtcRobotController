@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -63,8 +63,8 @@ public class TestOpMode_Linear extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             g1StickLY = -gamepad1.left_stick_y;
             g1StickLX  =  gamepad1.left_stick_x;
-            g1StickLDirection=Math.atan2(g1StickLY,g1StickLX);//get the angle the left stick is at
 
+            g1StickLDirection=Math.atan2(g1StickLY,g1StickLX);//get the angle the left stick is at
 
             generalPower=Range.clip(Math.sqrt(Math.pow(g1StickLX,2)+Math.pow(g1StickLY,2)),0,1);
             if(generalPower<=0.05){//joystick dead zone
@@ -109,10 +109,11 @@ public class TestOpMode_Linear extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(BackRightPower);
 
-            // Show the elapsed game time and wheel power.
+            // Show the elapsed game time wheel powe,stick direction and stick postition.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("gamepad 1 left stick position",g1StickLDirection+" radians "+Math.toDegrees(g1StickLDirection)+" degrees");
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", frontLeftPower ,frontRightPower ,backLeftPower ,BackRightPower,generalPower);
+            telemetry.addData("joystick positions", g1StickLX+" "+g1StickLY);
             telemetry.update();
         }
     }
