@@ -1,5 +1,7 @@
 ## TeamCode Module
 
+Hello, here is an addition to this file by Bonomio Boroumand of the Blue Mountains to demonstrate git functionality.
+
 Welcome!
 
 This module, TeamCode, is the place where you will write/paste the code for your team's
