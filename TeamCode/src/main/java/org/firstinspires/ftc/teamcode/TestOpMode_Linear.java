@@ -6,8 +6,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 
-/**
+
+ /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
  * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
  * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
@@ -109,11 +112,24 @@ public class TestOpMode_Linear extends LinearOpMode {
             backLeftDrive.setPower(backLeftPower);
             backRightDrive.setPower(BackRightPower);
 
+            if(gamepad1.left_bumper){
+                 frontLeftDrive.setMode(STOP_AND_RESET_ENCODER);//reset all the encoder values
+                frontRightDrive.setMode(STOP_AND_RESET_ENCODER);
+                  backLeftDrive.setMode(STOP_AND_RESET_ENCODER);
+                 backRightDrive.setMode(STOP_AND_RESET_ENCODER);
+                 frontLeftDrive.setMode(RUN_WITHOUT_ENCODER);
+                frontRightDrive.setMode(RUN_WITHOUT_ENCODER);
+                  backLeftDrive.setMode(RUN_WITHOUT_ENCODER);
+                 backRightDrive.setMode(RUN_WITHOUT_ENCODER);
+            }
+
             // Show the elapsed game time wheel powe,stick direction and stick postition.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("gamepad 1 left stick position",g1StickLDirection+" radians "+Math.toDegrees(g1StickLDirection)+" degrees");
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", frontLeftPower ,frontRightPower ,backLeftPower ,BackRightPower,generalPower);
             telemetry.addData("joystick positions", g1StickLX+" "+g1StickLY);
+            telemetry.addData("encoders", "FL "+frontLeftDrive.getCurrentPosition()+" FR "+frontRightDrive.getCurrentPosition());//display the encoder counts
+            telemetry.addData("encoders", "BL "+backLeftDrive.getCurrentPosition()+" BR "+backRightDrive.getCurrentPosition());
             telemetry.update();
         }
     }
