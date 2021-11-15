@@ -1,5 +1,7 @@
 ## TeamCode Module
 
+Hello, this is Bonomio Boroumand of the Blue Mountains and I want to eat your children.
+
 Welcome!
 
 This module, TeamCode, is the place where you will write/paste the code for your team's
