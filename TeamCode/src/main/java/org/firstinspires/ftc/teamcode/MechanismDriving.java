@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+/** Controls motors and servos that are not involved in moving the robot around the field.
+ */
 public class MechanismDriving {
     private DcMotor carousel,slidesLeft,slidesRight;
     private Servo claw;
@@ -17,22 +19,31 @@ public class MechanismDriving {
         claw=clawServo;
     }
 
-    //Opens the claw all the way
+    /** Opens the claw all the way
+     */
     public void openClaw(){
         claw.setPosition(1);
     }
 
-    //Opens the claw to a specified amount
+    /**Opens the claw to a specified amount
+     *
+     * @param amount - Position of servo between 0 and 1
+     */
     public void openClaw(double amount) {
         claw.setPosition(amount);
     }
 
-    //Closes the claw all the way
+    /**Closes the claw all the way
+     *
+     */
     public void closeClaw(){
         claw.setPosition(0);
     }
 
-    //Turn the carousel motor on until you turn it off
+    /**Turn the carousel motor on until you turn it off
+     *
+     * @param active - Determines whether the carousel motor should be spinning
+     */
     public void activateCarousel(boolean active){
         if(active){
             carousel.setPower(1);
@@ -43,11 +54,18 @@ public class MechanismDriving {
 
         carouselActive=active;
     }
+
+    /** Sets the preferred position of the slides
+     *
+     * @param position - The encoder count that the motors for the slide should get to
+     */
     public void setSlidePosition(int position){
         slidePosition=position;
     }
 
-    //this functoin gets called repeatedly
+    /** This function gets called repeatedly from the operation mode
+     * Responsible for moving slides to preferred position
+     */
     public void update(){
         //If the current position is less than desired position then move it up
         if(slidesRight.getCurrentPosition()<slidePosition){
