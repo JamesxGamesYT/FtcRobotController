@@ -6,16 +6,17 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.CVPositioning;
-import org.firstinspires.ftc.teamcode.EncoderPositioning;
-import org.firstinspires.ftc.teamcode.MechanismDriving;
-import org.firstinspires.ftc.teamcode.Navigation;
-
 
 /** A completely encompassing class of all functionality of the robot. An OpMode should interface through an instance of
  *  this class in order to send or receive any data with the real robot.
+ *
+ *  OpModes should pass `this` into the Robot constructor.
  */
 public class Robot {
+
+    // DUCK: deliver duck from carousel.
+    // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
+    enum AUTON_MODE {DUCK, FREIGHT}
 
     private DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
     private Servo claw;
@@ -25,5 +26,54 @@ public class Robot {
     private MechanismDriving mechanismDriving;
     private Navigation navigation;
 
-    public Robot()
+    public Robot(FreightFrenzyOpMode opMode) {
+        // Read attributes from opMode to assign to this instance.
+    }
+
+    // MECHANISM DRIVING
+    // =================
+
+    /** Delivers a duck by spinning the carousel.
+     */
+    public void deliverDuck() {}
+
+    /** Picks up a piece of freight from the warehouse.
+     */
+    public void obtainFreight() {}
+
+    /** Delivers a piece of freight to a particular level of the alliance shipping hub.
+     */
+    public void deliverToShippingHub(int level) {}
+
+    /** Delivers a piece of freight the alliance storage unit.
+     */
+    public void deliverToStorageUnit() {}
+
+    /** Places the capstone on the top of the alliance shipping hub.
+     */
+    public void placeCapstone() {}
+
+    // NAVIGATION
+    // ==========
+
+    /** Adds necessary points to the robot's itinerary for the Autonomous period.
+     */
+    public void initAutonPath(AUTON_MODE mode) {}
+
+    /** Moves the robot to the next point of interest.
+     */
+    public void goToNextPOI() {}
+
+    /** Changes drivetrain motor inputs based off the controller inputs.
+     */
+    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY) {}
+
+    // OTHER
+    // =====
+
+    /** Determines the position of the capstone on the barcode.
+     *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
+     *          farthest from the hub.
+     */
+    public int readBarcode() { return 0; }
 }
