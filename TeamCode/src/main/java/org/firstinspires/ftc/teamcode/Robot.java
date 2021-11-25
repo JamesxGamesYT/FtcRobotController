@@ -26,9 +26,7 @@ public class Robot {
     private MechanismDriving mechanismDriving;
     private Navigation navigation;
 
-    public Robot(FreightFrenzyOpMode opMode) {
-        // Read attributes from opMode to assign to this instance.
-    }
+    public Robot() {}
 
     // MECHANISM DRIVING
     // =================
