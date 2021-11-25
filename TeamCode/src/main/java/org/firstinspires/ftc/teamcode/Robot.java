@@ -40,6 +40,7 @@ public class Robot {
     public void obtainFreight() {}
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
+     * @param level the level to witch the cargo needs to be deliverd 1-bottom level 2-miiddle level 3-top level
      */
     public void deliverToShippingHub(int level) {}
 
@@ -55,6 +56,7 @@ public class Robot {
     // ==========
 
     /** Adds necessary points to the robot's itinerary for the Autonomous period.
+     * @param the position of the dick and whare house freight as defind by {@link AUTON_MODE}
      */
     public void initAutonPath(AUTON_MODE mode) {}
 
@@ -63,6 +65,10 @@ public class Robot {
     public void goToNextPOI() {}
 
     /** Changes drivetrain motor inputs based off the controller inputs.
+     * @param leftStickX the left stick x-axis
+     * @param leftStickY the left sdtaick y-axis
+     * @param rightStickX the right stick x-axis
+     * @param rightStickY the right staick y-xis
      */
     public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY) {}
 
