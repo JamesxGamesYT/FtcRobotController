@@ -15,7 +15,7 @@ public class CVPositioning {
      * @param input The current frame read from the attached camera
      * @return An output frame to be displayed on the phone
      */
-    static private Mat ProcessFrame(Mat input) {return null};
+//    static private Mat ProcessFrame(Mat input) {return null;}
 
 
     /**
