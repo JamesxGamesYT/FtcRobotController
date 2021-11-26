@@ -66,6 +66,10 @@ public class Navigation
     private double getAngleBetween(Point a, Point b) { return 0.0; }
 
     /** Calculates the euclidean distance between two points.
+     *
+     *  @param a A 2D point on the playing field.
+     *  @param b The point to find the distance to point A from.
+     *  @return The Euclidean distance between the two points.
      */
     private double getEuclideanDistance(Point a, Point b) {
         return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
