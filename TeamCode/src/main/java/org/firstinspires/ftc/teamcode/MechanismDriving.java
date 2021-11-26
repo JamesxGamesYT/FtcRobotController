@@ -7,12 +7,7 @@ public class MechanismDriving {
     private boolean carouselActive = false;
     private int slidePosition;
 
-    MechanismDriving(DcMotor carousel, DcMotor slidesLeft, DcMotor slidesRight, Servo clawServo){
-        this.carousel=carousel;
-        this.slidesLeft=slidesLeft;
-        this.slidesRight=slidesRight;
-        claw=clawServo;
-    }
+    MechanismDriving() {}
 
     // Each of the following methods should use the current state to determine motor inputs, and change the state once a
     // task is complete. They should serve an analogous function to that of the switch statement in the second code
@@ -32,11 +27,10 @@ public class MechanismDriving {
         robot.claw.setPosition(amount);
     }
 
-    /**Closes the claw all the way
-     *
+    /** Closes the claw all the way
      */
-    public void closeClaw(){
-        claw.setPosition(0);
+    public void closeClaw(Robot robot) {
+        robot.claw.setPosition(0);
     }
 
     /** Turn the carousel motor on until you turn it off
@@ -52,7 +46,7 @@ public class MechanismDriving {
             // setMode maybe
         }
 
-        carouselActive=active;
+        carouselActive = active;
     }
 
     /** Sets the preferred position of the slides
@@ -107,5 +101,4 @@ public class MechanismDriving {
             robot.slidesRight.setPower(0);
         }
     }
-
 }
