@@ -67,7 +67,9 @@ public class Navigation
 
     /** Calculates the euclidean distance between two points.
      */
-    private double getEuclideanDistance(Point a, Point b) { return 0.0; }
+    private double getEuclideanDistance(Point a, Point b) {
+        return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    }
 
     // PATHFINDING
     // ===========
