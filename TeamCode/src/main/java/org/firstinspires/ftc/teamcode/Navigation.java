@@ -67,7 +67,7 @@ public class Navigation
 
     /** Calculates the euclidean distance between two points.
      *
-     *  @param a A point.
+     *  @param a A 2D point on the playing field.
      *  @param b The point to find the distance to point A from.
      *  @return The Euclidean distance between the two points.
      */
