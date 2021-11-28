@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 /** A completely encompassing class of all functionality of the robot. An OpMode should interface through an instance of
@@ -25,7 +26,7 @@ public class RobotManager {
 
     private Gamepad gamepad1, gamepad2;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
+    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2, Telemetry telemetry) {
         // Construct each team class and robot state.
     }
 
