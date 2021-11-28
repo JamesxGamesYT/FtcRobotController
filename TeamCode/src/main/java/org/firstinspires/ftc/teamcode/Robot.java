@@ -27,7 +27,11 @@ public class Robot {
     // Positioning
     public PositionManager position;
 
-    public Robot(HardwareMap hardwareMap) {}
+    public Robot(HardwareMap hardwareMap) {
+        carousel = hardwareMap.get(DcMotor.class, "carousel");
+        rearRightDrive = hardwareMap.get(DcMotor.class, "rear_right");
+        carouselMotorState = CarouselMotorState.CHECK_START;
+    }
 }
 
 

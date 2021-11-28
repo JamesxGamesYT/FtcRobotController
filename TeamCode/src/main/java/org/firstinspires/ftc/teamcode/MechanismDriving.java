@@ -4,7 +4,6 @@ package org.firstinspires.ftc.teamcode;
  */
 public class MechanismDriving {
 
-    private boolean carouselActive = false;
     private int slidePosition;
 
     MechanismDriving() {}
@@ -34,19 +33,14 @@ public class MechanismDriving {
     }
 
     /** Turn the carousel motor on until you turn it off
-     *
-     *  @param active - Determines whether the carousel motor should be spinning
      */
-    public void activateCarousel(Robot robot, boolean active) {
-        if (active) {
-            robot.carousel.setPower(1);
+    public void activateCarousel(Robot robot) {
+        if (robot.carouselMotorState == Robot.CarouselMotorState.SPIN) {
+            robot.carousel.setPower(0.5);
         }
         else {
             robot.carousel.setPower(0);
-            // setMode maybe
         }
-
-        carouselActive = active;
     }
 
     /** Sets the preferred position of the slides

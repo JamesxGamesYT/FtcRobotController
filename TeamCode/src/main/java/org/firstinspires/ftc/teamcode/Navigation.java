@@ -49,7 +49,9 @@ public class Navigation
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY, Robot robot) {}
+    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY, Robot robot) {
+        robot.rearRightDrive.setPower(rightStickY / 3);
+    }
 
     /** Rotates the robot a number of degrees.
      */

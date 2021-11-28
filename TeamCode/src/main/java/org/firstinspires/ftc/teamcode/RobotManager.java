@@ -3,8 +3,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import java.util.ArrayList;
 
 
 /** A completely encompassing class of all functionality of the robot. An OpMode should interface through an instance of
@@ -16,17 +19,21 @@ public class RobotManager {
     // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
     enum AutonMode {DUCK, FREIGHT}
 
-    public Robot robotState;
+    public Robot robot;
 
     public EncoderPositioning encoderPositioning;
     public CVPositioning cvPositioning;
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
 
-    private Gamepad gamepad1, gamepad2;
+    private Gamepad gamepad1PreviousState;
+    private Gamepad gamepad2PreviousState;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
+    public RobotManager(HardwareMap hardwareMap) {
         // Construct each team class and robot state.
+        mechanismDriving = new MechanismDriving();
+        navigation = new Navigation(new ArrayList<>());
+        robot = new Robot(hardwareMap);
     }
 
     // TELE-OP
@@ -34,14 +41,35 @@ public class RobotManager {
 
     /** Determine new robot states based on controller input
      */
-    public void readControllerInputs() {
-        // If a button is pressed:
-        // - Change the corresponding state in robotState
+    public void readControllerInputs(Gamepad gamepad1, Gamepad gamepad2) {
+
+        if (gamepad1PreviousState == null || gamepad2PreviousState == null) {
+            gamepad1PreviousState = new Gamepad();
+            gamepad2PreviousState = new Gamepad();
+            return;
+        }
+
+        // On button release.
+        if (!gamepad1.a && gamepad1PreviousState.a) {
+            if (robot.carouselMotorState == Robot.CarouselMotorState.CHECK_START) {
+                robot.carouselMotorState = Robot.CarouselMotorState.SPIN;
+            }
+            else {
+                robot.carouselMotorState = Robot.CarouselMotorState.CHECK_START;
+            }
+        }
+
+        try {
+            gamepad1PreviousState.copy(gamepad1);
+            gamepad2PreviousState.copy(gamepad2);
+        } catch (RobotCoreException e) {}
     }
 
     /** Calls all non-blocking FSM methods to read from state and act accordingly.
      */
-    public void driveMechanisms() {}
+    public void driveMechanisms() {
+        mechanismDriving.activateCarousel(robot);
+    }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      * @param leftStickX the left stick x-axis
@@ -49,7 +77,9 @@ public class RobotManager {
      * @param rightStickX the right stick x-axis
      * @param rightStickY the right stick y-xis
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY) {}
+    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY) {
+        navigation.maneuver(leftStickX, leftStickY, rightStickX, rightStickY, robot);
+    }
 
     // AUTONOMOUS
     // ==========
