@@ -8,6 +8,6 @@ public class Position {
     /** Stores an x/y coordinate.
      *  @see Point for more information
      */
-    private Point location;
-    private double rotation;
+    public Point location;
+    public double rotation;
 }
