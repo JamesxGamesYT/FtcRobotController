@@ -6,6 +6,7 @@ public class MechanismDriving {
 
     private boolean carouselActive = false;
     private int slidePosition;
+    //TODO get the exact values the slides will; need to move to inorder to be be at the correct levels for the shipping hub
     public static final int EXTEND1POS=0,EXTEND2POS=0,EXTEND3POS=0,EXTEND4POS=0;
     MechanismDriving() {}
 
@@ -61,7 +62,7 @@ public class MechanismDriving {
      *  Responsible for moving slides to preferred position.
      */
     public void update(Robot robot) {
-        switch(robot.carouselMotorState){
+        switch(robot.carouselMotorState){//check the carousel motor state and then use the information to activate or deactivate it
             case STOP:
                 activateCarousel(robot,false);
                 break;
@@ -70,13 +71,13 @@ public class MechanismDriving {
                 break;
         }
 
-        switch (robot.clawMotorState){
+        switch (robot.clawMotorState){//check the claw motor state and move the claw accoringly
             case CHECK_OPEN:
             case CHECK_CLOSE:
 
                 break;
             case OPEN:
-                openClaw(robot);//we will probably need to find a more exact value than 1
+                openClaw(robot);//TODO find the exact value the claw will need to be opened to
                 robot.clawMotorState= Robot.ClawMotorState.CHECK_CLOSE;
                 break;
             case CLOSE:
@@ -85,7 +86,7 @@ public class MechanismDriving {
                 break;
 
         }
-        switch(robot.slidesMotorsState){
+        switch(robot.slidesMotorsState){//check the state of the slide motors and tell them to move to that position
             case CHECK_EXTEND:
             case CHECK_RETRACT:
 
