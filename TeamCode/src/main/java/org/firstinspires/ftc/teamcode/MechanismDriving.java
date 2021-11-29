@@ -6,7 +6,7 @@ public class MechanismDriving {
 
     private boolean carouselActive = false;
     private int slidePosition;
-
+    public static final int EXTEND1POS=0,EXTEND2POS=0,EXTEND3POS=0,EXTEND4POS=0;
     MechanismDriving() {}
 
     // Each of the following methods should use the current state to determine motor inputs, and change the state once a
@@ -61,6 +61,57 @@ public class MechanismDriving {
      *  Responsible for moving slides to preferred position.
      */
     public void update(Robot robot) {
+        switch(robot.carouselMotorState){
+            case STOP:
+                activateCarousel(robot,false);
+                break;
+            case SPIN:
+                activateCarousel(robot,true);
+                break;
+        }
+
+        switch (robot.clawMotorState){
+            case CHECK_OPEN:
+            case CHECK_CLOSE:
+
+                break;
+            case OPEN:
+                openClaw(robot);//we will probably need to find a more exact value than 1
+                robot.clawMotorState= Robot.ClawMotorState.CHECK_CLOSE;
+                break;
+            case CLOSE:
+                closeClaw(robot);
+                robot.clawMotorState= Robot.ClawMotorState.CHECK_OPEN;
+                break;
+
+        }
+        switch(robot.slidesMotorsState){
+            case CHECK_EXTEND:
+            case CHECK_RETRACT:
+
+                break;
+            case EXTEND_1:
+                setSlidePosition(robot,EXTEND1POS);
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                break;
+            case EXTEND_2:
+                setSlidePosition(robot,EXTEND2POS);
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                break;
+            case EXTEND_3:
+                setSlidePosition(robot,EXTEND3POS);
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                break;
+            case EXTEND_4:
+                setSlidePosition(robot,EXTEND4POS);
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                break;
+            case RETRACT:
+                setSlidePosition(robot,0);
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_EXTEND;
+                break;
+        }
+
         // If the current position is less than desired position then move it up
         if (robot.slidesRight.getCurrentPosition() < slidePosition) {
             // Ensures that one motor does not go beyond the other too much

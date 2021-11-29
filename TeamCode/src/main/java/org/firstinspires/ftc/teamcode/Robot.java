@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 public class Robot {
     // Finite state machine
-    enum CarouselMotorState {CHECK_START, SPIN}
+    enum CarouselMotorState {STOP, SPIN}
     enum SlidesMotorsState {CHECK_EXTEND, EXTEND_1, EXTEND_2, EXTEND_3, EXTEND_4, CHECK_RETRACT, RETRACT}
     enum ClawMotorState {CHECK_OPEN, OPEN, CHECK_CLOSE, CLOSE}
 
