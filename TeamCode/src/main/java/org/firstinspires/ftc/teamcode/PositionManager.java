@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.firstinspires.ftc.teamcode;
 
 public class PositionManager {
@@ -32,4 +33,18 @@ public class PositionManager {
     public static double setRotation(double r){
         rotation = r;
     }
+=======
+/* Authors: Arin Khare, Kai Vernooy
+ */
+
+
+package org.firstinspires.ftc.teamcode;
+
+/** Incorporates estimates from two sources (CV positioning and encoders) to create a single positioning estimate
+ */
+public class PositionManager {
+    public Position position;
+
+    private Position cvEstimate;
+>>>>>>> origin/positioning
 }
