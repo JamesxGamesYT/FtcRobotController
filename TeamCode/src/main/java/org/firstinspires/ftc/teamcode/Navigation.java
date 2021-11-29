@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import java.util.ArrayList;
+import com.qualcomm.robotcore.util.Range;
 
 
 /** Keeps track of the robot's desired path and makes it follow it accurately.
@@ -21,17 +22,23 @@ public class Navigation
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     // TODO: implement a system to keep track of which positions in this attribute are POIs.
-    private ArrayList<Position> path = new ArrayList<>();
+    private ArrayList<Position> path;
 
-    public Navigation(ArrayList<Position> path) {}
+    public Navigation(ArrayList<Position> path) {
+        this.path = path;
+    }
 
     /** Adds a desired position to the path.
      */
-    public void addPosition(Position loc) {}
+    public void addPosition(Position pos) {
+        path.add(pos);
+    }
 
     /** Adds a desired position to the path at a specific index.
      */
-    public void addPosition(Position loc, int index) {}
+    public void addPosition(Position pos, int index) {
+        path.add(pos, index);
+    }
 
     /** Makes the robot travel along the path until it reaches a POI.
      */
@@ -49,11 +56,38 @@ public class Navigation
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY, Robot robot) {}
+    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY, Robot robot) {
+        double g1StickLY = -leftStickY;
+        double g1StickLX = leftStickX;
+
+        double g1StickLDirection=Math.atan2(g1StickLY,g1StickLX);//get the angle the left stick is at
+
+        double generalPower=Range.clip(Math.sqrt(Math.pow(g1StickLX,2)+Math.pow(g1StickLY,2)),0,1);
+        if(generalPower<=0.05){//joystick dead zone
+            generalPower=0;
+        }
+
+        //set the power for each wheel absed on the angle of the stick and how far the stick is from center
+        double frontLeftPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
+        double frontRightPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
+        double backLeftPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
+        double BackRightPower= Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
+    }
 
     /** Rotates the robot a number of degrees.
      */
-    private void rotate(double angle, Robot robot) {}
+    private void rotate(double angle, Robot robot) 
+    {
+        // Assign the original rotation to a variable
+        robot.position.position.rotation;
+        
+        // Set motor powers to start rotating the robot
+        robot.rearLeftDrive.setPower();
+        // Wait until the robot is rotated to the desired angle.
+        while (/*rotation is not done*/) {
+            sleep(1);
+        }
+    }
 
     /** Makes the robot travel in a straight line for a certain distance.
      *  @param dist The distance the robot should travel.
@@ -63,7 +97,7 @@ public class Navigation
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
      */
-    private double getAngleBetween(Point a, Point b) { return 0.0; }
+    private double getAngleBetween(Point a, Point b) { return Math.atan((b.y-a.y)/(b.x-a.x)); }
 
     /** Calculates the euclidean distance between two points.
      *
