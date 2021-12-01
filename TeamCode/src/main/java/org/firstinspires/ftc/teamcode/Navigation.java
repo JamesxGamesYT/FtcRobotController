@@ -53,12 +53,18 @@ public class Navigation
      */
     public void maneuver(double leftStickX, double leftStickY, double rightStickX, Robot robot) {
         // Uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
+        // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
+        //       upon initialization.
 
-        double moveDirection, power, sinMoveDirection, cosMoveDirection, frontLeftPower, frontRightPower, rearLeftPower, rearRightPower, turn;
+        double moveDirection, power, turn, sinMoveDirection, cosMoveDirection, frontLeftPower, frontRightPower,
+                rearLeftPower, rearRightPower;
 
         leftStickY = -leftStickY;  // Y coordinate is reversed.
         turn = rightStickX;
+        if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
+            turn = 0;
+        }
+        turn /= 2.0;  // Scale input sensitivity.
 
         moveDirection = Math.atan2(leftStickY, leftStickX);
 
@@ -72,9 +78,9 @@ public class Navigation
 
         // Set the power for each wheel based on the angle of the stick and how far the stick is from center
         frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power + turn;
-        frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
+        frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power - turn;
         rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
-        rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power + turn;
+        rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power - turn;
 
         robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
