@@ -14,10 +14,15 @@ import java.util.Map;
 /** A finite state of the robot: keeps track of its state (motors and position) and what actions it is doing (enums)
  */
 public class Robot {
+    // TODO: merge mechanism-driving into this branch to make necessary changes for the new enum values.
+
     // Finite state machine
-    enum CarouselMotorState {CHECK_START, SPIN}
-    enum SlidesMotorsState {CHECK_EXTEND, EXTEND_1, EXTEND_2, EXTEND_3, EXTEND_4, CHECK_RETRACT, RETRACT}
-    enum ClawMotorState {CHECK_OPEN, OPEN, CHECK_CLOSE, CLOSE}
+    public enum CarouselMotorState {CHECK_START, SPIN}
+    // NOTE: changed from "extend"-based to "set"-based so that movement from any state to any other state is possible
+    // during TeleOp without the intermediate step of fully retracting the slides, which was necessary in the previous
+    // method. This will come in handy if the drive in TeleOp makes a mistake and raises the slides to the wrong level.
+    public enum SlidesMotorsState {CHECK_SET_LEVEL, SET_L0, SET_L1, SET_L2, SET_L3, SET_L4}
+    public enum ClawMotorState {CHECK_OPEN, OPEN, CHECK_CLOSE, CLOSE_CUBE, CLOSE_SPHERE}
 
     public CarouselMotorState carouselMotorState;
     public SlidesMotorsState slidesMotorsState;
@@ -33,7 +38,7 @@ public class Robot {
     public Robot(HardwareMap hardwareMap) {
         // Initialize states.
         carouselMotorState = CarouselMotorState.CHECK_START;
-        slidesMotorsState = SlidesMotorsState.CHECK_EXTEND;
+        slidesMotorsState = SlidesMotorsState.CHECK_SET_LEVEL;
         clawMotorState = ClawMotorState.CHECK_CLOSE;
 
         // Initialize hardware.

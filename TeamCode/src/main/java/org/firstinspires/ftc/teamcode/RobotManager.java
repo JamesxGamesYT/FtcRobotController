@@ -3,6 +3,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -12,18 +13,23 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class RobotManager {
 
-    public Robot robotState;
+    public Robot robot;
 
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
 
-    private Gamepad gamepad1, gamepad2;
+    private GamepadWrapper gamepads, previousStateGamepads;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
                         Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
-        // Construct each team class and robot state.
+
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
+
+        robot = new Robot(hardwareMap);
+
+        gamepads = new GamepadWrapper(gamepad1, gamepad2);
+        previousStateGamepads = new GamepadWrapper();
     }
 
     // TELE-OP
@@ -32,8 +38,22 @@ public class RobotManager {
     /** Determine new robot states based on controller input
      */
     public void readControllerInputs() {
-        // If a button is pressed:
-        // - Change the corresponding state in robotState
+        // First iteration of OpMode, there's no way there was a button release.
+        if (previousStateGamepads.firstIteration) {
+            return;
+        }
+
+        // Detect button releases.
+
+        if (!gamepads.getButtonState(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)
+                && previousStateGamepads.getButtonState(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
+            if (robot.carouselMotorState == Robot.CarouselMotorState.CHECK_START) {
+                robot.carouselMotorState = Robot.CarouselMotorState.SPIN;
+            }
+            else {
+                robot.carouselMotorState = Robot.CarouselMotorState.CHECK_START;
+            }
+        }
     }
 
     /** Calls all non-blocking FSM methods to read from state and act accordingly.
@@ -63,7 +83,7 @@ public class RobotManager {
     public int readBarcode() { return 0; }
 
     // Each of these methods manually sets the robot state so that a specific task is started, and forces these tasks to
-    // be synchronous by repeatedly calling the mechanism driving methods. These are to be used in a linear auton opmode.
+    // be synchronous by repeatedly calling the mechanism driving methods. These are to be used in an autonomous OpMode.
 
     /** Delivers a duck by spinning the carousel.
      */

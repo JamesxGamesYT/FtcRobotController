@@ -15,9 +15,9 @@ public class Navigation
 {
     // DUCK: deliver duck from carousel.
     // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
-    enum NavigationMode {DUCK, FREIGHT, TELEOP}
+    public enum NavigationMode {DUCK, FREIGHT, TELEOP}
 
-    enum AllianceColor {BLUE, RED}
+    public enum AllianceColor {BLUE, RED}
 
     final double SPEED = 1.0;
     // Accepted amounts of deviation between the robot's desired position and actual position.
