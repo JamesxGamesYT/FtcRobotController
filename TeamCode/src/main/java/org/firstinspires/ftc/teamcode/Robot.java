@@ -57,13 +57,16 @@ public class Robot {
 }
 
 
+/** Maps the robot's hardware to their names in the OpMode configuration, and contains any other necessary constants
+ *  pertaining to the robot's state.
+ */
 class RobotConfig {
     enum Motors {CAROUSEL, SLIDES_LEFT, SLIDES_RIGHT, REAR_LEFT_DRIVE,
                  REAR_RIGHT_DRIVE, FRONT_LEFT_DRIVE, FRONT_RIGHT_DRIVE}
 
     enum Servos {CLAW}
 
-    public static Map<Motors, String> MotorNames = new HashMap<Motors, String>() {{
+    public static final Map<Motors, String> MotorNames = new HashMap<Motors, String>() {{
         put(Motors.CAROUSEL, "carousel");
         put(Motors.SLIDES_LEFT, "slides_left");
         put(Motors.SLIDES_RIGHT, "slides_right");
@@ -73,5 +76,5 @@ class RobotConfig {
         put(Motors.FRONT_RIGHT_DRIVE, "front_right");
     }};
 
-    public static Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{ put(Servos.CLAW, "claw"); }};
+    public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{ put(Servos.CLAW, "claw"); }};
 }

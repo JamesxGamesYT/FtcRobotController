@@ -12,21 +12,18 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class RobotManager {
 
-    // DUCK: deliver duck from carousel.
-    // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
-    enum AutonMode {DUCK, FREIGHT}
-
     public Robot robotState;
 
-    public EncoderPositioning encoderPositioning;
-    public CVPositioning cvPositioning;
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
 
     private Gamepad gamepad1, gamepad2;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
+    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
+                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
         // Construct each team class and robot state.
+        navigation = new Navigation(navMode, allianceColor);
+        mechanismDriving = new MechanismDriving();
     }
 
     // TELE-OP
@@ -47,17 +44,11 @@ public class RobotManager {
      * @param leftStickX the left stick x-axis
      * @param leftStickY the left stick y-axis
      * @param rightStickX the right stick x-axis
-     * @param rightStickY the right stick y-xis
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY) {}
+    public void maneuver(double leftStickX, double leftStickY, double rightStickX) {}
 
     // AUTONOMOUS
     // ==========
-
-    /** Adds necessary points to the robot's itinerary for the Autonomous period.
-     * @param mode the position of the duck and warehouse freight as defined by {@link AutonMode}
-     */
-    public void initAutonPath(AutonMode mode) {}
 
     /** Moves the robot to the next point of interest.
      */

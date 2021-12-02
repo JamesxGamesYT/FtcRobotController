@@ -4,7 +4,8 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import java.util.ArrayList;
+import java.util.*;
+
 import com.qualcomm.robotcore.util.Range;
 
 
@@ -12,6 +13,12 @@ import com.qualcomm.robotcore.util.Range;
  */
 public class Navigation
 {
+    // DUCK: deliver duck from carousel.
+    // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
+    enum NavigationMode {DUCK, FREIGHT, TELEOP}
+
+    enum AllianceColor {BLUE, RED}
+
     final double SPEED = 1.0;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
@@ -21,11 +28,23 @@ public class Navigation
     // This condition must be maintained (positions should be deleted as the robot travels)
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
-    // TODO: implement a system to keep track of which positions in this attribute are POIs.
     private ArrayList<Position> path;
 
-    public Navigation(ArrayList<Position> path) {
-        this.path = path;
+    public Navigation(NavigationMode navMode, AllianceColor allianceColor) {
+        if (navMode == NavigationMode.TELEOP) {
+            path = new ArrayList<>(Collections.emptyList());
+        }
+        else if (navMode == NavigationMode.DUCK) {
+            path = AutonomousPaths.DUCK_PATH;
+        }
+        else if (navMode == NavigationMode.FREIGHT) {
+            path = AutonomousPaths.FREIGHT_PATH;
+        }
+
+        // NOTE: This may actually have to be the other way around. It depends on which side we do our measurements for.
+        if (allianceColor == AllianceColor.RED) {
+            reflectPath();
+        }
     }
 
     /** Adds a desired position to the path.
@@ -37,7 +56,7 @@ public class Navigation
     /** Adds a desired position to the path at a specific index.
      */
     public void addPosition(Position pos, int index) {
-        path.add(pos, index);
+        path.add(index, pos);
     }
 
     /** Makes the robot travel along the path until it reaches a POI.
@@ -79,7 +98,7 @@ public class Navigation
     private void rotate(double angle, Robot robot) 
     {
         // Assign the original rotation to a variable
-        robot.position.position.rotation;
+        robot.positionManager.position.rotation;
         
         // Set motor powers to start rotating the robot
         robot.rearLeftDrive.setPower();
@@ -108,6 +127,10 @@ public class Navigation
     private double getEuclideanDistance(Point a, Point b) {
         return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
     }
+
+    /** Reflects the path to the other side of the playing field.
+     */
+    private void reflectPath() {}
 
     // PATHFINDING
     // ===========
@@ -281,14 +304,24 @@ public class Navigation
             if(Math.sqrt(Math.pow(end.x-p.get(p.size()-1).x,2)+Math.pow(end.y-p.get(p.size()-1).y,2))<segmentDist)//if the point is less than the distacne of the segments from the end point
                 working=false;//tell the loop to stop
 
-            println("point "+p.size()+" "+p.get(p.size()-1).x+" "+p.get(p.size()-1).y);//write the current point to the console
+//            println("point "+p.size()+" "+p.get(p.size()-1).x+" "+p.get(p.size()-1).y);//write the current point to the console
             itteration++;//increase the itteration
             if(itteration>1000){//if the program is stuck in an infinite loop(too many itterations)
                 return null;//stop the function
             }
         }
-        path.add(end);//add the final point to the path
-        println("point "+p.size()+" "+end.x+" "+end.y);//print the last point of the path to the console
+//        path.add(end);//add the final point to the path
+//        println("point "+p.size()+" "+end.x+" "+end.y);//print the last point of the path to the console
         return p;
     }
+}
+
+
+/** Hardcoded paths through the playing field during the Autonomous period.
+ */
+class AutonomousPaths {
+    public static final ArrayList<Position> DUCK_PATH = new ArrayList<>(Arrays.asList(
+            // Construct Position objects
+    ));
+    public static final ArrayList<Position> FREIGHT_PATH = new ArrayList<>(Arrays.asList());
 }
