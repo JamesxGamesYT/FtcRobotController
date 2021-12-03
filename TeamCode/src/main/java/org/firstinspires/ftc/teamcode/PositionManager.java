@@ -24,13 +24,13 @@ public class PositionManager {
     public static double getRotation(){
         return(rotation);
     }
-    public static void setXcor(double x){
+    public void setXcor(double x){
         xcor = x;
     }
-    public static double setYcor(double y){
+    public void setYcor(double y){
         ycor = y;
     }
-    public static double setRotation(double r){
+    public void setRotation(double r){
         rotation = r;
     }
 =======

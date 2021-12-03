@@ -99,6 +99,11 @@ class CVPositioningPipeline extends OpenCvPipeline {
      *         represents a result of the
      */
     private int processBarcodeFrame(Mat input) {
+        // Constant crop matrix based on how we mount the camera (to try to remove extraneous contours)
+        // Find contours, either by findContours, or by thresholding and doing getConnectedComponents
+        // Loop through each contour found (should be 3; figure out how to ensure this? or just exit if != 3)
+
+
         return -1;
     }
 
