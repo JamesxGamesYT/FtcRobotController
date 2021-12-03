@@ -14,6 +14,8 @@ public class MechanismDriving {
     // task is complete. They should serve an analogous function to that of the switch statement in the second code
     // block of (https://gm0.org/en/latest/docs/software/finite-state-machines.html)
 
+    
+    //TODO re wright this class to deal with a continuous rotation servo
     /** Opens the claw all the way
      */
     public void openClaw(Robot robot) {

@@ -5,10 +5,7 @@ disregard all changes in this version of this class when merging
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.*;
 
 
 /** A finite state of the robot: keeps track of its state (motors and position) and what actions it is doing (enums)
@@ -25,7 +22,7 @@ public class Robot {
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
-    public Servo claw;
+    public CRServo claw;
 
     // Positioning
     public PositionManager position;
@@ -39,7 +36,7 @@ public class Robot {
         carousel = hardwareMap.get(DcMotor.class,"carousel");
         slidesLeft = hardwareMap.get(DcMotor.class, "slides_left");
         slidesRight = hardwareMap.get(DcMotor.class, "slides_right");
-        claw = hardwareMap.get(Servo.class,"claw");
+        claw = hardwareMap.get(CRServo.class,"claw");
 
         slidesRight.setDirection(DcMotorSimple.Direction.FORWARD);
         slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
