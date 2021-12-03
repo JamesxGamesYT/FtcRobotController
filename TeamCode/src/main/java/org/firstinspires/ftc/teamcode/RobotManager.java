@@ -45,8 +45,7 @@ public class RobotManager {
 
         // Detect button releases.
 
-        if (!gamepads.getButtonState(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)
-                && previousStateGamepads.getButtonState(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
+        if (getButtonRelease(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
             if (robot.carouselMotorState == Robot.CarouselMotorState.CHECK_START) {
                 robot.carouselMotorState = Robot.CarouselMotorState.SPIN;
             }
@@ -54,6 +53,33 @@ public class RobotManager {
                 robot.carouselMotorState = Robot.CarouselMotorState.CHECK_START;
             }
         }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW_CUBE)) {
+            robot.clawMotorState = Robot.ClawMotorState.CLOSE_CUBE;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW_SPHERE)) {
+            robot.clawMotorState = Robot.ClawMotorState.CLOSE_SPHERE;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
+            robot.clawMotorState = Robot.ClawMotorState.OPEN;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L0)) {
+            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L0;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L1)) {
+            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L1;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L2)) {
+            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L2;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L3)) {
+            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L3;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L4)) {
+            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L4;
+        }
+
+        previousStateGamepads.copyGamepad1(gamepads.gamepad1);
+        previousStateGamepads.copyGamepad2(gamepads.gamepad2);
     }
 
     /** Calls all non-blocking FSM methods to read from state and act accordingly.
@@ -67,12 +93,18 @@ public class RobotManager {
      */
     public void maneuver(double leftStickX, double leftStickY, double rightStickX) {}
 
+    /** Determines whether the button for a particular action was released in the current OpMode iteration.
+     */
+    private boolean getButtonRelease(GamepadWrapper.DriverAction action) {
+        return !gamepads.getButtonState(action) && previousStateGamepads.getButtonState(action);
+    }
+
     // AUTONOMOUS
     // ==========
 
     /** Moves the robot to the next point of interest.
      */
-    public void goToNextPOI() {}
+    public void travelToNextPOI() {}
 
     /** Determines the position of the capstone on the barcode.
      *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
