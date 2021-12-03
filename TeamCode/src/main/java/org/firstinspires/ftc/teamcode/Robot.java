@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 /** A finite state of the robot: keeps track of its state (motors and position) and what actions it is doing (enums)
@@ -27,7 +28,10 @@ public class Robot {
     // Positioning
     public PositionManager position;
 
-    public Robot(HardwareMap hardwareMap) {
+    // Other
+    public Telemetry telemetry;
+
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right");
         rearLeftDrive = hardwareMap.get(DcMotor.class, "rear_left");
