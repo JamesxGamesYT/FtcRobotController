@@ -84,7 +84,7 @@ public class TestOpMode_Linear extends LinearOpMode {
                 backLeftPower   = dPadPower;
                 BackRightPower  = dPadPower;
             }
-            if(gamepad1.dpad_down){p
+            if(gamepad1.dpad_down){
                 frontLeftPower  = -dPadPower;
                 frontRightPower = -dPadPower;
                 backLeftPower   = -dPadPower;

@@ -3,6 +3,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import java.util.concurrent.TimeUnit;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -66,10 +68,23 @@ public class RobotManager {
     /** Determines the position of the capstone on the barcode.
      *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
      *          farthest from the hub.
-     *
-     *  TODO: figure out a CV system that lets us implement this as a synchronous method; or, figure out a better system.
      */
-    public int readBarcode() { return 0; }
+    public int readBarcode() {
+        robotState.barcodeScanResult = -1;
+        robotState.barcodeScanState = Robot.BarcodeScanState.SCAN;
+        robotState.numBarcodeAttempts = 0;
+
+        while (robotState.barcodeScanState == Robot.BarcodeScanState.SCAN) {
+            try {
+                // Wait for execution on the CV thread to finish
+                TimeUnit.MICROSECONDS.sleep(10);
+            }
+            catch (InterruptedException e) {}
+        }
+
+        return robotState.barcodeScanResult;
+    }
+
 
     // Each of these methods manually sets the robot state so that a specific task is started, and forces these tasks to
     // be synchronous by repeatedly calling the mechanism driving methods. These are to be used in a linear auton opmode.
