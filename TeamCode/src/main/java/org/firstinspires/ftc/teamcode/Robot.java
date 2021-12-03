@@ -4,6 +4,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -27,7 +28,20 @@ public class Robot {
     // Positioning
     public PositionManager position;
 
-    public Robot(HardwareMap hardwareMap) {}
+    public Robot(HardwareMap hardwareMap) {
+        carouselMotorState=CarouselMotorState.STOP;
+        slidesMotorsState=SlidesMotorsState.CHECK_EXTEND;
+        clawMotorState=ClawMotorState.CHECK_OPEN;
+
+        // Initialize hardware.
+        carousel = hardwareMap.get(DcMotor.class,"carousel");
+        slidesLeft = hardwareMap.get(DcMotor.class, "slides_left");
+        slidesRight = hardwareMap.get(DcMotor.class, "slides_right");
+        claw = hardwareMap.get(Servo.class,"claw");
+
+        slidesRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
+    }
 }
 
 

@@ -7,7 +7,7 @@ public class MechanismDriving {
     private boolean carouselActive = false;
     private int slidePosition;
     //TODO get the exact values the slides will; need to move to inorder to be be at the correct levels for the shipping hub
-    public static final int EXTEND1POS=0,EXTEND2POS=0,EXTEND3POS=0,EXTEND4POS=0;
+    public static final int EXTEND1POS=100,EXTEND2POS=200,EXTEND3POS=300,EXTEND4POS=400;
     MechanismDriving() {}
 
     // Each of the following methods should use the current state to determine motor inputs, and change the state once a
