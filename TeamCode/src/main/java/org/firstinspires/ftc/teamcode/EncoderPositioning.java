@@ -5,19 +5,15 @@ package org.firstinspires.ftc.teamcode;
  *  position to add onto.
  */
 public class EncoderPositioning {
-    /** Checks the encoder's DC motors
+    /** Checks the robot's encoders to get an estimate of the distance and direction traveled.
      *  @return a position in the form of a vector from the origin that can be added to an existing measurement
      */
-    private Position updateDeltaEstimate(Robot robot) {return null;}
-
-
-    /** Takes an existing position, either as a param or member (based on existence of robot class)
-     *  @return an absolute position that combines the delta and the reference position
-     */
-    public Position getPositionEstimate(Position position) {return null;}
+    public Position updateDeltaEstimate(Robot robot) {return null;}
 
 
     /** Updates the encoder's position estimate in the robot's PositionManager
      */
-    public void submitEstimate(Robot robot) {}
+    private void submitEstimate(Robot robot, Position delta) {
+        robot.position.updateEncoderPosition(delta);
+    }
 }
