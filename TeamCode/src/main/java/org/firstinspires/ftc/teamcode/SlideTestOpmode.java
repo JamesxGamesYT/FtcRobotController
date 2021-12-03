@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class SlideTestOpmode extends LinearOpMode {
     @Override
     public void runOpMode() {
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
         Robot robot =new Robot(hardwareMap);
         MechanismDriving mechs=new MechanismDriving();
 
@@ -30,6 +32,9 @@ public class SlideTestOpmode extends LinearOpMode {
             if(gamepad1.left_bumper&&robot.slidesMotorsState== Robot.SlidesMotorsState.CHECK_EXTEND){
                 robot.slidesMotorsState= Robot.SlidesMotorsState.EXTEND_4;
             }
+
+            telemetry.addData("encoders", "carousel "+robot.carousel.getCurrentPosition()+" slidesLeft "+robot.slidesLeft.getCurrentPosition()+" slidesRight "+robot.slidesRight.getCurrentPosition());
+            telemetry.update();
         }
     }
 }
