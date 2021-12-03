@@ -8,6 +8,10 @@ public class Position {
     /** Stores an x/y coordinate.
      *  @see Point for more information
      */
-    private Point location;
-    private double rotation;
+    public Point location;
+    public double rotation;
+
+    public boolean equals(Position a) {
+        return a.location.x == this.location.x && a.location.y == this.location.y;
+    }
 }

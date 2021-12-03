@@ -7,6 +7,17 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+import org.jetbrains.annotations.NotNull;
 
 
 /** Keeps track of the robot's desired path and makes it follow it accurately.
@@ -23,17 +34,23 @@ public class Navigation
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     // TODO: implement a system to keep track of which positions in this attribute are POIs.
-    private ArrayList<Position> path = new ArrayList<>();
+    private ArrayList<Position> path;
 
-    public Navigation(ArrayList<Position> path) {}
+    public Navigation(ArrayList<Position> path) {
+        this.path = path;
+    }
 
     /** Adds a desired position to the path.
      */
-    public void addPosition(Position loc) {}
+    public void addPosition(Position pos) {
+        path.add(pos);
+    }
 
     /** Adds a desired position to the path at a specific index.
      */
-    public void addPosition(Position loc, int index) {}
+    public void addPosition(Position pos, int index) {
+        path.add(pos, index);
+    }
 
     /** Makes the robot travel along the path until it reaches a POI.
      */
@@ -63,13 +80,13 @@ public class Navigation
         turn = rightStickX;
         if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
             turn = 0;
-        }
+        }  
         turn /= 2.0;  // Scale input sensitivity.
-
+  
         moveDirection = Math.atan2(leftStickY, leftStickX);
 
         power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)),0,1);
-        if (power <= 0.05){ // joystick dead zone
+        if (power <= 0.05) { // joystick dead zone
             power = 0;
         }
 
@@ -89,17 +106,79 @@ public class Navigation
 
     /** Rotates the robot a number of degrees.
      */
-    private void rotate(double angle, Robot robot) {}
+    private void rotate(double angle, Robot robot) 
+    {
+        // Assign the original rotation to a variable
+        robot.position.position.rotation;
+        
+        // Set motor powers to start rotating the robot
+        robot.rearLeftDrive.setPower();
+        // Wait until the robot is rotated to the desired angle.
+        while (/*rotation is not done*/) {
+            TimeUnit.SECONDS.sleep(1);
+        }
+    }
 
     /** Makes the robot travel in a straight line for a certain distance.
-     *  @param dist The distance the robot should travel.
+     *  @param desiredPosition The desired position of the robot.
      *  @param angle The angle in which the robot will strafe.
+     *  @param travelDirection The direction in which the robot will be traveling once it has turned to the desired angle.
      */
-    private void travelLinear(double dist, double angle, Robot robot) {}
+    private void travelLinear(Position desiredPosition, double angle, @NotNull TravelDirection travelDirection, double generalPower, Robot robot) throws InterruptedException {
+        double frontLeftPower = 0; double frontRightPower = 0; double rearLeftPower = 0; double rearRightPower = 0;
+
+        switch(travelDirection) {
+            case FORWARD:
+                frontLeftPower = generalPower;
+                frontRightPower = generalPower;
+                rearLeftPower = generalPower;
+                rearRightPower = generalPower;
+                break;
+            case REVERSE:
+                frontLeftPower = -generalPower;
+                frontRightPower = -generalPower;
+                rearLeftPower = -generalPower;
+                rearRightPower = -generalPower;
+                break;
+            case LEFT:
+                frontLeftPower = -generalPower;
+                frontRightPower = generalPower;
+                rearLeftPower = generalPower;
+                rearRightPower = -generalPower;
+                break;
+            case RIGHT:
+                frontLeftPower = generalPower;
+                frontRightPower = -generalPower;
+                rearLeftPower = -generalPower;
+                rearRightPower = generalPower;
+                break;
+        }
+
+        robot.frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+        robot.frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
+        robot.rearLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+        robot.rearRightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        rotate(angle, robot);
+
+        robot.frontLeftDrive.setPower(frontLeftPower);
+        robot.frontRightDrive.setPower(frontRightPower);
+        robot.rearLeftDrive.setPower(rearLeftPower);
+        robot.rearRightDrive.setPower(rearRightPower);
+
+        while(!robot.position.equals(desiredPosition)) {
+            TimeUnit.SECONDS.sleep(1);
+        }
+
+        robot.frontLeftDrive.setPower(0);
+        robot.frontRightDrive.setPower(0);
+        robot.rearLeftDrive.setPower(0);
+        robot.rearRightDrive.setPower(0);
+    }
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
      */
-    private double getAngleBetween(Point a, Point b) { return 0.0; }
+    private double getAngleBetween(Point a, Point b) { return Math.atan((b.y-a.y)/(b.x-a.x)); }
 
     /** Calculates the euclidean distance between two points.
      *
