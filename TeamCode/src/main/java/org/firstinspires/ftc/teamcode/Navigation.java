@@ -52,16 +52,25 @@ public class Navigation
 
     /** Makes the robot travel along the path until it reaches a POI.
      */
-    public void travelToNextPOI(Robot robot) {
-        // Repeat until at POI:
-        // - realPos = <get position from robot>
-        // - while realPos and path[0] are not within epsilon values:
-        //     - angle = getAngleBetween(currentPosition, path[0])
-        //     - dist = getEuclideanDistance(currentPosition, path[0])
-        //     - travelLinear(angle, dist)
-        //     - rotate(desiredRotation - currentRotation)
-        //     - update realPos
-        // - remove path[0] from path
+    public void travelToNextPOI(TravelDirection travelDirection, Robot robot) {
+        double angle;
+        switch(travelDirection) {
+            case FORWARD:
+                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-robot.position.rotation;
+                break;
+            case REVERSE:
+                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI);
+                break;
+            case LEFT:
+                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation-Math.PI/2);
+                break;
+            case RIGHT:
+                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI/2);
+                break;
+        }
+
+        rotate(angle, robot);
+        travelLinear(path.get(0), travelDirection, 1, robot);
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
@@ -81,7 +90,7 @@ public class Navigation
         double frontLeftPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
         double frontRightPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
         double backLeftPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double backRightPower= Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
+        double backRightPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
     }
 
     /** Rotates the robot a number of degrees.
@@ -90,13 +99,49 @@ public class Navigation
     {
         // Assign the original rotation to a variable
         robot.position.position.rotation;
-        
-        // Set motor powers to start rotating the robot
-        robot.rearLeftDrive.setPower();
-        // Wait until the robot is rotated to the desired angle.
-        while (/*rotation is not done*/) {
-            TimeUnit.SECONDS.sleep(1);
+
+        double rotationPowerPositive = angle/360;
+        double rotationPowerNegative = -1*angle/360;
+
+
+        if(angle > 0)
+        {
+            //going backwards
+            robot.rearLeftDrive.setPower(rotationPowerNegative);
+            robot.frontLeftDrive.setPower(rotationPowerNegative);
+            //going forwards
+            robot.rearRightDrive.setPower(rotationPowerPositive);
+            robot.frontRightDrive.setPower(rotationPowerPositive);
+
         }
+        else
+        {
+            //going forwards
+            robot.rearLeftDrive.setPower(rotationPowerPositive);
+            robot.frontLeftDrive.setPower(rotationPowerPositive);
+            //going backwards
+            robot.rearRightDrive.setPower(rotationPowerNegative);
+            robot.frontRightDrive.setPower(rotationPowerNegative);
+        }
+
+
+        // Wait until the robot is rotated to the desired angle.
+
+        double rotationPosition;
+        double finalRotation;
+
+        //checking/reading position (is incomplete)
+        //while (rotationPosition != finalRotationPosition /*rotation is not done*/)
+        //{
+            //reads position
+            //robot.position.position.rotation;
+            // TODO: update robot position
+            //rotation = 0.0;  // TODO: replace this with actually reading the robot's rotation
+            //TimeUnit.MILLISECONDS.sleep(30);
+        //}
+
+
+
     }
 
     /** Makes the robot travel in a straight line for a certain distance.
@@ -104,8 +149,9 @@ public class Navigation
      *  @param angle The angle in which the robot will strafe.
      *  @param travelDirection The direction in which the robot will be traveling once it has turned to the desired angle.
      */
-    private void travelLinear(Position desiredPosition, double angle, @NotNull TravelDirection travelDirection, double generalPower, Robot robot) throws InterruptedException {
+    private void travelLinear(Position desiredPosition, @NotNull TravelDirection travelDirection, double generalPower, Robot robot) throws InterruptedException {
         double frontLeftPower = 0; double frontRightPower = 0; double rearLeftPower = 0; double rearRightPower = 0;
+        Point origPoint = robot.position.location;
 
         switch(travelDirection) {
             case FORWARD:
@@ -134,26 +180,47 @@ public class Navigation
                 break;
         }
 
-        robot.frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        robot.frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
-        robot.rearLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        robot.rearRightDrive.setDirection(DcMotor.Direction.REVERSE);
-
-        rotate(angle, robot);
-
         robot.frontLeftDrive.setPower(frontLeftPower);
         robot.frontRightDrive.setPower(frontRightPower);
         robot.rearLeftDrive.setPower(rearLeftPower);
         robot.rearRightDrive.setPower(rearRightPower);
 
-        while(!robot.position.equals(desiredPosition)) {
-            TimeUnit.SECONDS.sleep(1);
-        }
+        if (robot.position.location.x == desiredPosition.location.x && robot.position.location.y == desiredPosition.location.y) {
+            robot.frontLeftDrive.setPower(0);
+            robot.frontRightDrive.setPower(0);
+            robot.rearLeftDrive.setPower(0);
+            robot.rearRightDrive.setPower(0);
+        } else if (Math.atan2(desiredPosition.y-robot.position.location.y, desiredPosition.x-robot.position.location.x) == Math.atan2(desiredPosition.y-origPoint.y, desiredPosition.x-origPoint.x)) {
+            TimeUnit.MILLISECONDS.sleep(30);
+        } else {
+            robot.frontLeftDrive.setPower(0);
+            robot.frontRightDrive.setPower(0);
+            robot.rearLeftDrive.setPower(0);
+            robot.rearRightDrive.setPower(0);
 
-        robot.frontLeftDrive.setPower(0);
-        robot.frontRightDrive.setPower(0);
-        robot.rearLeftDrive.setPower(0);
-        robot.rearRightDrive.setPower(0);
+            double angle;
+            switch(travelDirection) {
+                case FORWARD:
+                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-robot.position.rotation;
+                    break;
+                case REVERSE:
+                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI);
+                    break;
+                case LEFT:
+                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation-Math.PI/2);
+                    break;
+                case RIGHT:
+                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI/2);
+                    break;
+            }
+
+            rotate(angle, robot);
+
+            robot.frontLeftDrive.setPower(frontLeftPower);
+            robot.frontRightDrive.setPower(frontRightPower);
+            robot.rearLeftDrive.setPower(rearLeftPower);
+            robot.rearRightDrive.setPower(rearRightPower);
+        }
     }
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
