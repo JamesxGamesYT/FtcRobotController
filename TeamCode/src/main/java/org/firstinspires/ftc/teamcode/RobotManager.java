@@ -1,6 +1,10 @@
 /* Authors: Arin Khare, Kai Vernooy
  */
 
+// TODO: claw should have similar system to linear slides with setting the position to a particular value rather than
+//       opening and closing.
+// TODO: test if servo setPosition is blocking or non-blocking because that changes things with the FSM
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;

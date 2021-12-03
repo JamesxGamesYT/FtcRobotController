@@ -8,6 +8,7 @@ public class MechanismDriving {
     private int slidePosition;
     //TODO get the exact values the slides will; need to move to inorder to be be at the correct levels for the shipping hub
     public static final int EXTEND1POS=0,EXTEND2POS=0,EXTEND3POS=0,EXTEND4POS=0;
+    public static final double CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0;
     MechanismDriving() {}
 
     // Each of the following methods should use the current state to determine motor inputs, and change the state once a
@@ -63,7 +64,7 @@ public class MechanismDriving {
      */
     public void update(Robot robot) {
         switch(robot.carouselMotorState){//check the carousel motor state and then use the information to activate or deactivate it
-            case STOP:
+            case CHECK_START:
                 activateCarousel(robot,false);
                 break;
             case SPIN:
@@ -80,8 +81,12 @@ public class MechanismDriving {
                 openClaw(robot);//TODO find the exact value the claw will need to be opened to
                 robot.clawMotorState= Robot.ClawMotorState.CHECK_CLOSE;
                 break;
-            case CLOSE:
-                closeClaw(robot);
+            case CLOSE_CUBE:
+                openClaw(robot, CLAW_CUBE_POS);
+                robot.clawMotorState= Robot.ClawMotorState.CHECK_OPEN;
+                break;
+            case CLOSE_SPHERE:
+                openClaw(robot, CLAW_SPHERE_POS);
                 robot.clawMotorState= Robot.ClawMotorState.CHECK_OPEN;
                 break;
 
@@ -93,23 +98,23 @@ public class MechanismDriving {
                 break;
             case EXTEND_1:
                 setSlidePosition(robot,EXTEND1POS);
-                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_SET_LEVEL;
                 break;
             case EXTEND_2:
                 setSlidePosition(robot,EXTEND2POS);
-                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_SET_LEVEL;
                 break;
             case EXTEND_3:
                 setSlidePosition(robot,EXTEND3POS);
-                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_SET_LEVEL;
                 break;
             case EXTEND_4:
                 setSlidePosition(robot,EXTEND4POS);
-                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_RETRACT;
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_SET_LEVEL;
                 break;
             case RETRACT:
                 setSlidePosition(robot,0);
-                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_EXTEND;
+                robot.slidesMotorsState= Robot.SlidesMotorsState.CHECK_SET_LEVEL;
                 break;
         }
 

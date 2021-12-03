@@ -42,10 +42,10 @@ public class FreightFrenzyAuton extends LinearOpMode {
         String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
 
         if (allianceColor.equals("BLUE")) {
-            allianceColor = Navigation.AllianceColor.BLUE;
+            this.allianceColor = Navigation.AllianceColor.BLUE;
         }
         else if (allianceColor.equals("RED")) {
-            allianceColor = Navigation.AllianceColor.RED;
+            this.allianceColor = Navigation.AllianceColor.RED;
         }
 
         if (autonMode.equals("DUCK")) {
