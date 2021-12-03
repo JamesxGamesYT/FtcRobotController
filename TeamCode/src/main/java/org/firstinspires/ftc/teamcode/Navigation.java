@@ -4,6 +4,8 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.qualcomm.robotcore.util.Range;
+
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -66,22 +68,40 @@ public class Navigation
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY, Robot robot) {
-        double g1StickLY = -leftStickY;
-        double g1StickLX = leftStickX;
+    public void maneuver(double leftStickX, double leftStickY, double rightStickX, Robot robot) {
+        // Uses left stick to go forward, and right stick to turn.
+        // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
+        //       upon initialization.
 
-        double g1StickLDirection=Math.atan2(g1StickLY,g1StickLX);//get the angle the left stick is at
+        double moveDirection, power, turn, sinMoveDirection, cosMoveDirection, frontLeftPower, frontRightPower,
+                rearLeftPower, rearRightPower;
 
-        double generalPower=Range.clip(Math.sqrt(Math.pow(g1StickLX,2)+Math.pow(g1StickLY,2)),0,1);
-        if(generalPower<=0.05){//joystick dead zone
-            generalPower=0;
+        leftStickY = -leftStickY;  // Y coordinate is reversed.
+        turn = rightStickX;
+        if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
+            turn = 0;
+        }  
+        turn /= 2.0;  // Scale input sensitivity.
+  
+        moveDirection = Math.atan2(leftStickY, leftStickX);
+
+        power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)),0,1);
+        if (power <= 0.05) { // joystick dead zone
+            power = 0;
         }
 
-        //set the power for each wheel absed on the angle of the stick and how far the stick is from center
-        double frontLeftPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double frontRightPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double backLeftPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double backRightPower= Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
+        sinMoveDirection = Math.sin(moveDirection);
+        cosMoveDirection = Math.cos(moveDirection);
+
+        // Set the power for each wheel based on the angle of the stick and how far the stick is from center
+        frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power + turn;
+        frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power - turn;
+        rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
+        rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power - turn;
+
+        robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
+        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
+        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)", rearLeftPower, rearRightPower);
     }
 
     /** Rotates the robot a number of degrees.
@@ -342,14 +362,14 @@ public class Navigation
             if(Math.sqrt(Math.pow(end.x-p.get(p.size()-1).x,2)+Math.pow(end.y-p.get(p.size()-1).y,2))<segmentDist)//if the point is less than the distacne of the segments from the end point
                 working=false;//tell the loop to stop
 
-            println("point "+p.size()+" "+p.get(p.size()-1).x+" "+p.get(p.size()-1).y);//write the current point to the console
+//            println("point "+p.size()+" "+p.get(p.size()-1).x+" "+p.get(p.size()-1).y);//write the current point to the console
             itteration++;//increase the itteration
             if(itteration>1000){//if the program is stuck in an infinite loop(too many itterations)
                 return null;//stop the function
             }
         }
-        path.add(end);//add the final point to the path
-        println("point "+p.size()+" "+end.x+" "+end.y);//print the last point of the path to the console
+//        path.add(end);//add the final point to the path
+//        println("point "+p.size()+" "+end.x+" "+end.y);//print the last point of the path to the console
         return p;
     }
 }
