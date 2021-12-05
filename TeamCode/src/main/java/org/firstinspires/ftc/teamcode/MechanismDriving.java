@@ -10,7 +10,11 @@ public class MechanismDriving {
     //       get exact values for the claw as well when open, holding a sphere, and holding a cube
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 100, LEVEL2_POS = 200, LEVEL3_POS = 300, CAPPING_POS = 400;
     public static final double CLAW_OPEN_POS = 0.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0;
-    public static final double EPSILON = 0.001;
+    // How long the carousel motor must be spinning for in order to deliver the duck.
+    public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
+    // How long it takes for the claw servo to be guaranteed to have moved to its new position.
+    public static final long CLAW_SERVO_TIME = 500;
+    public static final double EPSILON = 0.001;  // For floating point comparison.
 
     MechanismDriving() {}
 
@@ -54,8 +58,10 @@ public class MechanismDriving {
     }
 
     /** Sets slide motor powers to move in direction of desired position, if necessary.
+     *
+     * @return whether the slides are in the desired position.
      */
-    public void updateSlides(Robot robot) {
+    public boolean updateSlides(Robot robot) {
 
         switch(robot.desiredSlidesState){
             case RETRACTED:
@@ -113,6 +119,10 @@ public class MechanismDriving {
         if (Math.abs(robot.slidesRight.getCurrentPosition() - desiredSlidePosition) < EPSILON) {
             robot.slidesLeft.setPower(0);
             robot.slidesRight.setPower(0);
+            return true;
+        }
+        else {
+            return false;
         }
     }
 }

@@ -75,22 +75,7 @@ public class Navigation
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY, Robot robot) {
-        double g1StickLY = -leftStickY;
-        double g1StickLX = leftStickX;
-
-        double g1StickLDirection=Math.atan2(g1StickLY,g1StickLX);//get the angle the left stick is at
-
-        double generalPower=Range.clip(Math.sqrt(Math.pow(g1StickLX,2)+Math.pow(g1StickLY,2)),0,1);
-        if(generalPower<=0.05){//joystick dead zone
-            generalPower=0;
-        }
-
-        //set the power for each wheel absed on the angle of the stick and how far the stick is from center
-        double frontLeftPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double frontRightPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double backLeftPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
-        double BackRightPower= Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
+    public void maneuver(JoystickValues joystickValues, Robot robot) {
     }
 
     /** Rotates the robot a number of degrees.

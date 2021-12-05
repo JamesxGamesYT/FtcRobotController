@@ -1,10 +1,6 @@
 /* Authors: Arin Khare, Kai Vernooy
  */
 
-// TODO: claw should have similar system to linear slides with setting the position to a particular value rather than
-//       opening and closing.
-// TODO: test if servo setPosition is blocking or non-blocking because that changes things with the FSM
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -103,11 +99,10 @@ public class RobotManager {
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
-     * @param leftStickX the left stick x-axis
-     * @param leftStickY the left stick y-axis
-     * @param rightStickX the right stick x-axis
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX) {}
+    public void maneuver() {
+        navigation.maneuver(gamepads.getJoystickValues(), robot);
+    }
 
     /** Determines whether the button for a particular action was released in the current OpMode iteration.
      */
@@ -135,14 +130,48 @@ public class RobotManager {
 
     /** Delivers a duck by spinning the carousel.
      */
-    public void deliverDuck() {}
+    public void deliverDuck() {
+        robot.desiredCarouselState = Robot.CarouselState.SPINNING;
+        mechanismDriving.updateCarousel(robot);
+        try {
+            Thread.sleep(MechanismDriving.DUCK_SPIN_TIME);
+        } catch (InterruptedException e) {}
+        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+    }
 
-    /** Picks up a piece of freight from the warehouse.
+    /** Grabs a cube piece of freight using the claw.
      */
-    public void obtainFreight() {}
+    public void grabCube() {
+        robot.desiredClawState = Robot.ClawState.CUBE;
+        mechanismDriving.updateClaw(robot);
+        try {
+            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
+        } catch (InterruptedException e) {}
+    }
+
+    /** Grabs a sphere piece of freight using the claw.
+     */
+    public void grabSphere() {
+        robot.desiredClawState = Robot.ClawState.SPHERE;
+        mechanismDriving.updateClaw(robot);
+        try {
+            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
+        } catch (InterruptedException e) {}
+    }
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
-     * @param level the level to witch the cargo needs to be delivered 1-bottom level 2-middle level 3-top level
+     *
+     *  @param level the level to which the cargo needs to be delivered.
      */
-    public void deliverToShippingHub(int level) {}
+    public void deliverToShippingHub(Robot.SlidesState level) {
+        robot.desiredSlidesState = level;
+        boolean extended = mechanismDriving.updateSlides(robot);
+        while (!extended) {
+            extended = mechanismDriving.updateSlides(robot);
+        }
+        robot.desiredClawState = Robot.ClawState.OPEN;
+        try {
+            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
+        } catch (InterruptedException e) {}
+    }
 }
