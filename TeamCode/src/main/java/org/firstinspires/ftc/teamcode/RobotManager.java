@@ -7,7 +7,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -44,42 +43,51 @@ public class RobotManager {
     public void readControllerInputs() {
         // First iteration of OpMode, there's no way there was a button release.
         if (previousStateGamepads.firstIteration) {
+            previousStateGamepads.copyGamepad1(gamepads.gamepad1);
+            previousStateGamepads.copyGamepad2(gamepads.gamepad2);
             return;
         }
 
         // Detect button releases.
 
+        // Carousel
         if (getButtonRelease(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
-            if (robot.carouselMotorState == Robot.CarouselMotorState.CHECK_START) {
-                robot.carouselMotorState = Robot.CarouselMotorState.SPIN;
-            }
-            else {
-                robot.carouselMotorState = Robot.CarouselMotorState.CHECK_START;
+            switch (robot.desiredCarouselState) {
+                case STOPPED:
+                    robot.desiredCarouselState = Robot.CarouselState.SPINNING;
+                    break;
+                case SPINNING:
+                    robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+                    break;
             }
         }
-        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW_CUBE)) {
-            robot.clawMotorState = Robot.ClawMotorState.SET_CLOSE_CUBE;
+
+        // Claw
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_CUBE)) {
+            robot.desiredClawState = Robot.ClawState.CUBE;
         }
-        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW_SPHERE)) {
-            robot.clawMotorState = Robot.ClawMotorState.SET_CLOSE_SPHERE;
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_SPHERE)) {
+            robot.desiredClawState = Robot.ClawState.SPHERE;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
-            robot.clawMotorState = Robot.ClawMotorState.SET_OPEN;
+            robot.desiredClawState = Robot.ClawState.OPEN;
         }
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L0)) {
-            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L0;
+
+        // Linear slides
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_RETRACTED)) {
+            robot.desiredSlidesState = Robot.SlidesState.RETRACTED;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L1)) {
-            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L1;
+            robot.desiredSlidesState = Robot.SlidesState.L1;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L2)) {
-            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L2;
+            robot.desiredSlidesState = Robot.SlidesState.L2;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L3)) {
-            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L3;
+            robot.desiredSlidesState = Robot.SlidesState.L3;
         }
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L4)) {
-            robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L4;
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_CAPPING)) {
+            robot.desiredSlidesState = Robot.SlidesState.CAPPING;
         }
 
         previousStateGamepads.copyGamepad1(gamepads.gamepad1);
@@ -88,7 +96,11 @@ public class RobotManager {
 
     /** Calls all non-blocking FSM methods to read from state and act accordingly.
      */
-    public void driveMechanisms() {}
+    public void driveMechanisms() {
+        mechanismDriving.updateCarousel(robot);
+        mechanismDriving.updateClaw(robot);
+        mechanismDriving.updateSlides(robot);
+    }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      * @param leftStickX the left stick x-axis

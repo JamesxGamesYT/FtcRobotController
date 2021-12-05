@@ -11,22 +11,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-/** A finite state of the robot: keeps track of its state (motors and position) and what actions it is doing (enums)
+/** Stores the Robot's hardware and position.
+ *  Also has a "desired state" for mechanism driving.
  */
 public class Robot {
-    // TODO: merge mechanism-driving into this branch to make necessary changes for the new enum values.
-
     // Finite state machine
-    public enum CarouselMotorState {CHECK_START, SPIN}
-    // NOTE: changed from "extend"-based to "set"-based so that movement from any state to any other state is possible
-    // during TeleOp without the intermediate step of fully retracting the slides, which was necessary in the previous
-    // method. This will come in handy if the driver in TeleOp makes a mistake and raises the slides to the wrong level.
-    public enum SlidesMotorsState {CHECK_SET_LEVEL, SET_L0, SET_L1, SET_L2, SET_L3, SET_L4}
-    public enum ClawMotorState {CHECK_SET_POSITION, SET_OPEN, SET_CLOSE_CUBE, SET_CLOSE_SPHERE}
+    public enum CarouselState {STOPPED, SPINNING}
+    public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
+    public enum ClawState {OPEN, SPHERE, CUBE}
 
-    public CarouselMotorState carouselMotorState;
-    public SlidesMotorsState slidesMotorsState;
-    public ClawMotorState clawMotorState;
+    public CarouselState desiredCarouselState;
+    public SlidesState desiredSlidesState;
+    public ClawState desiredClawState;
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
@@ -36,10 +32,10 @@ public class Robot {
     public PositionManager positionManager;
 
     public Robot(HardwareMap hardwareMap) {
-        // Initialize states.
-        carouselMotorState = CarouselMotorState.CHECK_START;
-        slidesMotorsState = SlidesMotorsState.CHECK_SET_LEVEL;
-        clawMotorState = ClawMotorState.CHECK_SET_POSITION;
+        // Initialize desired states.
+        desiredCarouselState = CarouselState.STOPPED;
+        desiredSlidesState = SlidesState.RETRACTED;
+        desiredClawState = ClawState.OPEN;
 
         // Initialize hardware.
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
@@ -55,6 +51,13 @@ public class Robot {
         rearLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
         rearRightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rearRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Initialize position manager.
         positionManager = new PositionManager();

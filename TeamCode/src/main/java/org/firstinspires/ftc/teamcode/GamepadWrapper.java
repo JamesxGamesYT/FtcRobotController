@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 /** Wraps a gamepad so that button mappings are stored in one place.
  */
 public class GamepadWrapper {
-    public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_L0, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
-                              SET_SLIDES_L4, OPEN_CLAW, CLOSE_CLAW_SPHERE, CLOSE_CLAW_CUBE}
+    public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
+                              SET_SLIDES_CAPPING, OPEN_CLAW, SET_CLAW_SPHERE, SET_CLAW_CUBE}
 
     Gamepad gamepad1, gamepad2;
     boolean firstIteration;
@@ -50,7 +50,7 @@ public class GamepadWrapper {
         switch (driverAction) {
             case START_STOP_CAROUSEL:
                 return gamepad2.a;
-            case SET_SLIDES_L0:
+            case SET_SLIDES_RETRACTED:
                 return gamepad2.dpad_down;
             case SET_SLIDES_L1:
                 return gamepad2.dpad_left;
@@ -58,13 +58,13 @@ public class GamepadWrapper {
                 return gamepad2.dpad_right;
             case SET_SLIDES_L3:
                 return gamepad2.dpad_up;
-            case SET_SLIDES_L4:
+            case SET_SLIDES_CAPPING:
                 return gamepad2.right_bumper;
             case OPEN_CLAW:
                 return gamepad2.b;
-            case CLOSE_CLAW_SPHERE:
+            case SET_CLAW_SPHERE:
                 return gamepad2.x;
-            case CLOSE_CLAW_CUBE:
+            case SET_CLAW_CUBE:
                 return gamepad2.y;
         }
         return false;  // Is this good practice? I just put it here because IntelliJ was upset.
