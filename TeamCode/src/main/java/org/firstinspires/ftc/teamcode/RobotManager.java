@@ -58,13 +58,13 @@ public class RobotManager {
             }
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW_CUBE)) {
-            robot.clawMotorState = Robot.ClawMotorState.CLOSE_CUBE;
+            robot.clawMotorState = Robot.ClawMotorState.SET_CLOSE_CUBE;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW_SPHERE)) {
-            robot.clawMotorState = Robot.ClawMotorState.CLOSE_SPHERE;
+            robot.clawMotorState = Robot.ClawMotorState.SET_CLOSE_SPHERE;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
-            robot.clawMotorState = Robot.ClawMotorState.OPEN;
+            robot.clawMotorState = Robot.ClawMotorState.SET_OPEN;
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L0)) {
             robot.slidesMotorsState = Robot.SlidesMotorsState.SET_L0;

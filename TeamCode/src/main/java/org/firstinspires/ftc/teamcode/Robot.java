@@ -20,9 +20,9 @@ public class Robot {
     public enum CarouselMotorState {CHECK_START, SPIN}
     // NOTE: changed from "extend"-based to "set"-based so that movement from any state to any other state is possible
     // during TeleOp without the intermediate step of fully retracting the slides, which was necessary in the previous
-    // method. This will come in handy if the drive in TeleOp makes a mistake and raises the slides to the wrong level.
+    // method. This will come in handy if the driver in TeleOp makes a mistake and raises the slides to the wrong level.
     public enum SlidesMotorsState {CHECK_SET_LEVEL, SET_L0, SET_L1, SET_L2, SET_L3, SET_L4}
-    public enum ClawMotorState {CHECK_OPEN, OPEN, CHECK_CLOSE, CLOSE_CUBE, CLOSE_SPHERE}
+    public enum ClawMotorState {CHECK_SET_POSITION, SET_OPEN, SET_CLOSE_CUBE, SET_CLOSE_SPHERE}
 
     public CarouselMotorState carouselMotorState;
     public SlidesMotorsState slidesMotorsState;
@@ -39,7 +39,7 @@ public class Robot {
         // Initialize states.
         carouselMotorState = CarouselMotorState.CHECK_START;
         slidesMotorsState = SlidesMotorsState.CHECK_SET_LEVEL;
-        clawMotorState = ClawMotorState.CHECK_CLOSE;
+        clawMotorState = ClawMotorState.CHECK_SET_POSITION;
 
         // Initialize hardware.
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
