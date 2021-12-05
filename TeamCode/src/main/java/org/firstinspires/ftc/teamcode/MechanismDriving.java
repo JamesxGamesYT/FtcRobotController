@@ -7,7 +7,7 @@ public class MechanismDriving {
     private boolean carouselActive = false;
     private int slidePosition;
     //TODO get the exact values the slides will; need to move to inorder to be be at the correct levels for the shipping hub
-    public static final int EXTEND1POS=0,EXTEND2POS=0,EXTEND3POS=0,EXTEND4POS=0;
+    public static final int EXTEND1POS=100,EXTEND2POS=200,EXTEND3POS=300,EXTEND4POS=400;
     public static final double CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0;
     MechanismDriving() {}
 
@@ -15,6 +15,8 @@ public class MechanismDriving {
     // task is complete. They should serve an analogous function to that of the switch statement in the second code
     // block of (https://gm0.org/en/latest/docs/software/finite-state-machines.html)
 
+
+    //TODO re wright this class to deal with a continuous rotation servo
     /** Opens the claw all the way
      */
     public void openClaw(Robot robot) {
