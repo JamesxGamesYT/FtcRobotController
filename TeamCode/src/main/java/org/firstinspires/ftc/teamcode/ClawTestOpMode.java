@@ -9,8 +9,8 @@ public class ClawTestOpMode extends LinearOpMode{
         public void runOpMode() {
             telemetry.addData("Status", "Initialized");
             telemetry.update();
-            Robot robot =new Robot(hardwareMap);
-            MechanismDriving mechs=new MechanismDriving();
+            Robot robot = new Robot(hardwareMap);
+            MechanismDriving mechs = new MechanismDriving();
 
             waitForStart();//wait for the play button to be pressed
 
@@ -24,7 +24,7 @@ public class ClawTestOpMode extends LinearOpMode{
                     robot.clawMotorState = Robot.ClawMotorState.CLOSE;
                 }
 
-                //telemetry.addData("servo position", " claw "+robot.claw.getPosition());
+                telemetry.addData("Claw info", "State: " + robot.clawMotorState + "; Servo position: " + robot.claw.getPosition() + ";"); //Was there something about how a servo with a position could not be used here?
                 telemetry.update();
             }
         }
