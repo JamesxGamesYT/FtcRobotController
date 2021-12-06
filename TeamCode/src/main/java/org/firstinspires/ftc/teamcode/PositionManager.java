@@ -1,48 +1,16 @@
-<<<<<<< HEAD
-package org.firstinspires.ftc.teamcode;
-
-public class PositionManager {
-    private static double xcor;
-    private static double ycor;
-    private static double rotation;
-    PositionManager(){
-        xcor = 0;
-        ycor = 0;
-        rotation = 0;
-    }
-    PositionManager(double x, double y, double r){
-        xcor = x;
-        ycor = y;
-        rotation = r;
-    }
-    public static double getXcor(){
-        return(xcor);
-    }
-    public static double getYcor(){
-        return(ycor);
-    }
-    public static double getRotation(){
-        return(rotation);
-    }
-    public void setXcor(double x){
-        xcor = x;
-    }
-    public void setYcor(double y){
-        ycor = y;
-    }
-    public void setRotation(double r){
-        rotation = r;
-    }
-=======
-/* Authors: Arin Khare, Kai Vernooy
- */
-
-
 package org.firstinspires.ftc.teamcode;
 
 /** Incorporates estimates from two sources (CV positioning and encoders) to create a single positioning estimate
  */
 public class PositionManager {
+    PositionManager() {
+        position = new Position();
+    }
+
+    PositionManager(double x, double y, double r){
+        position = new Position(x, y, r);
+    }
+
     public Position position;
 
     /** Adds new detected encoder movement change to both a temporary encoderDelta variable and to the overall position attribute
@@ -60,5 +28,4 @@ public class PositionManager {
 
     private Position encoderDelta;
     private Position cvEstimate;
->>>>>>> origin/positioning
 }
