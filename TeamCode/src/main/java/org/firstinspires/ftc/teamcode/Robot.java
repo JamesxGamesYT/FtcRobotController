@@ -40,6 +40,11 @@ public class Robot {
 
         slidesRight.setDirection(DcMotorSimple.Direction.FORWARD);
         slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slidesRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slidesLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 }
 
