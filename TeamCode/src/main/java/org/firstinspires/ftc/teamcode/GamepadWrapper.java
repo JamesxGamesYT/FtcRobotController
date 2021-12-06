@@ -13,31 +13,21 @@ public class GamepadWrapper {
                               SET_SLIDES_CAPPING, OPEN_CLAW, SET_CLAW_SPHERE, SET_CLAW_CUBE}
 
     Gamepad gamepad1, gamepad2;
-    boolean firstIteration;
 
     public GamepadWrapper(Gamepad gamepad1, Gamepad gamepad2) {
         this.gamepad1 = gamepad1;
         this.gamepad2 = gamepad2;
-        firstIteration = true;
     }
 
     public GamepadWrapper() {
         this.gamepad1 = new Gamepad();
         this.gamepad2 = new Gamepad();
-        firstIteration = true;
     }
 
-    public void copyGamepad1(Gamepad gamepad) {
+    public void copyGamepads(GamepadWrapper gamepadWrapper) {
         try {
-            this.gamepad1.copy(gamepad);
-            firstIteration = false;
-        } catch (RobotCoreException e) {}
-    }
-
-    public void copyGamepad2(Gamepad gamepad) {
-        try {
-            this.gamepad2.copy(gamepad);
-            firstIteration = false;
+            this.gamepad1.copy(gamepadWrapper.gamepad1);
+            this.gamepad2.copy(gamepadWrapper.gamepad2);
         } catch (RobotCoreException e) {}
     }
 
@@ -67,7 +57,7 @@ public class GamepadWrapper {
             case SET_CLAW_CUBE:
                 return gamepad2.y;
         }
-        return false;  // Is this good practice? I just put it here because IntelliJ was upset.
+        return false;  // NOTE: if the function actually gets here, something is wrong.
     }
 
     /** Returns the x and y coordinates of each of the 4 joysticks.

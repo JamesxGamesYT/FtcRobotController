@@ -29,23 +29,15 @@ public class RobotManager {
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
+        previousStateGamepads.copyGamepads(gamepads);
     }
 
     // TELE-OP
     // =======
 
-    /** Determine new robot states based on controller input
+    /** Determine new robot desired states based on controller input (checks for button releases)
      */
     public void readControllerInputs() {
-        // First iteration of OpMode, there's no way there was a button release.
-        if (previousStateGamepads.firstIteration) {
-            previousStateGamepads.copyGamepad1(gamepads.gamepad1);
-            previousStateGamepads.copyGamepad2(gamepads.gamepad2);
-            return;
-        }
-
-        // Detect button releases.
-
         // Carousel
         if (getButtonRelease(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
             switch (robot.desiredCarouselState) {
@@ -86,8 +78,7 @@ public class RobotManager {
             robot.desiredSlidesState = Robot.SlidesState.CAPPING;
         }
 
-        previousStateGamepads.copyGamepad1(gamepads.gamepad1);
-        previousStateGamepads.copyGamepad2(gamepads.gamepad2);
+        previousStateGamepads.copyGamepads(gamepads);
     }
 
     /** Calls all non-blocking FSM methods to read from state and act accordingly.
@@ -137,6 +128,7 @@ public class RobotManager {
             Thread.sleep(MechanismDriving.DUCK_SPIN_TIME);
         } catch (InterruptedException e) {}
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+        mechanismDriving.updateCarousel(robot);
     }
 
     /** Grabs a cube piece of freight using the claw.

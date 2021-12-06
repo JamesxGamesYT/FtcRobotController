@@ -83,14 +83,14 @@ public class Navigation
     private void rotate(double angle, Robot robot) 
     {
         // Assign the original rotation to a variable
-        robot.positionManager.position.rotation;
-        
-        // Set motor powers to start rotating the robot
-        robot.rearLeftDrive.setPower();
-        // Wait until the robot is rotated to the desired angle.
-        while (/*rotation is not done*/) {
-            sleep(1);
-        }
+//        robot.positionManager.position.rotation;
+//
+//        // Set motor powers to start rotating the robot
+//        robot.rearLeftDrive.setPower();
+//        // Wait until the robot is rotated to the desired angle.
+//        while (/*rotation is not done*/) {
+//            sleep(1);
+//        }
     }
 
     /** Makes the robot travel in a straight line for a certain distance.

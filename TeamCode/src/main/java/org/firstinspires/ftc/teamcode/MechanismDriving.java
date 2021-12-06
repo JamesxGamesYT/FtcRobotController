@@ -6,7 +6,7 @@ public class MechanismDriving {
 
     private int desiredSlidePosition;
 
-    // TODO: get the exact values the slides will; need to move to inorder to be be at the correct levels for the shipping hub.
+    // TODO: get the exact values the slides will need to move to inorder to be be at the correct levels for the shipping hub.
     //       get exact values for the claw as well when open, holding a sphere, and holding a cube
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 100, LEVEL2_POS = 200, LEVEL3_POS = 300, CAPPING_POS = 400;
     public static final double CLAW_OPEN_POS = 0.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0;
@@ -14,7 +14,7 @@ public class MechanismDriving {
     public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
-    public static final double EPSILON = 0.001;  // For floating point comparison.
+    public static final int EPSILON = 1;  // For floating point comparison.
 
     MechanismDriving() {}
 
