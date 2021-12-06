@@ -7,7 +7,7 @@ public class MechanismDriving {
     private boolean carouselActive = false;
     private int slidePosition;
     //TODO get the exact values the slides will; need to move to inorder to be be at the correct levels for the shipping hub
-    public static final int EXTEND1POS=100,EXTEND2POS=200,EXTEND3POS=300,EXTEND4POS=400;
+    public static final int EXTEND1POS=1000,EXTEND2POS=2000,EXTEND3POS=3000,EXTEND4POS=4000,tollerance=20;
     MechanismDriving() {}
 
     // Each of the following methods should use the current state to determine motor inputs, and change the state once a
@@ -136,21 +136,21 @@ public class MechanismDriving {
         if (robot.slidesRight.getCurrentPosition() > slidePosition) {
             // Ensures that one motor does not go beyond the other too much
             if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.5); // Go in the opposite direction
-                robot.slidesRight.setPower(-0.5);
+                robot.slidesLeft.setPower(-0.25); // Go in the opposite direction
+                robot.slidesRight.setPower(-0.25);
             }
             else if (robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.25);
-                robot.slidesRight.setPower(-0.5);
+                robot.slidesLeft.setPower(-0.1);
+                robot.slidesRight.setPower(-0.25);
             }
             else if (robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.5);
-                robot.slidesRight.setPower(-0.25);
+                robot.slidesLeft.setPower(-0.25);
+                robot.slidesRight.setPower(-0.1);
             }
         }
 
         // Stop motors when we have reached the desired position
-        if (robot.slidesRight.getCurrentPosition() == slidePosition) {
+        if (robot.slidesRight.getCurrentPosition() <= slidePosition+tollerance &&robot.slidesRight.getCurrentPosition() >= slidePosition-tollerance) {
             robot.slidesLeft.setPower(0);
             robot.slidesRight.setPower(0);
         }
