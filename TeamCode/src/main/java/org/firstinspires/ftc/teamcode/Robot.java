@@ -22,7 +22,7 @@ public class Robot {
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
-    public CRServo claw;
+    public Servo claw;
 
     // Positioning
     public PositionManager position;
@@ -36,7 +36,7 @@ public class Robot {
         carousel = hardwareMap.get(DcMotor.class,"carousel");
         slidesLeft = hardwareMap.get(DcMotor.class, "slides_left");
         slidesRight = hardwareMap.get(DcMotor.class, "slides_right");
-        claw = hardwareMap.get(CRServo.class,"claw");
+        claw = hardwareMap.get(Servo.class,"claw");
 
         slidesRight.setDirection(DcMotorSimple.Direction.FORWARD);
         slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
