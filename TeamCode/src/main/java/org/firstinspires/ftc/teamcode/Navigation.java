@@ -125,20 +125,15 @@ public class Navigation
         }
 
 
-        // Wait until the robot is rotated to the desired angle.
-
-        double rotationPosition;
-        double finalRotation;
+        double rotationPosition = 0;
+        double finalRotation = 0;
 
         //checking/reading position (is incomplete)
-        //while (rotationPosition != finalRotationPosition /*rotation is not done*/)
-        //{
+        while (Math.abs(robot.position.position.rotation- finalRotation) >= 0.1)//rotation is not done
+        {
             //reads position
-            //robot.position.position.rotation;
-            // TODO: update robot position
-            //rotation = 0.0;  // TODO: replace this with actually reading the robot's rotation
-            //TimeUnit.MILLISECONDS.sleep(30);
-        //}
+            double nPosition = robot.position.position.rotation;
+            // TODO: update robot position and compare // ////  TimeUnit.MILLISECONDS.sleep(30);}
 
 
 
