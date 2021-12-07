@@ -14,56 +14,101 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class RobotManager {
 
-    // DUCK: deliver duck from carousel.
-    // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
-    enum AutonMode {DUCK, FREIGHT}
+    public Robot robot;
 
-    public Robot robotState;
-
-    public EncoderPositioning encoderPositioning;
-    public CVPositioning cvPositioning;
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
 
-    private Gamepad gamepad1, gamepad2;
+    private GamepadWrapper gamepads, previousStateGamepads;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
-        // Construct each team class and robot state.
+    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
+                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
+
+        navigation = new Navigation(navMode, allianceColor);
+        mechanismDriving = new MechanismDriving();
+
+        robot = new Robot(hardwareMap);
+
+        gamepads = new GamepadWrapper(gamepad1, gamepad2);
+        previousStateGamepads = new GamepadWrapper();
+        previousStateGamepads.copyGamepads(gamepads);
     }
 
     // TELE-OP
     // =======
 
-    /** Determine new robot states based on controller input
+    /** Determine new robot desired states based on controller input (checks for button releases)
      */
     public void readControllerInputs() {
-        // If a button is pressed:
-        // - Change the corresponding state in robotState
+        // Carousel
+        if (getButtonRelease(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
+            switch (robot.desiredCarouselState) {
+                case STOPPED:
+                    robot.desiredCarouselState = Robot.CarouselState.SPINNING;
+                    break;
+                case SPINNING:
+                    robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+                    break;
+            }
+        }
+
+        // Claw
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_CUBE)) {
+            robot.desiredClawState = Robot.ClawState.CUBE;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_SPHERE)) {
+            robot.desiredClawState = Robot.ClawState.SPHERE;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
+            robot.desiredClawState = Robot.ClawState.OPEN;
+        }
+
+        // Linear slides
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_RETRACTED)) {
+            robot.desiredSlidesState = Robot.SlidesState.RETRACTED;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L1)) {
+            robot.desiredSlidesState = Robot.SlidesState.L1;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L2)) {
+            robot.desiredSlidesState = Robot.SlidesState.L2;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_L3)) {
+            robot.desiredSlidesState = Robot.SlidesState.L3;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_CAPPING)) {
+            robot.desiredSlidesState = Robot.SlidesState.CAPPING;
+        }
+
+        previousStateGamepads.copyGamepads(gamepads);
     }
 
     /** Calls all non-blocking FSM methods to read from state and act accordingly.
      */
-    public void driveMechanisms() {}
+    public void driveMechanisms() {
+        mechanismDriving.updateCarousel(robot);
+        mechanismDriving.updateClaw(robot);
+        mechanismDriving.updateSlides(robot);
+    }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
-     * @param leftStickX the left stick x-axis
-     * @param leftStickY the left stick y-axis
-     * @param rightStickX the right stick x-axis
-     * @param rightStickY the right stick y-xis
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, double rightStickY) {}
+    public void maneuver() {
+        navigation.maneuver(gamepads.getJoystickValues(), robot);
+    }
+
+    /** Determines whether the button for a particular action was released in the current OpMode iteration.
+     */
+    private boolean getButtonRelease(GamepadWrapper.DriverAction action) {
+        return !gamepads.getButtonState(action) && previousStateGamepads.getButtonState(action);
+    }
 
     // AUTONOMOUS
     // ==========
 
-    /** Adds necessary points to the robot's itinerary for the Autonomous period.
-     * @param mode the position of the duck and warehouse freight as defined by {@link AutonMode}
-     */
-    public void initAutonPath(AutonMode mode) {}
-
     /** Moves the robot to the next point of interest.
      */
-    public void goToNextPOI() {}
+    public void travelToNextPOI() {}
 
     /** Determines the position of the capstone on the barcode.
      *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
@@ -87,18 +132,53 @@ public class RobotManager {
 
 
     // Each of these methods manually sets the robot state so that a specific task is started, and forces these tasks to
-    // be synchronous by repeatedly calling the mechanism driving methods. These are to be used in a linear auton opmode.
+    // be synchronous by repeatedly calling the mechanism driving methods. These are to be used in an autonomous OpMode.
 
     /** Delivers a duck by spinning the carousel.
      */
-    public void deliverDuck() {}
+    public void deliverDuck() {
+        robot.desiredCarouselState = Robot.CarouselState.SPINNING;
+        mechanismDriving.updateCarousel(robot);
+        try {
+            Thread.sleep(MechanismDriving.DUCK_SPIN_TIME);
+        } catch (InterruptedException e) {}
+        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+        mechanismDriving.updateCarousel(robot);
+    }
 
-    /** Picks up a piece of freight from the warehouse.
+    /** Grabs a cube piece of freight using the claw.
      */
-    public void obtainFreight() {}
+    public void grabCube() {
+        robot.desiredClawState = Robot.ClawState.CUBE;
+        mechanismDriving.updateClaw(robot);
+        try {
+            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
+        } catch (InterruptedException e) {}
+    }
+
+    /** Grabs a sphere piece of freight using the claw.
+     */
+    public void grabSphere() {
+        robot.desiredClawState = Robot.ClawState.SPHERE;
+        mechanismDriving.updateClaw(robot);
+        try {
+            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
+        } catch (InterruptedException e) {}
+    }
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
-     * @param level the level to witch the cargo needs to be delivered 1-bottom level 2-middle level 3-top level
+     *
+     *  @param level the level to which the cargo needs to be delivered.
      */
-    public void deliverToShippingHub(int level) {}
+    public void deliverToShippingHub(Robot.SlidesState level) {
+        robot.desiredSlidesState = level;
+        boolean extended = mechanismDriving.updateSlides(robot);
+        while (!extended) {
+            extended = mechanismDriving.updateSlides(robot);
+        }
+        robot.desiredClawState = Robot.ClawState.OPEN;
+        try {
+            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
+        } catch (InterruptedException e) {}
+    }
 }

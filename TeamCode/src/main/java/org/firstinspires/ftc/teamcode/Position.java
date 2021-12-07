@@ -45,9 +45,5 @@ public class Position {
      *  @see Point for more information
      */
     private Point location;
-
-    /** Stores a rotation
-     *  TODO: in what format?
-     */
     private double rotation;
 }

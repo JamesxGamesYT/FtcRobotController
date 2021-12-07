@@ -3,6 +3,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -22,8 +23,10 @@ public class TestOpMode_Linear extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor frontLeftDrive = null,frontRightDrive = null,backLeftDrive = null,backRightDrive = null;
+    private DcMotor frontLeftDrive = null,frontRightDrive = null,backLeftDrive = null,backRightDrive = null,caroucell=null,slideLeft,slideRight;
     private double dPadPower=1;
+    Servo claw;
+    MechanismDriving mechs;
 
     @Override
     public void runOpMode() {
@@ -37,6 +40,7 @@ public class TestOpMode_Linear extends LinearOpMode {
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right");
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right");
+        //caroucell = hardwareMap.get(DcMotor.class, "carou");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -45,6 +49,7 @@ public class TestOpMode_Linear extends LinearOpMode {
         backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.REVERSE);
 
+        //mechs=new MechanismDriving(caroucell,slideLeft,slideRight,claw);
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
@@ -103,6 +108,9 @@ public class TestOpMode_Linear extends LinearOpMode {
                 BackRightPower  = -dPadPower;
             }
 
+            //mechs.activateCarousel(gamepad1.a);
+
+
             // Send calculated power to wheels
             frontLeftDrive.setPower(frontLeftPower);
             frontRightDrive.setPower(frontRightPower);
@@ -111,9 +119,8 @@ public class TestOpMode_Linear extends LinearOpMode {
 
             // Show the elapsed game time wheel powe,stick direction and stick postition.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("gamepad 1 left stick position",g1StickLDirection+" radians "+Math.toDegrees(g1StickLDirection)+" degrees");
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", frontLeftPower ,frontRightPower ,backLeftPower ,BackRightPower,generalPower);
-            telemetry.addData("joystick positions", g1StickLX+" "+g1StickLY);
+            telemetry.addData("encoders", "FL "+frontLeftDrive.getCurrentPosition()+" FR "+frontRightDrive.getCurrentPosition()+" BL "+backLeftDrive.getCurrentPosition()+" BR "+backRightDrive.getCurrentPosition());
+
             telemetry.update();
         }
     }
