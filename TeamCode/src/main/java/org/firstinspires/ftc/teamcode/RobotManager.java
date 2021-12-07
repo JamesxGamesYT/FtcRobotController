@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 /** A completely encompassing class of all functionality of the robot. An OpMode should interface through an instance of
@@ -19,8 +20,11 @@ public class RobotManager {
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
+    private Telemetry telemetry;
+
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
-                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
+                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor,
+                        Telemetry telemetry) {
 
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
@@ -91,9 +95,7 @@ public class RobotManager {
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver() {
-        navigation.maneuver(gamepads.getJoystickValues(), robot);
-    }
+    public void maneuver() {}
 
     /** Determines whether the button for a particular action was released in the current OpMode iteration.
      */

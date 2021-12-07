@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,10 +29,16 @@ public class Robot {
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
     public Servo claw;
 
+    // Other
+    public Telemetry telemetry;
+
     // Positioning
     public PositionManager positionManager;
 
-    public Robot(HardwareMap hardwareMap) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
+        positionManager = new PositionManager();
+
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
         desiredSlidesState = SlidesState.RETRACTED;
@@ -65,9 +72,6 @@ public class Robot {
         rearRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Initialize position manager.
-        positionManager = new PositionManager();
     }
 }
 

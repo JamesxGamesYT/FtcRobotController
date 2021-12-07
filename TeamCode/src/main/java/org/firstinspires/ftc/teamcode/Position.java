@@ -10,4 +10,8 @@ public class Position {
      */
     public Point location;
     public double rotation;
+
+    public boolean equals(Position a) {
+        return a.location.x == this.location.x && a.location.y == this.location.y;
+    }
 }
