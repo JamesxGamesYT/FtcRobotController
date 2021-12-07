@@ -28,7 +28,7 @@ public class Robot {
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
-    public CRServo claw;
+    public Servo claw;
 
     // Positioning
     public PositionManager positionManager;
