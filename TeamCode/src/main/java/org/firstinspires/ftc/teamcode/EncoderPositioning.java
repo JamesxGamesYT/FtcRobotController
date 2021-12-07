@@ -16,18 +16,21 @@ public class EncoderPositioning {
         // call submitEstimate
 
         // 280 encoder counts per revolution
-        double ADEncCount = LEFT_FRONT_DRIVE_MOTOR.getCurrentPosition()+RIGHT_BACK_DRIVE_MOTOR.getCurrentPosition();
-        double BCEncCount = LEFT_BACK_DRIVE_MOTOR.getCurrentPosition()+RIGHT_FRONT_DRIVE_MOTOR.getCurrentPosition();
-        double ADangle = Math.acos(2*ADEncCount+(Math.sqrt(8-4(ADEncCount * ADEncCount)))/4);
-        double BCangle = Math.acos((2*BCEncCount+Math.sqrt(8-4(BCEncCount*BCEncCount)))/4);
-        double SecondXcor = Robot.getXcor() + BCEncCount * Math.cos(BCangle);
-        double SecondYcor = PositionManager.getYcor() + BCEncCount * Math.sin(BCangle);
-        double ThirdXcor = SecondXcor - ADEncCount*Math.cos(ADangle);
-        double ThirdYcor = SecondYcor + ADEncCount*Math.sin(ADangle);
-        PositionManager.setXcor(ThirdXcor);
-        PositionManager.setYcor(ThirdYcor);
 
-        resetEncoders(robot);
+        double ADEncCount = robot.frontLeftDrive.getCurrentPosition() + robot.rearRightDrive.getCurrentPosition();
+        double BCEncCount = robot.rearLeftDrive.getCurrentPosition() + robot.frontRightDrive.getCurrentPosition();
+
+        double ADangle = Math.acos((2 * ADEncCount + Math.sqrt(8 - 4 * (ADEncCount * ADEncCount))) / 4);
+        double BCangle = Math.acos((2 * BCEncCount + Math.sqrt(8 - 4 * (BCEncCount * BCEncCount))) / 4);
+
+        double secondXcor = PositionManager.getX() + BCEncCount * Math.cos(BCangle);
+        double secondYcor = PositionManager.getY() + BCEncCount * Math.sin(BCangle);
+
+        double thirdXcor = secondXcor - ADEncCount * Math.cos(ADangle);
+        double thirdYcor = secondYcor + ADEncCount * Math.sin(ADangle);
+
+        PositionManager.setX(thirdXcor);
+        PositionManager.setY(thirdYcor);
         return null;
     }
 

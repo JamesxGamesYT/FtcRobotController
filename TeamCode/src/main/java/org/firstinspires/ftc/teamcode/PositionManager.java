@@ -1,12 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
-/* Authors: Arin Khare, Kai Vernooy, Tarun Jacob, Abhiroop Sarkar
- */
-
-
 /** Incorporates estimates from two sources (CV positioning and encoders) to create a single positioning estimate
  */
 public class PositionManager {
+    PositionManager() {
+        position = new Position();
+    }
+
+    PositionManager(double x, double y, double r){
+        position = new Position(x, y, r);
+    }
+
     public Position position;
 
     /** Adds new detected encoder movement change to both a temporary encoderDelta variable and to the overall position attribute
