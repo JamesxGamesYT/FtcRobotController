@@ -8,13 +8,13 @@ public class MechanismDriving {
 
     // TODO: get the exact values the slides will need to move to inorder to be be at the correct levels for the shipping hub.
     //       get exact values for the claw as well when open, holding a sphere, and holding a cube
-    public static final int RETRACTED_POS = 0, LEVEL1_POS = 100, LEVEL2_POS = 200, LEVEL3_POS = 300, CAPPING_POS = 400;
+    public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3000, CAPPING_POS = 4000;
     public static final double CLAW_OPEN_POS = 0.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0;
     // How long the carousel motor must be spinning for in order to deliver the duck.
     public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
-    public static final int EPSILON = 1;  // For floating point comparison.
+    public static final int EPSILON = 30;  // slide encoder position tolerances
 
     MechanismDriving() {}
 

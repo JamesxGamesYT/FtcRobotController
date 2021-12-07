@@ -15,13 +15,13 @@ public class ClawTestOpMode extends LinearOpMode{
             waitForStart();//wait for the play button to be pressed
 
             while (opModeIsActive()) {//loop this until stop button is pressed
-                mechs.update(robot);
-                if(gamepad1.a && robot.clawMotorState == Robot.ClawMotorState.CHECK_OPEN){
-                    robot.clawMotorState = Robot.ClawMotorState.OPEN;
+                mechs.updateClaw(robot);
+                if(gamepad1.a ){
+                    robot.desiredClawState = Robot.ClawState.OPEN;
                 }
 
-                if(gamepad1.b && robot.clawMotorState == Robot.ClawMotorState.CHECK_CLOSE) {
-                    robot.clawMotorState = Robot.ClawMotorState.CLOSE;
+                if(gamepad1.b) {
+                    robot.desiredClawState = Robot.ClawState.CUBE;
                 }
 
                 //telemetry.addData("servo position", " claw "+robot.claw.getPosition());
