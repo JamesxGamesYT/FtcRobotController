@@ -322,6 +322,7 @@ public class Navigation
 
     /**generates a path as an array list of points that goes from start to end without running into any obstacles
      *it is recommended that you run the output of this function through optimisePath1 and then optimisePath2
+     * @link https://github.com/jSdCool/FTC-robot-pathfinging for a visual deminstration
      * @param start the point to start the path at (usually the robots current position)
      * @param end the point to end the path at
      * @return an arraylist of points that form a path between the provided point
