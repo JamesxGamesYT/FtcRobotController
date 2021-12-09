@@ -9,7 +9,7 @@ public class ClawTestOpMode extends LinearOpMode{
         public void runOpMode() {
             telemetry.addData("Status", "Initialized");
             telemetry.update();
-            Robot robot =new Robot(hardwareMap);
+            Robot robot = new Robot(hardwareMap, telemetry);
             MechanismDriving mechs=new MechanismDriving();
 
             waitForStart();//wait for the play button to be pressed

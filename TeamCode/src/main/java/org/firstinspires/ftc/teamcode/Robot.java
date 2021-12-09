@@ -73,6 +73,12 @@ public class Robot {
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
+
+    /** Returns the position of the robot.
+     */
+    public Position getPosition() {
+        return positionManager.position;
+    }
 }
 
 

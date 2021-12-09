@@ -7,6 +7,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -73,19 +75,19 @@ public class Navigation
     /** Makes the robot travel along the path until it reaches a POI.
      */
     public void travelToNextPOI(TravelDirection travelDirection, Robot robot) {
-        double angle;
+        double angle = 0.0;
         switch(travelDirection) {
             case FORWARD:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-robot.position.rotation;
+                angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-robot.getPosition().rotation;
                 break;
             case REVERSE:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI);
+                angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-(robot.getPosition().rotation+Math.PI);
                 break;
             case LEFT:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation-Math.PI/2);
+                angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-(robot.getPosition().rotation-Math.PI/2);
                 break;
             case RIGHT:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI/2);
+                angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-(robot.getPosition().rotation+Math.PI/2);
                 break;
         }
 
@@ -135,7 +137,7 @@ public class Navigation
     private void rotate(double angle, Robot robot) 
     {
         // Assign the original rotation to a variable
-        robot.position.position.rotation;
+        double originalRotation = robot.getPosition().rotation;
 
         double rotationPowerPositive = angle/360;
         double rotationPowerNegative = -1*angle/360;
@@ -186,9 +188,9 @@ public class Navigation
      *  @param angle The angle in which the robot will strafe.
      *  @param travelDirection The direction in which the robot will be traveling once it has turned to the desired angle.
      */
-    private void travelLinear(Position desiredPosition, @NotNull TravelDirection travelDirection, double generalPower, Robot robot) throws InterruptedException {
+    private void travelLinear(Position desiredPosition, @NotNull TravelDirection travelDirection, double generalPower, Robot robot) {
         double frontLeftPower = 0; double frontRightPower = 0; double rearLeftPower = 0; double rearRightPower = 0;
-        Point origPoint = robot.position.location;
+        Point origPoint = robot.getPosition().location;
 
         switch(travelDirection) {
             case FORWARD:
@@ -222,32 +224,34 @@ public class Navigation
         robot.rearLeftDrive.setPower(rearLeftPower);
         robot.rearRightDrive.setPower(rearRightPower);
 
-        if (robot.position.location.x == desiredPosition.location.x && robot.position.location.y == desiredPosition.location.y) {
+        if (robot.getPosition().location.x == desiredPosition.location.x && robot.getPosition().location.y == desiredPosition.location.y) {
             robot.frontLeftDrive.setPower(0);
             robot.frontRightDrive.setPower(0);
             robot.rearLeftDrive.setPower(0);
             robot.rearRightDrive.setPower(0);
-        } else if (Math.atan2(desiredPosition.y-robot.position.location.y, desiredPosition.x-robot.position.location.x) == Math.atan2(desiredPosition.y-origPoint.y, desiredPosition.x-origPoint.x)) {
-            TimeUnit.MILLISECONDS.sleep(30);
+        } else if (Math.atan2(desiredPosition.location.y-robot.getPosition().location.y, desiredPosition.location.x-robot.getPosition().location.x) == Math.atan2(desiredPosition.location.y-origPoint.y, desiredPosition.location.x-origPoint.x)) {
+            try {
+                Thread.sleep(30);
+            } catch (InterruptedException e) {}
         } else {
             robot.frontLeftDrive.setPower(0);
             robot.frontRightDrive.setPower(0);
             robot.rearLeftDrive.setPower(0);
             robot.rearRightDrive.setPower(0);
 
-            double angle;
+            double angle = 0.0;
             switch(travelDirection) {
                 case FORWARD:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-robot.position.rotation;
+                    angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-robot.getPosition().rotation;
                     break;
                 case REVERSE:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI);
+                    angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-(robot.getPosition().rotation+Math.PI);
                     break;
                 case LEFT:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation-Math.PI/2);
+                    angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-(robot.getPosition().rotation-Math.PI/2);
                     break;
                 case RIGHT:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI/2);
+                    angle = Math.atan2(path.get(0).location.y-robot.getPosition().location.y, path.get(0).location.x-robot.getPosition().location.x)-(robot.getPosition().rotation+Math.PI/2);
                     break;
             }
 
@@ -450,14 +454,14 @@ public class Navigation
             if(Math.sqrt(Math.pow(end.x-p.get(p.size()-1).x,2)+Math.pow(end.y-p.get(p.size()-1).y,2))<segmentDist)//if the point is less than the distacne of the segments from the end point
                 working=false;//tell the loop to stop
 
-            println("point "+p.size()+" "+p.get(p.size()-1).x+" "+p.get(p.size()-1).y);//write the current point to the console
+//            println("point "+p.size()+" "+p.get(p.size()-1).x+" "+p.get(p.size()-1).y);//write the current point to the console
             itteration++;//increase the itteration
             if(itteration>1000){//if the program is stuck in an infinite loop(too many itterations)
                 return null;//stop the function
             }
         }
-        path.add(end);//add the final point to the path
-        println("point "+p.size()+" "+end.x+" "+end.y);//print the last point of the path to the console
+//        path.add(end);//add the final point to the path
+//        println("point "+p.size()+" "+end.x+" "+end.y);//print the last point of the path to the console
         return p;
     }
 }

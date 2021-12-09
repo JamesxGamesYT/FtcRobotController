@@ -16,7 +16,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor, telemetry);
 
         waitForStart(); // wait for the play button to be pressed
 
