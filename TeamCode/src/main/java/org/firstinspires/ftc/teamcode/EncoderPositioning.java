@@ -23,14 +23,14 @@ public class EncoderPositioning {
         double ADangle = Math.acos((2 * ADEncCount + Math.sqrt(8 - 4 * (ADEncCount * ADEncCount))) / 4);
         double BCangle = Math.acos((2 * BCEncCount + Math.sqrt(8 - 4 * (BCEncCount * BCEncCount))) / 4);
 
-        double secondXcor = PositionManager.getX() + BCEncCount * Math.cos(BCangle);
-        double secondYcor = PositionManager.getY() + BCEncCount * Math.sin(BCangle);
+        double secondXcor = robot.getPosition().getX() + BCEncCount * Math.cos(BCangle);
+        double secondYcor = robot.getPosition().getY() + BCEncCount * Math.sin(BCangle);
 
         double thirdXcor = secondXcor - ADEncCount * Math.cos(ADangle);
         double thirdYcor = secondYcor + ADEncCount * Math.sin(ADangle);
 
-        PositionManager.setX(thirdXcor);
-        PositionManager.setY(thirdYcor);
+        robot.getPosition().setX(thirdXcor);
+        robot.getPosition().setY(thirdYcor);
         return null;
     }
 
@@ -38,7 +38,7 @@ public class EncoderPositioning {
     /** Updates the encoder's position estimate in the robot's PositionManager
      */
     private void submitEstimate(Robot robot, Position delta) {
-        robot.position.updateEncoderPosition(delta);
+        robot.positionManager.updateEncoderPosition(delta);
     }
     
     

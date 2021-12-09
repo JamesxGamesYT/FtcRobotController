@@ -24,7 +24,7 @@ public class ClawTestOpMode extends LinearOpMode{
                     robot.desiredClawState = Robot.ClawState.CUBE;
                 }
 
-                telemetry.addData("Claw info", "State: " + robot.clawMotorState + "; Servo position: " + robot.claw.getPosition() + ";"); //Was there something about how a servo with a position could not be used here?
+//                telemetry.addData("Claw info", "State: " + robot.clawMotorState + "; Servo position: " + robot.claw.getPosition() + ";"); //Was there something about how a servo with a position could not be used here?
                 telemetry.update();
             }
         }

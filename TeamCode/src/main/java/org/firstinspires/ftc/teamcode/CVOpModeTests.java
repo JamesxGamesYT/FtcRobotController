@@ -42,14 +42,15 @@ public class CVOpModeTests extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2);
+        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, Navigation.NavigationMode.DUCK,
+                Navigation.AllianceColor.BLUE, telemetry);
 
         cvPositioning = new CVPositioning(hardwareMap);
 
         telemetry.addLine("Waiting for start");
         telemetry.update();
         waitForStart();
-        cvPositioning.startStreaming(robotManager.robotState);
+        cvPositioning.startStreaming(robotManager.robot);
 
 
 

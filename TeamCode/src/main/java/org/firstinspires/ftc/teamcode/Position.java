@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 /** Represents the position of the robot.
  *  More generally, it contains an x-y point and a rotation.
+ *
+ *  TODO: currently there are both getter/setter method as well as public attributes. If we decide to keep the
+ *        getters/setters we should make the attributes private, and vice versa.
  */
 public class Position {
     Position() {
