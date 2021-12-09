@@ -102,16 +102,16 @@ public class MechanismDriving {
         if (robot.slidesRight.getCurrentPosition() - desiredSlidePosition > EPSILON) {
             // Ensures that one motor does not go beyond the other too much
             if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.5); // Go in the opposite direction
-                robot.slidesRight.setPower(-0.5);
+                robot.slidesLeft.setPower(-0.25); // Go in the opposite direction
+                robot.slidesRight.setPower(-0.25);
             }
             else if (robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.25);
-                robot.slidesRight.setPower(-0.5);
+                robot.slidesLeft.setPower(-0.1);
+                robot.slidesRight.setPower(-0.25);
             }
             else if (robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.5);
-                robot.slidesRight.setPower(-0.25);
+                robot.slidesLeft.setPower(-0.25);
+                robot.slidesRight.setPower(-0.1);
             }
         }
 
