@@ -27,6 +27,14 @@ public class Robot {
     public SlidesState desiredSlidesState;
     public ClawState desiredClawState;
 
+    enum BarcodeScanState {CHECK_SCAN, SCAN}
+    public BarcodeScanState barcodeScanState;
+
+    static final int MaxBarcodeAttempts = 100;  // How many times to try scanning the barcode before giving up
+    int numBarcodeAttempts = 0;
+    int barcodeScanResult = -1;
+
+
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
     public Servo claw;

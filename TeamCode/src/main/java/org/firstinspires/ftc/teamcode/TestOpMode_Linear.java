@@ -76,7 +76,7 @@ public class TestOpMode_Linear extends LinearOpMode {
                 generalPower=0;
             }
 
-            //set the power for each wheel absed on the angle of the stick and how far the stick is from center
+            //set the power for each wheel based on the angle of the stick and how far the stick is from center
             frontLeftPower = Range.clip(Math.sin(g1StickLDirection)+Math.cos(g1StickLDirection),-1,1)*generalPower;
             frontRightPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
             rearLeftPower = Range.clip(Math.sin(g1StickLDirection)-Math.cos(g1StickLDirection),-1,1)*generalPower;
