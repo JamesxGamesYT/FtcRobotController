@@ -94,9 +94,8 @@ public class Navigation
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
-     *  TODO: make this use JostickValues
      */
-    public void maneuver(double leftStickX, double leftStickY, double rightStickX, Robot robot) {
+    public void maneuver(JoystickValues joystickValues, Robot robot) {
         // Uses left stick to go forward, and right stick to turn.
         // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
         //       upon initialization.
@@ -104,16 +103,15 @@ public class Navigation
         double moveDirection, power, turn, sinMoveDirection, cosMoveDirection, frontLeftPower, frontRightPower,
                 rearLeftPower, rearRightPower;
 
-        leftStickY = -leftStickY;  // Y coordinate is reversed.
-        turn = rightStickX;
+        turn = joystickValues.gamepad1RightStickX;
         if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
             turn = 0;
         }
         turn /= 2.0;  // Scale input sensitivity.
 
-        moveDirection = Math.atan2(leftStickY, leftStickX);
+        moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
 
-        power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)),0,1);
+        power = Range.clip(Math.sqrt(Math.pow(joystickValues.gamepad1LeftStickX, 2) + Math.pow(-joystickValues.gamepad1LeftStickY, 2)),0,1);
         if (power <= 0.05) { // joystick dead zone
             power = 0;
         }

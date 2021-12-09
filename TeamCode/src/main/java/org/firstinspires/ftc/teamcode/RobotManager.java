@@ -29,7 +29,7 @@ public class RobotManager {
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
 
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry);
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -95,7 +95,9 @@ public class RobotManager {
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver() {}
+    public void maneuver() {
+        navigation.maneuver(gamepads.getJoystickValues(), robot);
+    }
 
     /** Determines whether the button for a particular action was released in the current OpMode iteration.
      */
