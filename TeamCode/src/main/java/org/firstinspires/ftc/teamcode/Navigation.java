@@ -127,6 +127,11 @@ public class Navigation
         rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
         rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power - turn;
 
+        robot.frontLeftDrive.setPower(frontLeftPower);
+        robot.frontRightDrive.setPower(frontRightPower);
+        robot.rearLeftDrive.setPower(rearLeftPower);
+        robot.rearRightDrive.setPower(rearRightPower);
+
         robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)", rearLeftPower, rearRightPower);

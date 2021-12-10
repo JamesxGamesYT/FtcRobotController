@@ -8,14 +8,12 @@ package org.firstinspires.ftc.teamcode;
  */
 public class Position {
     Position() {
-        setX(0.0);
-        setY(0.0);
+        location = new Point(0.0,0.0, "");
         setRotation(0.0);
     }
 
     Position(double x, double y, double r) {
-        setX(x);
-        setY(y);
+        location = new Point(x, y, "");
         setRotation(r);
     }
 
