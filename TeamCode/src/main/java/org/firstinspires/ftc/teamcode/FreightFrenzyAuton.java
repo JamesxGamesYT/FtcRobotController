@@ -20,9 +20,16 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
         waitForStart(); // wait for the play button to be pressed
 
-        while (opModeIsActive()) { // loop this until stop button is pressed
-
+        switch (navigationMode) {
+            case DUCK:
+                robotManager.travelToNextPOI();  // Move robot to shipping hub.
+                robotManager.deliverToShippingHub(/* TODO: use result from CV */ Robot.SlidesState.L1);
+                
         }
+
+//         while (opModeIsActive()) { // loop this until stop button is pressed
+// 
+//         }
     }
 
     // ANDROID SHARED PREFERENCES

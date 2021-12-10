@@ -137,7 +137,7 @@ public class Navigation
     private void rotate(double angle, Robot robot) 
     {
         // Assign the original rotation to a variable
-        robot.position.position.rotation;
+        double origRotation = robot.positionManager.position.rotation;
 
         double rotationPowerPositive = angle/360;
         double rotationPowerNegative = -1*angle/360;
@@ -180,80 +180,59 @@ public class Navigation
 
     /** Makes the robot travel in a straight line for a certain distance.
      *  @param desiredPosition The desired position of the robot.
-     *  @param angle The angle in which the robot will strafe.
-     *  @param travelDirection The direction in which the robot will be traveling once it has turned to the desired angle.
      */
-    private void travelLinear(Position desiredPosition, @NotNull TravelDirection travelDirection, double generalPower, Robot robot) throws InterruptedException {
+    private void travelLinear(Position desiredPosition) throws InterruptedException {
         double frontLeftPower = 0; double frontRightPower = 0; double rearLeftPower = 0; double rearRightPower = 0;
         Point origPoint = robot.position.location;
 
-        switch(travelDirection) {
-            case FORWARD:
-                frontLeftPower = generalPower;
-                frontRightPower = generalPower;
-                rearLeftPower = generalPower;
-                rearRightPower = generalPower;
-                break;
-            case REVERSE:
-                frontLeftPower = -generalPower;
-                frontRightPower = -generalPower;
-                rearLeftPower = -generalPower;
-                rearRightPower = -generalPower;
-                break;
-            case LEFT:
-                frontLeftPower = -generalPower;
-                frontRightPower = generalPower;
-                rearLeftPower = generalPower;
-                rearRightPower = -generalPower;
-                break;
-            case RIGHT:
-                frontLeftPower = generalPower;
-                frontRightPower = -generalPower;
-                rearLeftPower = -generalPower;
-                rearRightPower = generalPower;
-                break;
+        double moveDirection, power, turn, sinMoveDirection, cosMoveDirection;
+
+        double desiredX = desiredPosition.location.x;
+        double desiredY = -desiredPosition.location.y;  // Y coordinate is reversed.
+
+        /*
+        turn = rightStickX;
+        if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
+            turn = 0;
+        }
+        turn /= 2.0;  // Scale input sensitivity.
+         */
+
+        final double POWERSLOPE = 0.05;
+
+        moveDirection = Math.atan2(desiredY-origPoint.y, desiredX-origPos.x);
+
+        power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)),0,1);
+        if (power <= 0.05) { // joystick dead zone
+            power = 0;
         }
 
-        robot.frontLeftDrive.setPower(frontLeftPower);
-        robot.frontRightDrive.setPower(frontRightPower);
-        robot.rearLeftDrive.setPower(rearLeftPower);
-        robot.rearRightDrive.setPower(rearRightPower);
+        sinMoveDirection = Math.sin(moveDirection);
+        cosMoveDirection = Math.cos(moveDirection);
 
-        if (robot.position.location.x == desiredPosition.location.x && robot.position.location.y == desiredPosition.location.y) {
-            robot.frontLeftDrive.setPower(0);
-            robot.frontRightDrive.setPower(0);
-            robot.rearLeftDrive.setPower(0);
-            robot.rearRightDrive.setPower(0);
-        } else if (Math.atan2(desiredPosition.y-robot.position.location.y, desiredPosition.x-robot.position.location.x) == Math.atan2(desiredPosition.y-origPoint.y, desiredPosition.x-origPoint.x)) {
-            TimeUnit.MILLISECONDS.sleep(30);
-        } else {
-            robot.frontLeftDrive.setPower(0);
-            robot.frontRightDrive.setPower(0);
-            robot.rearLeftDrive.setPower(0);
-            robot.rearRightDrive.setPower(0);
+        frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power + turn;
+        frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power - turn;
+        rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
+        rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power - turn;
 
-            double angle;
-            switch(travelDirection) {
-                case FORWARD:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-robot.position.rotation;
-                    break;
-                case REVERSE:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI);
-                    break;
-                case LEFT:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation-Math.PI/2);
-                    break;
-                case RIGHT:
-                    angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI/2);
-                    break;
-            }
-
-            rotate(angle, robot);
-
+        // Set the power for each wheel based on the angle of the stick and how far the stick is from center
+        while (Math.abs(desiredX-robot.position.location.x) <= EPSILON_LOC && Math.abs(desiredY-robot.position.location.y) <= EPSILON_LOC) {
             robot.frontLeftDrive.setPower(frontLeftPower);
             robot.frontRightDrive.setPower(frontRightPower);
             robot.rearLeftDrive.setPower(rearLeftPower);
             robot.rearRightDrive.setPower(rearRightPower);
+        }
+
+        robot.frontLeftDrive.setPower(0);
+        robot.frontRightDrive.setPower(0);
+        robot.rearLeftDrive.setPower(0);
+        robot.rearRightDrive.setPower(0);
+
+        /*
+        robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
+        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
+        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)", rearLeftPower, rearRightPower);
+         */
         }
     }
 
