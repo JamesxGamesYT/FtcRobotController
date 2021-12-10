@@ -84,8 +84,8 @@ public class MechanismDriving {
         }
 
         double mainSpeed,reducedSpeed;//"ramp" the motor speeds down based on how far away from the destination the motors are
-        mainSpeed=maxSpeedCoeffishent*Range.clip((desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0, 1);
-        reducedSpeed=reducedSpeedCoeffishent*Range.clip((desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0, 1);
+        mainSpeed=maxSpeedCoeffishent*Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+        reducedSpeed=reducedSpeedCoeffishent*Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
         mainSpeed=Range.clip(mainSpeed,0.05,1);//limit the max speed to 1 and the min speed to 0.05
         reducedSpeed=Range.clip(reducedSpeed,0.04,1);
 
