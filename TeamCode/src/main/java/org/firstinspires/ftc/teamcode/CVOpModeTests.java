@@ -38,29 +38,38 @@ import org.openftc.easyopencv.OpenCvPipeline;
 @TeleOp
 public class CVOpModeTests extends LinearOpMode {
 
-    CVPositioning cvPositioning;
+    ComputerVision cvPositioning;
 
     @Override
     public void runOpMode() {
-        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2);
+        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, Navigation.NavigationMode.TELEOP, Navigation.AllianceColor.BLUE);
 
-        cvPositioning = new CVPositioning(hardwareMap);
+        cvPositioning = new ComputerVision(hardwareMap, robotManager.robot);
 
         telemetry.addLine("Waiting for start");
         telemetry.update();
         waitForStart();
-        cvPositioning.startStreaming(robotManager.robotState);
+        cvPositioning.startStreaming();
 
 
 
         while (opModeIsActive())
         {
+            telemetry.addData("Barcode Result", robotManager.robot.barcodeScanResult);
+
+//            try {
+//                telemetry.addData("Yellow Centroid", cvPositioning.pipeline.barcodeCapCentroids.at(double.class, 1, 1).getV());
+//                telemetry.addData("Red Centroid 1", cvPositioning.pipeline.barcodeTapeCentroids.at(double.class, 1, 1).getV());
+//                telemetry.addData("Red Centroid 2", cvPositioning.pipeline.barcodeTapeCentroids.at(double.class, 2, 1).getV());
+//            } catch (IllegalArgumentException e) {}
+
             telemetry.addData("Frame Count", cvPositioning.camera.getFrameCount());
             telemetry.addData("FPS", String.format("%.2f", cvPositioning.camera.getFps()));
             telemetry.addData("Total frame time ms", cvPositioning.camera.getTotalFrameTimeMs());
             telemetry.addData("Pipeline time ms", cvPositioning.camera.getPipelineTimeMs());
             telemetry.addData("Overhead time ms", cvPositioning.camera.getOverheadTimeMs());
             telemetry.addData("Theoretical max FPS", cvPositioning.camera.getCurrentPipelineMaxFps());
+
             telemetry.update();
             sleep(100);
         }

@@ -27,9 +27,9 @@ public class Robot {
     enum BarcodeScanState {CHECK_SCAN, SCAN}
     public BarcodeScanState barcodeScanState;
 
-    static final int MaxBarcodeAttempts = 100;  // How many times to try scanning the barcode before giving up
-    int numBarcodeAttempts = 0;
-    int barcodeScanResult = -1;
+    static final int MaxBarcodeAttempts = 100;   // How many times to try scanning the barcode before giving up
+    int numBarcodeAttempts = 0;                  // Amount of current attempts to scan the barcode
+    int barcodeScanResult = -1;                  // Represents the barcode state, with 0 being left, 1 being middle, 2 being right, and -1 being no result.
 
 
     // Hardware

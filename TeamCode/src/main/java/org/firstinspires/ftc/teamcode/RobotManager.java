@@ -115,19 +115,18 @@ public class RobotManager {
      *          farthest from the hub.
      */
     public int readBarcode() {
-        robotState.barcodeScanResult = -1;
-        robotState.barcodeScanState = Robot.BarcodeScanState.SCAN;
-        robotState.numBarcodeAttempts = 0;
+        robot.barcodeScanResult = -1;
+        robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
+        robot.numBarcodeAttempts = 0;
 
-        while (robotState.barcodeScanState == Robot.BarcodeScanState.SCAN) {
+        while (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             try {
-                // Wait for execution on the CV thread to finish
                 TimeUnit.MICROSECONDS.sleep(10);
             }
             catch (InterruptedException e) {}
         }
 
-        return robotState.barcodeScanResult;
+        return robot.barcodeScanResult;
     }
 
 

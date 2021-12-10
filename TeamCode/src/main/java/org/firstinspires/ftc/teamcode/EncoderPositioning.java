@@ -38,7 +38,7 @@ public class EncoderPositioning {
     /** Updates the encoder's position estimate in the robot's PositionManager
      */
     private void submitEstimate(Robot robot, Position delta) {
-        robot.position.updateEncoderPosition(delta);
+        robot.positionManager.updateEncoderPosition(delta);
     }
     
     
