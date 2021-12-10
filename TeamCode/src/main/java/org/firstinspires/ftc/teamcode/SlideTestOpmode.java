@@ -32,7 +32,7 @@ public class SlideTestOpmode extends LinearOpMode {
                 robot.desiredSlidesState= Robot.SlidesState.CAPPING;
             }
 
-            telemetry.addData("encoders", "Slides state: " + robot.slidesMotorsState + "; Carousel: "+robot.carousel.getCurrentPosition()+"; Slides left: "+robot.slidesLeft.getCurrentPosition()+"; Slides right: "+robot.slidesRight.getCurrentPosition() + ";");
+            telemetry.addData("encoders", "Slides state: " + robot.desiredSlidesState + "; Carousel: "+robot.carousel.getCurrentPosition()+"; Slides left: "+robot.slidesLeft.getCurrentPosition()+"; Slides right: "+robot.slidesRight.getCurrentPosition() + ";");
             telemetry.update();
         }
     }
