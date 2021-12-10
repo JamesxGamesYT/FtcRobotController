@@ -68,6 +68,12 @@ public class Robot {
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        slidesLeft.setDirection(DcMotor.Direction.FORWARD);
+        slidesRight.setDirection(DcMotor.Direction.REVERSE);
+
+        slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         // Initialize position manager.
         positionManager = new PositionManager();
     }

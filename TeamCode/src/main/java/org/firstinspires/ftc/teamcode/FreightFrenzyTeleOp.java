@@ -14,7 +14,7 @@ public class FreightFrenzyTeleOp extends OpMode {
 
     @Override
     public void init() {
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2);
+        //robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2);
     }
 
     @Override
