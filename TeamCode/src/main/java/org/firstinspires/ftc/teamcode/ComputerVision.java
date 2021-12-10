@@ -101,8 +101,24 @@ class ComputerVisionPipeline extends OpenCvPipeline {
 //            }
 //        }
 
+
+        Position currentPosition = processPositioningFrame(input);
+        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
+
         robot.barcodeScanResult = processBarcodeFrame(input, output);
         return output;
+    }
+
+
+    Position processPositioningFrame(Mat input) {
+        // do all image processing here
+        return null;
+
+//        int paperId = -1;
+//        ArrayList<Double> screenCoordinateCvImage;
+//        Position newPos = new Position();
+
+        return newPos;
     }
 
 
