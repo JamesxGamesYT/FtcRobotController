@@ -18,6 +18,7 @@ public class RobotManager {
 
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
+    public ComputerVision computerVision;
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
@@ -28,6 +29,8 @@ public class RobotManager {
         mechanismDriving = new MechanismDriving();
 
         robot = new Robot(hardwareMap);
+
+        computerVision = new ComputerVision(hardwareMap, robot);
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
