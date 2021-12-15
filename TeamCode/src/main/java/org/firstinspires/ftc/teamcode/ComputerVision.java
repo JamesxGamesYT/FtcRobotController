@@ -5,6 +5,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;
 
+//import org.opencv.calib3d.Calib3d;
+//import org.opencv.features2d.Features2d;
+//import org.opencv.features2d.SIFT;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -35,6 +39,7 @@ public class ComputerVision {
      * NOTE: We'll need some instance of a robot class or position at this point to attach to the pipeline, since once started it will be thread inaccessible
      */
     public void startStreaming() {
+
         camera.setPipeline(pipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
@@ -65,6 +70,8 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         super();
         this.robot = robot;
 
+
+        // TODO: there might be a cleaner way to default-initialize these
         output = new Mat();
         barcodeHsv = new Mat();
 
@@ -77,6 +84,10 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         barcodeCapLabels = new Mat();
         barcodeCapStats = new Mat();
         barcodeCapCentroids = new Mat();
+        barcodeTapeRegionsBlue = new Mat();
+        barcodeTapeRegionsRed1 = new Mat();
+        barcodeTapeRegionsRed2 = new Mat();
+
     }
 
 
@@ -122,33 +133,57 @@ class ComputerVisionPipeline extends OpenCvPipeline {
     }
 
 
-    private Mat barcodeHsv;
-    private Mat barcodeCapRegions, barcodeTapeRegions;
-    public Mat barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids;
+    // BARCODE SCANNING
+    // =================
 
-    final static Rect BarcodeImageCrop = new Rect(220, 120, 500, 230);
 
+    // Single-time allocated mats that will hold frame processing data
+    final private Mat barcodeHsv;
+    final private Mat barcodeCapRegions, barcodeTapeRegions;
+    final private Mat barcodeTapeRegionsBlue, barcodeTapeRegionsRed1, barcodeTapeRegionsRed2;
+    final private Mat barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids;
+
+
+
+    // The Region of Interest that contains all the barcode elements and the least non-floor background possible
+    final static Rect BarcodeImageROI = new Rect(220, 120, 500, 230);
+
+    static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b)
+    {
+        Core.inRange(hsv, a, b, out);
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
+    }
+
+
+    // Define HSV scalars that represent ranges of color to be selected from the barcode image
+    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(45, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
 
     /**
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
     private int processBarcodeFrame(Mat input, Mat output) {
-//        input = new Mat(input, BarcodeImageCrop);
+        // Todo: perform cropping based on region of image we expect to find barcode in
+        // input = new Mat(input, BarcodeImageROI);
 
-        // convert input i mage to HSV space and perform basic blur
+        // Convert input image to HSV space and perform basic blur
         Imgproc.cvtColor(input, barcodeHsv, Imgproc.COLOR_RGB2HSV);
         Imgproc.GaussianBlur(barcodeHsv, barcodeHsv, new Size(7, 7), 5);
 
         // Do HSV thresholding to identify the barcode tape as well as the shipping element
-        Core.inRange(barcodeHsv, new Scalar(15, 80, 80), new Scalar(45, 255, 255), barcodeCapRegions);
-        Imgproc.morphologyEx(barcodeCapRegions, barcodeCapRegions, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
-        Imgproc.morphologyEx(barcodeCapRegions, barcodeCapRegions, Imgproc.MORPH_OPEN, Mat.ones(new Size(15, 15), CvType.CV_32F));
+        IsolateBarcodeRange(barcodeHsv, barcodeCapRegions, BarcodeCapRange[0], BarcodeCapRange[0]);
 
-        Core.inRange(barcodeHsv, new Scalar(120, 80, 80), new Scalar(180, 255, 255), barcodeTapeRegions);
-        Imgproc.morphologyEx(barcodeTapeRegions, barcodeTapeRegions, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
-        Imgproc.morphologyEx(barcodeTapeRegions, barcodeTapeRegions, Imgproc.MORPH_OPEN, Mat.ones(new Size(15, 15), CvType.CV_32F));
+        // HSV thresholding for barcode tape isolation
+        IsolateBarcodeRange(barcodeHsv, barcodeTapeRegionsRed1, BarcodeTapeRangeRed1[0], BarcodeTapeRangeRed1[1]);
+        IsolateBarcodeRange(barcodeHsv, barcodeTapeRegionsRed2, BarcodeTapeRangeRed2[0], BarcodeTapeRangeRed2[1]);
+        IsolateBarcodeRange(barcodeHsv, barcodeTapeRegionsBlue, BarcodeTapeRangeBlue[0], BarcodeTapeRangeBlue[1]);
 
+        Core.bitwise_or(barcodeTapeRegionsRed1, barcodeTapeRegionsRed2, barcodeTapeRegions);
+        Core.bitwise_or(barcodeTapeRegionsBlue, barcodeTapeRegions, barcodeTapeRegions);
 
         // Visualize the detected areas with appropriately colored outlines
         ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
