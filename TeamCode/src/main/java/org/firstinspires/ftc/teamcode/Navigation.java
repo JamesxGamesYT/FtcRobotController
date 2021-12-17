@@ -82,29 +82,20 @@ public class Navigation
 
     /** Makes the robot travel along the path until it reaches a POI.
      */
-    public void travelToNextPOI(TravelDirection travelDirection, Robot robot) {
-        double angle;
-        switch(travelDirection) {
-            case FORWARD:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-robot.position.rotation;
-                break;
-            case REVERSE:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI);
-                break;
-            case LEFT:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation-Math.PI/2);
-                break;
-            case RIGHT:
-                angle = Math.atan2(path.get(0).location.y-robot.position.location.y, path.get(0).location.x-robot.position.location.x)-(robot.position.rotation+Math.PI/2);
-                break;
+    public void travelToNextPOI(Robot robot) {
+        while (true) {
+            Position target = path.get(0);
+            // TODO: update robot position
+            Position start = robot.positionManager.position;
+            rotate(start.rotation - target.rotation, robot);
+            travelLinear(target, robot);
+            path.remove(0);
+            if (target.location.name.substring(0, 3).equals("POI")) break;
         }
-
-        rotate(angle, robot);
-        travelLinear(path.get(0), travelDirection, 1, robot);
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
-     *  TODO: make this use JostickValues
+     *  TODO: make this use JoystickValues
      */
     public void maneuver(double leftStickX, double leftStickY, double rightStickX, Robot robot) {
         // Uses left stick to go forward, and right stick to turn.
@@ -230,9 +221,10 @@ public class Navigation
     }
 
     /** Makes the robot travel in a straight line for a certain distance.
+     *
      *  @param desiredPosition The desired position of the robot.
      */
-    private void travelLinear(Position desiredPosition) throws InterruptedException {
+    private void travelLinear(Position desiredPosition, Robot robot) {
         double frontLeftPower = 0; double frontRightPower = 0; double rearLeftPower = 0; double rearRightPower = 0;
         Point origPoint = robot.position.location;
 
@@ -251,6 +243,7 @@ public class Navigation
 
         final double POWERSLOPE = 0.05;
 
+        // TODO: Replace this with a call to getAngleBetween
         moveDirection = Math.atan2(desiredY-origPoint.y, desiredX-origPos.x);
 
         power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)),0,1);

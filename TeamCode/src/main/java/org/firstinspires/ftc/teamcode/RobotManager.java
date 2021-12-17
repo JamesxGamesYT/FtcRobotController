@@ -1,6 +1,8 @@
 /* Authors: Arin Khare, Kai Vernooy
  */
 
+// TODO: Change "desired" to "target"
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
