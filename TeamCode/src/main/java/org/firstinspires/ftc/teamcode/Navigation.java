@@ -43,7 +43,7 @@ public class Navigation
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
 
-    public enum Direction {CLOCKWISE, COUNTERCLOCKWISE}
+    public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -157,7 +157,7 @@ public class Navigation
 
         boolean rampUp = true;
         double power = MIN_POWER;
-        Direction direction = (angle > 0) ? Direction.CLOCKWISE : Direction.COUNTERCLOCKWISE;
+        RotationDirection direction = (angle > 0) ? RotationDirection.CLOCKWISE : RotationDirection.COUNTERCLOCKWISE;
 
         rotate(direction, power, robot);
 
@@ -203,7 +203,7 @@ public class Navigation
 
     /** Sets motor powers to rotate the robot in a certain direction.
      */
-    private void rotate(Direction direction, double power, Robot robot) {
+    private void rotate(RotationDirection direction, double power, Robot robot) {
         switch (direction) {
             case CLOCKWISE:
                 // Right wheels go forward and left ones go backward.
