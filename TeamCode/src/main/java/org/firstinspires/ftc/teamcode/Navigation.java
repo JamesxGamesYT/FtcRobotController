@@ -7,6 +7,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -27,13 +28,22 @@ public class Navigation
     // DUCK: deliver duck from carousel.
     // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
     public enum NavigationMode {DUCK, FREIGHT, TELEOP}
-
     public enum AllianceColor {BLUE, RED}
 
-    final double SPEED = 1.0;
+    final double POWER = 0.75;
+    final double ROTATION_POWER = 0.75;  // Power to use while rotating.
+    final double MIN_POWER = 0.1;  // Power to use at start/end of ramp up/down.
+    // Rate at which to ramp up/down in terms of power units over radians.
+    // Rationale: max power should be reached when we're pi/3 radians away from starting rotation, and power should
+    // begin decreasing when we're pi/3 radians away from target rotation.
+    final double RAMP_SLOPE_ROTATION = POWER / (Math.PI / 3);
+    // Follows similar logic to RAMP_SLOPE_STRAFING. Note that the denominator is in inches.
+    final double RAMP_SLOPE_STRAFING = POWER / 5;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
+
+    public enum Direction {CLOCKWISE, COUNTERCLOCKWISE}
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -113,7 +123,7 @@ public class Navigation
 
         moveDirection = Math.atan2(leftStickY, leftStickX);
 
-        power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)),0,1);
+        power = Range.clip(Math.sqrt(Math.pow(leftStickX, 2) + Math.pow(leftStickY, 2)), 0, 1);
         if (power <= 0.05) { // joystick dead zone
             power = 0;
         }
@@ -127,55 +137,96 @@ public class Navigation
         rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
         rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power - turn;
 
-        robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
+        robot.telemetry.addData("Left Stick Position", Math.toDegrees(moveDirection) + " degrees");
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)", rearLeftPower, rearRightPower);
     }
 
     /** Rotates the robot a number of degrees.
+     *
+     * @param angle The amount for the robot to rotate (radians, positive for clockwise, negative for CC).
+     *              Within interval [-pi, pi]
      */
     private void rotate(double angle, Robot robot) 
     {
-        // Assign the original rotation to a variable
-        double origRotation = robot.positionManager.position.rotation;
+        // TODO: update robot position
 
-        double rotationPowerPositive = angle/360;
-        double rotationPowerNegative = -1*angle/360;
-
-
-        if(angle > 0)
-        {
-            //going backwards
-            robot.rearLeftDrive.setPower(rotationPowerNegative);
-            robot.frontLeftDrive.setPower(rotationPowerNegative);
-            //going forwards
-            robot.rearRightDrive.setPower(rotationPowerPositive);
-            robot.frontRightDrive.setPower(rotationPowerPositive);
-
+        // Both values are restricted to interval [0, 2pi] for simplified comparisons.
+        double startingRotation = robot.positionManager.position.rotation;
+        double currentRotation = startingRotation;
+        if (startingRotation < 0.0) {
+            startingRotation = Math.PI + Math.abs(startingRotation);
         }
-        else
+        double targetRotation = (startingRotation + angle) % (2 * Math.PI);
+
+        // Ramping algorithm:
+        // - Check whether to ramp up or down based on whether you are halfway to target
+        // - Set power proportional to distance to target when ramping down, inversely proportional when ramping up
+        // - Clip value between max/min powers
+
+        boolean rampUp = true;
+        double power = MIN_POWER;
+        Direction direction = (angle > 0) ? Direction.CLOCKWISE : Direction.COUNTERCLOCKWISE;
+
+        rotate(direction, power, robot);
+
+        // While position is not reached.
+        while (Math.abs(robot.positionManager.position.rotation - targetRotation) >= EPSILON_ANGLE)
         {
-            //going forwards
-            robot.rearLeftDrive.setPower(rotationPowerPositive);
-            robot.frontLeftDrive.setPower(rotationPowerPositive);
-            //going backwards
-            robot.rearRightDrive.setPower(rotationPowerNegative);
-            robot.frontRightDrive.setPower(rotationPowerNegative);
+            // TODO: update robot position
+            if (currentRotation < 0.0) {
+                currentRotation = Math.PI + Math.abs(currentRotation);
+            }
+            if (rampUp) {
+                switch (direction) {
+                    case CLOCKWISE:
+                        // As currentRotation decreases (along unit circle), power should increase.
+                        power = (startingRotation - currentRotation) * RAMP_SLOPE_ROTATION;
+                    case COUNTERCLOCKWISE:
+                        // As currentRotation increases, power should increase.
+                        power = (currentRotation - startingRotation) * RAMP_SLOPE_ROTATION;
+                }
+                rotate(direction, power, robot);
+                // Check whether to start ramping down (if we're at least halfway there).
+                rampUp = Math.abs(startingRotation - currentRotation) >= angle / 2;
+            }
+            else
+            {
+                switch (direction) {
+                    case CLOCKWISE:
+                        // As currentRotation decreases, power should decrease.
+                        power = (currentRotation - targetRotation) * RAMP_SLOPE_ROTATION;
+                    case COUNTERCLOCKWISE:
+                        // As currentRotation increases, power should decrease.
+                        power = (targetRotation - currentRotation) * RAMP_SLOPE_ROTATION;
+                }
+                rotate(direction, power, robot);
+            }
         }
 
+        robot.rearLeftDrive.setPower(0);
+        robot.frontLeftDrive.setPower(0);
+        robot.rearRightDrive.setPower(0);
+        robot.frontRightDrive.setPower(0);
+    }
 
-        double rotationPosition = 0;
-        double finalRotation = 0;
-
-        //checking/reading position (is incomplete)
-        while (Math.abs(robot.position.position.rotation- finalRotation) >= 0.1)//rotation is not done
-        {
-            //reads position
-            double nPosition = robot.position.position.rotation;
-            // TODO: update robot position and compare // ////  TimeUnit.MILLISECONDS.sleep(30);}
-
-
-
+    /** Sets motor powers to rotate the robot in a certain direction.
+     */
+    private void rotate(Direction direction, double power, Robot robot) {
+        switch (direction) {
+            case CLOCKWISE:
+                // Right wheels go forward and left ones go backward.
+                robot.rearLeftDrive.setPower(-power);
+                robot.frontLeftDrive.setPower(-power);
+                robot.rearRightDrive.setPower(power);
+                robot.frontRightDrive.setPower(power);
+            case COUNTERCLOCKWISE:
+                // Right wheels go backward and left ones go forward.
+                robot.rearLeftDrive.setPower(power);
+                robot.frontLeftDrive.setPower(power);
+                robot.rearRightDrive.setPower(-power);
+                robot.frontRightDrive.setPower(-power);
+        }
     }
 
     /** Makes the robot travel in a straight line for a certain distance.
@@ -238,7 +289,7 @@ public class Navigation
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
      */
-    private double getAngleBetween(Point a, Point b) { return Math.atan((b.y-a.y)/(b.x-a.x)); }
+    private double getAngleBetween(Point a, Point b) { return Math.atan2((b.y-a.y), (b.x-a.x)); }
 
     /** Calculates the euclidean distance between two points.
      *
