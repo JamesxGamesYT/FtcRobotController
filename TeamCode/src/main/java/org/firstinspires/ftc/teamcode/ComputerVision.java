@@ -2,27 +2,22 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.opencv.core.Core;
+import org.opencv.core.*;
+import org.opencv.core.Point;
+import org.opencv.features2d.FlannBasedMatcher;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
 
-//import org.opencv.features2d.SIFT;
-//import org.opencv.calib3d.Calib3d;
-//import org.opencv.features2d.Features2d;
-//import org.opencv.features2d.SIFT;
-
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.core.Scalar;
-import org.opencv.core.Rect;
-import org.opencv.core.Point;
-import org.opencv.core.MatOfPoint;
+import org.opencv.features2d.SIFT;
+import org.opencv.calib3d.Calib3d;
+import org.opencv.features2d.Features2d;
+import org.opencv.features2d.SIFT;
 
 import org.openftc.easyopencv.*;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class ComputerVision {
@@ -64,16 +59,15 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         super();
         this.robot = robot;
 
-
         // TODO: there might be a cleaner way to default-initialize these
         output = new Mat();
-        barcodeHsv = new Mat();
 
+        // Initialize barcode data
+        barcodeHsv = new Mat();
         barcodeTapeRegions = new Mat();
         barcodeTapeLabels = new Mat();
         barcodeTapeStats = new Mat();
         barcodeTapeCentroids = new Mat();
-
         barcodeCapRegions = new Mat();
         barcodeCapLabels = new Mat();
         barcodeCapStats = new Mat();
@@ -82,7 +76,9 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         barcodeTapeRegionsRed1 = new Mat();
         barcodeTapeRegionsRed2 = new Mat();
 
+        template1 = Imgcodecs.imread("filename", 0);
     }
+
 
 
     private Robot robot;
@@ -107,16 +103,63 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         }
 
 
-        Position currentPosition = processPositioningFrame(input);
+        Position currentPosition = processPositioningFrame(input, output);
         if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
 
         return output;
     }
 
 
-    Position processPositioningFrame(Mat input) {
+
+    // CV POSITIONING
+    // =================
+    Mat template1;
+
+
+    Position processPositioningFrame(Mat input, Mat output) {
+        SIFT sift = SIFT.create();
+        MatOfKeyPoint kp1, kp2;
+        Mat des1, des2;
+
+        sift.detectAndCompute(template1, null, kp1, des1);
+        sift.detectAndCompute(input, null, kp2, des2);
+
+        // find a way to set knn params here
+        FlannBasedMatcher matcher = FlannBasedMatcher.create();
+
+        List<MatOfDMatch> matches;
+        MatOfDMatch match;
+
+        List<DMatch> goodMatches = new List<DMatch>();
+        matcher.knnMatch(des1, des2, matches, 2);
+
+        // check total(), might not be correct
+        if (kp1.total() < 2 && kp2.total() < 2) return null;
+
+        matcher.knnMatch(des1, des2, matches, 2);
+//        goodMatches;
+
+        // std::cout << matches.size() << std::endl;
+
+
+        for (MatOfDMatch matchSet : matches) {
+            DMatch[] matchSetArr = matchSet.toArray();
+            if (matchSetArr.length < 2)
+                continue;
+
+            DMatch m1 = matchSetArr[0];
+            DMatch m2 = matchSetArr[1];
+
+             if (m1.distance < 0.7 * m2.distance)
+                 goodMatches.add(m1);
+
+//            if (m2.distance - m1.distance > 0.19)
+//                goodMatches.add(m1);
+        }
+
         return null;
     }
+
 
 
     // BARCODE SCANNING
