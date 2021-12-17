@@ -4,7 +4,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgcodecs.Imgcodecs;
 
+//import org.opencv.features2d.SIFT;
 //import org.opencv.calib3d.Calib3d;
 //import org.opencv.features2d.Features2d;
 //import org.opencv.features2d.SIFT;
@@ -34,9 +36,7 @@ public class ComputerVision {
     }
 
 
-    /**
-     * Begins continuous frame acquisition and image processing.
-     * NOTE: We'll need some instance of a robot class or position at this point to attach to the pipeline, since once started it will be thread inaccessible
+    /** Begins continuous frame acquisition and image processing.
      */
     public void startStreaming() {
 
@@ -55,12 +55,6 @@ public class ComputerVision {
             }
         });
     }
-
-    /**
-     * Runs one cycle of a position estimate based on ac single shot frame.
-     * @return The estimated position. Will be null if no frame is detectable (or maybe we use an exception here)
-     */
-    public Position getPositionEstimate() {return null;}
 }
 
 
@@ -95,41 +89,33 @@ class ComputerVisionPipeline extends OpenCvPipeline {
     private Mat output;
 
 
-    /**
+    /** The main pipeline method, called whenever a frame is received
      * @param input The current frame read from the attached camera.
      *              NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
      * @return An output frame to be displayed on the phone
      */
     @Override
     public Mat processFrame(Mat input) {
-//        if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
-//            int result = processBarcodeFrame(input, output);
-//            robot.numBarcodeAttempts++;
-//
-//            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
-//                robot.barcodeScanResult = result;
-//                robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
-//            }
-//        }
+        if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
+            int result = processBarcodeFrame(input);
+            robot.numBarcodeAttempts++;
+
+            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
+                robot.barcodeScanResult = result;
+                robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
+            }
+        }
 
 
         Position currentPosition = processPositioningFrame(input);
         if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
 
-        robot.barcodeScanResult = processBarcodeFrame(input, output);
         return output;
     }
 
 
     Position processPositioningFrame(Mat input) {
-        // do all image processing here
         return null;
-
-//        int paperId = -1;
-//        ArrayList<Double> screenCoordinateCvImage;
-//        Position newPos = new Position();
-
-        return newPos;
     }
 
 
@@ -143,11 +129,22 @@ class ComputerVisionPipeline extends OpenCvPipeline {
     final private Mat barcodeTapeRegionsBlue, barcodeTapeRegionsRed1, barcodeTapeRegionsRed2;
     final private Mat barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids;
 
-
-
     // The Region of Interest that contains all the barcode elements and the least non-floor background possible
     final static Rect BarcodeImageROI = new Rect(220, 120, 500, 230);
 
+    // Define HSV scalars that represent ranges of color to be selected from the barcode image
+    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(45, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
+
+    /** Isolates the sections of an image in a given HSV range and removes noise, to find large solid-color areas
+     * @param hsv The input image to be isolated, in HSV color format
+     * @param out The image in which the detected areas will be stored
+     * @param a HSV color in Scalar format that represents the lower bound of the area to be isolated
+     * @param b HSV color in Scalar format that represents the upper bound of the area to be isolated
+     * NOTE: OpenCV represents hue from 0-180
+     */
     static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b)
     {
         Core.inRange(hsv, a, b, out);
@@ -156,17 +153,11 @@ class ComputerVisionPipeline extends OpenCvPipeline {
     }
 
 
-    // Define HSV scalars that represent ranges of color to be selected from the barcode image
-    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(45, 255, 255)};
-    final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
-    final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
-    final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
-
     /**
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private int processBarcodeFrame(Mat input, Mat output) {
+    private int processBarcodeFrame(Mat input/*, Mat output*/) {
         // Todo: perform cropping based on region of image we expect to find barcode in
         // input = new Mat(input, BarcodeImageROI);
 
@@ -188,18 +179,20 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         // Visualize the detected areas with appropriately colored outlines
         ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-        input.copyTo(output);
 
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
-        }
-
-        contours.clear();
-        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
-        }
+        // Draw the detected areas to the output for visualization
+//        input.copyTo(output);
+//
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
+//        }
+//
+//        contours.clear();
+//        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+//
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
+//        }
 
         // Determine the centroids of the tape regions
         double[] tapeCentroidsX = new double[2];
