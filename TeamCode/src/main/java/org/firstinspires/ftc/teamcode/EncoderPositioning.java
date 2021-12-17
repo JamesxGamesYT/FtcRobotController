@@ -8,38 +8,48 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  */
 public class EncoderPositioning {
     /** Checks the robot's encoders to get an estimate of the distance and direction traveled.
+     *  @return a position in the form of a vector from the origin that can be added to an existing measurement
      */
-    public void updateDeltaEstimate(Robot robot) {
+    public Position updateDeltaEstimate(Robot robot) {
         // Read encoder values and use them to create a Position that represents the robot's movement relative to the last time the encoders were read.
         // Reset encoder values to zero.
         // call submitEstimate
 
-//         280 encoder counts per revolution
-//
+        // 280 encoder counts per revolution
+
         double ADEncCount = robot.frontLeftDrive.getCurrentPosition() + robot.rearRightDrive.getCurrentPosition();
         double BCEncCount = robot.rearLeftDrive.getCurrentPosition() + robot.frontRightDrive.getCurrentPosition();
 
         double ADangle = Math.acos((2 * ADEncCount + Math.sqrt(8 - 4 * (ADEncCount * ADEncCount))) / 4);
         double BCangle = Math.acos((2 * BCEncCount + Math.sqrt(8 - 4 * (BCEncCount * BCEncCount))) / 4);
 
-        double secondXcor = BCEncCount * Math.cos(BCangle);
-        double secondYcor = BCEncCount * Math.sin(BCangle);
+        double origX = Position.getX();
+        double origY = Position.getY();
+        double secondXcor = origX + BCEncCount * Math.cos(BCangle);
+        double secondYcor = origY + BCEncCount * Math.sin(BCangle);
 
         double thirdXcor = secondXcor - ADEncCount * Math.cos(ADangle);
         double thirdYcor = secondYcor + ADEncCount * Math.sin(ADangle);
 
-        submitEstimate(robot, new Position(thirdXcor, thirdYcor, 0.0));
-        resetEncoders(robot);
+        double a = thirdYcor - origY;
+        double b = thirdXcor - origX;
+
+        double orientation = Math.atan(b/a);
+
+        Position.setX(thirdXcor);
+        Position.setY(thirdYcor);
+        Position.setRotation(orientation);
+        return null;
     }
 
 
     /** Updates the encoder's position estimate in the robot's PositionManager
      */
     private void submitEstimate(Robot robot, Position delta) {
-        robot.position.updateEncoderPosition(delta);
+        robot.positionManager.updateEncoderPosition(delta);
     }
-    
-    
+
+
     /** Resets the encoder values to zero.
      */
     private void resetEncoders(Robot robot) {
