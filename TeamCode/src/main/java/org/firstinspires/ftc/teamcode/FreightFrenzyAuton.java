@@ -12,11 +12,13 @@ import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 public class FreightFrenzyAuton extends LinearOpMode {
 
     private RobotManager robotManager;
+    private ElapsedTime elapsedTime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
+                                        allianceColor, telemetry, elapsedTime);
 
         waitForStart(); // wait for the play button to be pressed
 

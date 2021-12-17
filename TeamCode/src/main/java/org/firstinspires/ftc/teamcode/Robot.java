@@ -31,12 +31,14 @@ public class Robot {
 
     // Other
     public Telemetry telemetry;
+    public ElapsedTime elapsedTime;
 
     // Positioning
     public PositionManager positionManager;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime) {
         this.telemetry = telemetry;
+        this.elapsedTime = elapsedTime;
         positionManager = new PositionManager();
 
         // Initialize desired states.

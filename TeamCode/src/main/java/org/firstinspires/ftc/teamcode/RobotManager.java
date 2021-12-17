@@ -23,15 +23,17 @@ public class RobotManager {
     private GamepadWrapper gamepads, previousStateGamepads;
 
     private Telemetry telemetry;
+    private ElapsedTime elapsedTime;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
                         Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor,
-                        Telemetry telemetry) {
+                        Telemetry telemetry, ElapsedTime elapsedTime) {
 
+        elapsedTime.reset();
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
 
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
