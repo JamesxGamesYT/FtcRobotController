@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.Nullable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.Arrays;
@@ -26,10 +27,10 @@ public class ComputerVision {
     public OpenCvCamera camera;
     public OpenCvPipeline pipeline;
 
-    ComputerVision(HardwareMap hardwareMap, OpenCvPipeline cameraPipeline) {
+    ComputerVision(HardwareMap hardwareMap, OpenCvPipeline pipeline) {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        pipeline = cameraPipeline;
+        this.pipeline = pipeline;
     }
 
 
@@ -44,6 +45,7 @@ public class ComputerVision {
                 camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
             }
 
+            // TODO: responsible error handling
             @Override
             public void onError(int errorCode) {}
         });
@@ -56,6 +58,8 @@ public class ComputerVision {
 class CVOpModePipeline extends OpenCvPipeline {
 
     final private Robot robot;
+
+    // Holds the frame to be displayed on the phone
     final private Mat output;
 
 
@@ -82,6 +86,37 @@ class CVOpModePipeline extends OpenCvPipeline {
     }
 
 
+    /** The main pipeline method, called whenever a frame is received
+     * @param input The current frame read from the attached camera.
+     *              NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
+     * @return An output frame to be displayed on the phone
+     */
+    @Override
+    public Mat processFrame(Mat input) {
+//        if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
+//            int result = processBarcodeFrame(input);
+//            robot.numBarcodeAttempts++;
+//
+//            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
+//                robot.barcodeScanResult = result;
+//                robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
+//            }
+//        }
+
+        Position currentPosition = processPositioningFrame(input, output);
+        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
+//        input.copyTo(output);
+        return output;
+    }
+
+
+
+    // CV POSITIONING
+    // =================
+    private static final SIFT sift = SIFT.create();
+    private static final MatOfKeyPoint kp1 = new MatOfKeyPoint(), kp2 = new MatOfKeyPoint();
+    private static final Mat des1 = new Mat(), des2 = new Mat();
+
     static List<Point3> NavTargetsWorldSpace = new ArrayList<Point3> () {{
         add(new Point3(0,42 + (5.5),5.75 - (8.5 / 2)));
         add(new Point3(0,42 - (5.5),5.75 - (8.5 / 2)));
@@ -90,93 +125,72 @@ class CVOpModePipeline extends OpenCvPipeline {
     }};
 
 
-
-    /** The main pipeline method, called whenever a frame is received
-     * @param input The current frame read from the attached camera.
-     *              NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
-     * @return An output frame to be displayed on the phone
+    /** Transforms a set of points on a provided 2d template image onto the instance of the template in frame using the detected homography transformation.
+     * or maybe it will do something else like just returning the transformation.
+     * @param template A flat image to be detected in the frame
+     * @param frame The image in which the 3d-distorted {@param template} may be found
+     * param points A set of points, in the coordinate space defined by {@param template}, to be transformed into the coordinate space of {@param frame}
+     * @param output An image to draw the detected KeyPoint matches to
+     * @return The input {@param points}, transformed into the destination space
      */
-    @Override
-    public Mat processFrame(Mat input) {
-        if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
-            int result = processBarcodeFrame(input);
-            robot.numBarcodeAttempts++;
+    private static MatOfPoint2f DetectTemplate(Mat template, Mat frame, /*MatOfPoint2f points,*/ Mat output) {
+        sift.detectAndCompute(template, null, kp1, des1);
+        sift.detectAndCompute(frame, null, kp2, des2);
 
-            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
-                robot.barcodeScanResult = result;
-                robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
-            }
+        // find a way to set knn params here
+        FlannBasedMatcher matcher = FlannBasedMatcher.create();
+
+        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
+        ArrayList<DMatch> goodMatches = new ArrayList<DMatch>();
+
+        matcher.knnMatch(des1, des2, matches, 2);
+
+        // check total(), might not be correct
+        if (kp1.total() < 2 && kp2.total() < 2) return null;
+
+        matcher.knnMatch(des1, des2, matches, 2);
+
+
+        for (MatOfDMatch matchSet : matches) {
+            DMatch[] matchSetArr = matchSet.toArray();
+            if (matchSetArr.length < 2)
+                continue;
+
+            DMatch m1 = matchSetArr[0];
+            DMatch m2 = matchSetArr[1];
+
+            if (m1.distance < 0.7 * m2.distance)
+                goodMatches.add(m1);
+
+//            if (m2.distance - m1.distance > 0.19)
+//                goodMatches.add(m1);
         }
 
-//        Position currentPosition = processPositioningFrame(input, output);
-//        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
 
-        calibrate(input, output);
-        return output;
+        MatOfDMatch goodMatchesMat = new MatOfDMatch();
+        goodMatchesMat.fromList(goodMatches);
+
+        Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
+        return null;
     }
 
 
+    /** Main CV localization estimator - determines position relative to any detected navigation targets
+     * @param input The frame to be processed (either containing nav targets or not)
+     * //@param output
+     * @return Determined position of the robot, as presented in the {@param input} image.
+     */
+    @Nullable Position processPositioningFrame(Mat input, Mat output) {
+//        Mat frame = Imgcodecs.imread("filename", 0);
+//        frame.copyTo(output);
 
-
-
-    // CV POSITIONING
-    // =================
-//    static final SIFT sift = SIFT.create();
-//    static final MatOfKeyPoint kp1, kp2;
-//    static final Mat des1, des2;
-//
-//
-//    static MatOfPoint2f DetectTemplate(Mat template, Mat frame, MatOfPoint2f points) {
-//        sift.detectAndCompute(template, null, kp1, des1);
-//        sift.detectAndCompute(frame, null, kp2, des2);
-//
-//        // find a way to set knn params here
-//        FlannBasedMatcher matcher = FlannBasedMatcher.create();
-//
-//        List<MatOfDMatch> matches;
-//        List<DMatch> goodMatches;
-//
-//        matcher.knnMatch(des1, des2, matches, 2);
-//
-//        // check total(), might not be correct
-//        if (kp1.total() < 2 && kp2.total() < 2) return null;
-//
-//        matcher.knnMatch(des1, des2, matches, 2);
-////        goodMatches;
-//
-//        // std::cout << matches.size() << std::endl;
-//
-//
-//        for (MatOfDMatch matchSet : matches) {
-//            DMatch[] matchSetArr = matchSet.toArray();
-//            if (matchSetArr.length < 2)
-//                continue;
-//
-//            DMatch m1 = matchSetArr[0];
-//            DMatch m2 = matchSetArr[1];
-//
-//            if (m1.distance < 0.7 * m2.distance)
-//                goodMatches.add(m1);
-//
-////            if (m2.distance - m1.distance > 0.19)
-////                goodMatches.add(m1);
-//        }
-
-
-//    }
-//
-
-
-//
-//
-//    Position processPositioningFrame(Mat input, Mat output) {
+//        Imgproc.cvtColor(input, output, Imgproc.COLOR_RGB2HSV);
 //        MatOfPoint3f[]
 //        Calib3d.solvePnP()
-////        Imgcodecs.imread("filename", 0);
 //
 //        input.copyTo(output);
-//        return null;
-//    }
+        return null;
+    }
 
 
 
@@ -206,7 +220,7 @@ class CVOpModePipeline extends OpenCvPipeline {
      * @param b HSV color in Scalar format that represents the upper bound of the area to be isolated
      * NOTE: OpenCV represents hue from 0-180
      */
-    static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b)
+    private static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b)
     {
         Core.inRange(hsv, a, b, out);
         Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
@@ -292,7 +306,6 @@ class CalibrationPipeline extends OpenCvPipeline {
     CalibrationPipeline() {
         super();
         output = new Mat();
-
         doCapture = false;
     }
 
@@ -311,7 +324,6 @@ class CalibrationPipeline extends OpenCvPipeline {
 
 
     void calibrate(Mat input, Mat output) {
-        input.copyTo(output);
         Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2GRAY);
 
         MatOfPoint2f corners = new MatOfPoint2f();

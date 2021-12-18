@@ -6,11 +6,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp
 public class CVOpModeTests extends LinearOpMode {
-    RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, Navigation.NavigationMode.DUCK, Navigation.AllianceColor.BLUE);
-    ComputerVision cv = robotManager.computerVision;
 
     @Override
     public void runOpMode() {
+        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, Navigation.NavigationMode.DUCK, Navigation.AllianceColor.BLUE);
+        ComputerVision cv = robotManager.computerVision;
+
         telemetry.addLine("Waiting for start");
         telemetry.update();
 
