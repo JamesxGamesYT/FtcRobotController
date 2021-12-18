@@ -30,7 +30,7 @@ public class RobotManager {
 
         robot = new Robot(hardwareMap);
 
-        computerVision = new ComputerVision(hardwareMap, robot);
+        computerVision = new ComputerVision(hardwareMap, new CVOpModePipeline(robot));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();

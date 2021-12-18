@@ -2,40 +2,42 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.opencv.core.*;
-import org.opencv.core.Point;
-import org.opencv.features2d.FlannBasedMatcher;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.imgcodecs.Imgcodecs;
-
-import org.opencv.features2d.SIFT;
-import org.opencv.calib3d.Calib3d;
-import org.opencv.features2d.Features2d;
-import org.opencv.features2d.SIFT;
-
-import org.openftc.easyopencv.*;
-
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opencv.core.*;
 
+import org.opencv.imgproc.Imgproc;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.calib3d.Calib3d;
+import org.opencv.features2d.Features2d;
+
+import org.opencv.features2d.FlannBasedMatcher;
+import org.opencv.features2d.SIFT;
+
+
+import org.openftc.easyopencv.*;
+
+
+/** Managing class for opening cameras, attaching pipelines, and beginning streaming.
+ */
 public class ComputerVision {
     public OpenCvCamera camera;
-    public ComputerVisionPipeline pipeline;
+    public OpenCvPipeline pipeline;
 
-    ComputerVision(HardwareMap hardwareMap, Robot robot) {
+    ComputerVision(HardwareMap hardwareMap, OpenCvPipeline cameraPipeline) {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        pipeline = new ComputerVisionPipeline(robot);
+        pipeline = cameraPipeline;
     }
 
 
     /** Begins continuous frame acquisition and image processing.
      */
     public void startStreaming() {
-
         camera.setPipeline(pipeline);
+
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
@@ -43,19 +45,21 @@ public class ComputerVision {
             }
 
             @Override
-            public void onError(int errorCode)
-            {
-                /** This will be called if the camera could not be opened
-                 */
-            }
+            public void onError(int errorCode) {}
         });
     }
 }
 
 
+/** Contains all image processing done for scanning the barcode and getting position
+ */
+class CVOpModePipeline extends OpenCvPipeline {
 
-class ComputerVisionPipeline extends OpenCvPipeline {
-    ComputerVisionPipeline(Robot robot) {
+    final private Robot robot;
+    final private Mat output;
+
+
+    CVOpModePipeline(Robot robot) {
         super();
         this.robot = robot;
 
@@ -75,14 +79,16 @@ class ComputerVisionPipeline extends OpenCvPipeline {
         barcodeTapeRegionsBlue = new Mat();
         barcodeTapeRegionsRed1 = new Mat();
         barcodeTapeRegionsRed2 = new Mat();
-
-        template1 = Imgcodecs.imread("filename", 0);
     }
 
 
+    static List<Point3> NavTargetsWorldSpace = new ArrayList<Point3> () {{
+        add(new Point3(0,42 + (5.5),5.75 - (8.5 / 2)));
+        add(new Point3(0,42 - (5.5),5.75 - (8.5 / 2)));
+        add(new Point3(0,42 - (5.5),5.75 + (8.5 / 2)));
+        add(new Point3(0,42 + (5.5),5.75 + (8.5 / 2)));
+    }};
 
-    private Robot robot;
-    private Mat output;
 
 
     /** The main pipeline method, called whenever a frame is received
@@ -102,63 +108,75 @@ class ComputerVisionPipeline extends OpenCvPipeline {
             }
         }
 
+//        Position currentPosition = processPositioningFrame(input, output);
+//        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
 
-        Position currentPosition = processPositioningFrame(input, output);
-        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
-
+        calibrate(input, output);
         return output;
     }
 
 
 
+
+
     // CV POSITIONING
     // =================
-    Mat template1;
-
-
-    Position processPositioningFrame(Mat input, Mat output) {
-        SIFT sift = SIFT.create();
-        MatOfKeyPoint kp1, kp2;
-        Mat des1, des2;
-
-        sift.detectAndCompute(template1, null, kp1, des1);
-        sift.detectAndCompute(input, null, kp2, des2);
-
-        // find a way to set knn params here
-        FlannBasedMatcher matcher = FlannBasedMatcher.create();
-
-        List<MatOfDMatch> matches;
-        MatOfDMatch match;
-
-        List<DMatch> goodMatches = new List<DMatch>();
-        matcher.knnMatch(des1, des2, matches, 2);
-
-        // check total(), might not be correct
-        if (kp1.total() < 2 && kp2.total() < 2) return null;
-
-        matcher.knnMatch(des1, des2, matches, 2);
-//        goodMatches;
-
-        // std::cout << matches.size() << std::endl;
-
-
-        for (MatOfDMatch matchSet : matches) {
-            DMatch[] matchSetArr = matchSet.toArray();
-            if (matchSetArr.length < 2)
-                continue;
-
-            DMatch m1 = matchSetArr[0];
-            DMatch m2 = matchSetArr[1];
-
-             if (m1.distance < 0.7 * m2.distance)
-                 goodMatches.add(m1);
-
-//            if (m2.distance - m1.distance > 0.19)
+//    static final SIFT sift = SIFT.create();
+//    static final MatOfKeyPoint kp1, kp2;
+//    static final Mat des1, des2;
+//
+//
+//    static MatOfPoint2f DetectTemplate(Mat template, Mat frame, MatOfPoint2f points) {
+//        sift.detectAndCompute(template, null, kp1, des1);
+//        sift.detectAndCompute(frame, null, kp2, des2);
+//
+//        // find a way to set knn params here
+//        FlannBasedMatcher matcher = FlannBasedMatcher.create();
+//
+//        List<MatOfDMatch> matches;
+//        List<DMatch> goodMatches;
+//
+//        matcher.knnMatch(des1, des2, matches, 2);
+//
+//        // check total(), might not be correct
+//        if (kp1.total() < 2 && kp2.total() < 2) return null;
+//
+//        matcher.knnMatch(des1, des2, matches, 2);
+////        goodMatches;
+//
+//        // std::cout << matches.size() << std::endl;
+//
+//
+//        for (MatOfDMatch matchSet : matches) {
+//            DMatch[] matchSetArr = matchSet.toArray();
+//            if (matchSetArr.length < 2)
+//                continue;
+//
+//            DMatch m1 = matchSetArr[0];
+//            DMatch m2 = matchSetArr[1];
+//
+//            if (m1.distance < 0.7 * m2.distance)
 //                goodMatches.add(m1);
-        }
+//
+////            if (m2.distance - m1.distance > 0.19)
+////                goodMatches.add(m1);
+//        }
 
-        return null;
-    }
+
+//    }
+//
+
+
+//
+//
+//    Position processPositioningFrame(Mat input, Mat output) {
+//        MatOfPoint3f[]
+//        Calib3d.solvePnP()
+////        Imgcodecs.imread("filename", 0);
+//
+//        input.copyTo(output);
+//        return null;
+//    }
 
 
 
@@ -261,6 +279,56 @@ class ComputerVisionPipeline extends OpenCvPipeline {
 
     @Override
     public void onViewportTapped() {
+//        camera.pauseViewport();
+    }
+}
+
+
+class CalibrationPipeline extends OpenCvPipeline {
+
+    final private Mat output;
+    boolean doCapture;
+
+    CalibrationPipeline() {
+        super();
+        output = new Mat();
+
+        doCapture = false;
+    }
+
+
+    @Override
+    public Mat processFrame(Mat input) {
+        input.copyTo(output);
+
+        if (doCapture) {
+            calibrate(input, output);
+            doCapture = false;
+        }
+
+        return output;
+    }
+
+
+    void calibrate(Mat input, Mat output) {
+        input.copyTo(output);
+        Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2GRAY);
+
+        MatOfPoint2f corners = new MatOfPoint2f();
+        Size boardSize = new Size(10, 7);
+
+        boolean found = Calib3d.findChessboardCorners(input, boardSize, corners, Calib3d.CALIB_CB_ADAPTIVE_THRESH | Calib3d.CALIB_CB_FILTER_QUADS);
+
+        if (found) {
+            Calib3d.find4QuadCornerSubpix(input, corners, new Size(10, 10));
+            Calib3d.drawChessboardCorners(output, boardSize, corners, found);
+        }
+    }
+
+
+    @Override
+    public void onViewportTapped() {
+        doCapture = true;
 //        camera.pauseViewport();
     }
 }
