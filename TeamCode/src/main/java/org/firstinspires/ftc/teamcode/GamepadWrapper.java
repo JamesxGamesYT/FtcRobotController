@@ -10,7 +10,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class GamepadWrapper {
     public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
-                              SET_SLIDES_CAPPING, OPEN_CLAW, SET_CLAW_SPHERE, SET_CLAW_CUBE}
+                              SET_SLIDES_CAPPING, CLOSE_CLAW, OPEN_CLAW
+    }
 
     Gamepad gamepad1, gamepad2;
 
@@ -50,11 +51,9 @@ public class GamepadWrapper {
                 return gamepad2.dpad_up;
             case SET_SLIDES_CAPPING:
                 return gamepad2.right_bumper;
-            case OPEN_CLAW:
+            case CLOSE_CLAW:
                 return gamepad2.b;
-            case SET_CLAW_SPHERE:
-                return gamepad2.x;
-            case SET_CLAW_CUBE:
+            case OPEN_CLAW:
                 return gamepad2.y;
         }
         assert false;

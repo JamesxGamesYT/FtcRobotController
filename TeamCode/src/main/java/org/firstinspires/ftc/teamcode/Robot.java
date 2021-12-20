@@ -8,7 +8,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
@@ -22,7 +21,7 @@ public class Robot {
     // Finite state machine
     public enum CarouselState {STOPPED, SPINNING}
     public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
-    public enum ClawState {OPEN, SPHERE, CUBE}
+    public enum ClawState {CLOSED, OPEN}
 
     public CarouselState desiredCarouselState;
     public SlidesState desiredSlidesState;
@@ -53,7 +52,7 @@ public class Robot {
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
         desiredSlidesState = SlidesState.RETRACTED;
-        desiredClawState = ClawState.OPEN;
+        desiredClawState = ClawState.CLOSED;
 
         // Initialize hardware.
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));

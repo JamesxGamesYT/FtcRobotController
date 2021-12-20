@@ -17,11 +17,11 @@ public class ClawTestOpMode extends LinearOpMode{
             while (opModeIsActive()) {//loop this until stop button is pressed
                 mechs.updateClaw(robot);
                 if(gamepad1.a ){
-                    robot.desiredClawState = Robot.ClawState.OPEN;
+                    robot.desiredClawState = Robot.ClawState.CLOSED;
                 }
 
                 if(gamepad1.b) {
-                    robot.desiredClawState = Robot.ClawState.CUBE;
+                    robot.desiredClawState = Robot.ClawState.OPEN;
                 }
 
 //                telemetry.addData("Claw info", "State: " + robot.clawMotorState + "; Servo position: " + robot.claw.getPosition() + ";"); //Was there something about how a servo with a position could not be used here?
