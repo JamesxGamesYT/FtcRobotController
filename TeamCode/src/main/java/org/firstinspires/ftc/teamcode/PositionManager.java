@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
-/** Incorporates estimates from two sources (CV positioning and encoders) to create a single positioning estimate
+/** Incorporates estimates from multiple sources to create a single positioning estimate
  */
 public class PositionManager {
-    PositionManager() {
+    PositionManager(HardwareMap hardwareMap) {
         position = new Position();
+        encoderPositioning = new EncoderPositioning();
+        cvPositioning = new CVPositioning(hardwareMap);
     }
 
     PositionManager(double x, double y, double r){
@@ -12,6 +15,9 @@ public class PositionManager {
     }
 
     public Position position;
+
+    public EncoderPositioning encoderPositioning;
+    public CVPositioning cvPositioning;
 
     /** Adds new detected encoder movement change to both a temporary encoderDelta variable and to the overall position attribute
      *

@@ -1,21 +1,40 @@
 package org.firstinspires.ftc.teamcode;
-
-
 import com.qualcomm.robotcore.hardware.DcMotor;
+import java.util.HashMap;
 
 /** Estimates the robot's position based on the encoders on the drivetrain's motors. This will require a baseline
  *  position to add onto.
  */
 public class EncoderPositioning {
+    static int COUNTS_PER_ROTATION = 280;
+    static int MAGICAL_FACTOR = 1;
+
+    static HashMap<Robot.WheelConfiguration, Double> RollerAngles = new HashMap<Robot.WheelConfiguration, Double> (){{
+        put(Robot.WheelConfiguration.FRONTRIGHT, Math.PI / 4.d);
+        put(Robot.WheelConfiguration.FRONTLEFT, 3 * Math.PI / 4.d);
+        put(Robot.WheelConfiguration.REARLEFT, Math.PI / 4.d);
+        put(Robot.WheelConfiguration.REARRIGHT, 3 * Math.PI / 4.d);
+    }};
+
+
     /** Checks the robot's encoders to get an estimate of the distance and direction traveled.
      *  @return a position in the form of a vector from the origin that can be added to an existing measurement
      */
-    public Position updateDeltaEstimate(Robot robot) {
+    public void updateDeltaEstimate(Robot robot) {
         // Read encoder values and use them to create a Position that represents the robot's movement relative to the last time the encoders were read.
         // Reset encoder values to zero.
         // call submitEstimate
-
         // 280 encoder counts per revolution
+
+//
+//        double frontLeftDelta = 0, frontRightDelta = 0, rearRightDelta = 0, rearLeftDelta = 0;
+//
+//        for (HashMap.Entry<Robot.WheelConfiguration, Double> rollerAngle : RollerAngles.entrySet())
+//        {
+//
+//        }
+
+
 
         double ADEncCount = robot.frontLeftDrive.getCurrentPosition() + robot.rearRightDrive.getCurrentPosition();
         double BCEncCount = robot.rearLeftDrive.getCurrentPosition() + robot.frontRightDrive.getCurrentPosition();
@@ -23,23 +42,15 @@ public class EncoderPositioning {
         double ADangle = Math.acos((2 * ADEncCount + Math.sqrt(8 - 4 * (ADEncCount * ADEncCount))) / 4);
         double BCangle = Math.acos((2 * BCEncCount + Math.sqrt(8 - 4 * (BCEncCount * BCEncCount))) / 4);
 
-        double origX = Position.getX();
-        double origY = Position.getY();
-        double secondXcor = origX + BCEncCount * Math.cos(BCangle);
-        double secondYcor = origY + BCEncCount * Math.sin(BCangle);
+        double secondXcor = BCEncCount * Math.cos(BCangle);
+        double secondYcor = BCEncCount * Math.sin(BCangle);
 
         double thirdXcor = secondXcor - ADEncCount * Math.cos(ADangle);
         double thirdYcor = secondYcor + ADEncCount * Math.sin(ADangle);
+        double orientation = Math.atan(thirdXcor / thirdYcor);
 
-        double a = thirdYcor - origY;
-        double b = thirdXcor - origX;
-
-        double orientation = Math.atan(b/a);
-
-        Position.setX(thirdXcor);
-        Position.setY(thirdYcor);
-        Position.setRotation(orientation);
-        return null;
+        submitEstimate(robot, new Position(thirdXcor, thirdYcor, 0.0));
+        resetEncoders(robot);
     }
 
 

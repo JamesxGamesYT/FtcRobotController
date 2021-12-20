@@ -31,9 +31,18 @@ public class Robot {
     int numBarcodeAttempts = 0;
     int barcodeScanResult = -1;
 
+    public enum WheelConfiguration {FRONTLEFT, FRONTRIGHT, REARLEFT, REARRIGHT};
+
+    HashMap<WheelConfiguration, DcMotor> driveMotors = new HashMap<WheelConfiguration, DcMotor>() {{
+        put(WheelConfiguration.FRONTLEFT, null);
+        put(WheelConfiguration.FRONTRIGHT, null);
+        put(WheelConfiguration.REARLEFT, null);
+        put(WheelConfiguration.REARRIGHT, null);
+    }};
+
 
     // Hardware
-    public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
+    public DcMotor carousel, slidesLeft, slidesRight;
     public Servo claw;
 
     // Positioning
@@ -49,6 +58,10 @@ public class Robot {
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
+
+//        driveMotors.put(WheelConfiguration.REARLEFT, hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.FRONT_RIGHT_DRIVE)));
+//        driveMotors.put(WheelConfiguration.REARRIGHT, hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_RIGHT_DRIVE))_;
+
         frontRightDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.FRONT_RIGHT_DRIVE));
         rearRightDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_RIGHT_DRIVE));
         frontLeftDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.FRONT_LEFT_DRIVE));
