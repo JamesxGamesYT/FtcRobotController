@@ -10,7 +10,7 @@ public class MechanismDriving {
     // TODO: get the exact values the slides will need to move to inorder to be be at the correct levels for the shipping hub.
     //       get exact values for the claw as well when open, holding a sphere, and holding a cube
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3000, CAPPING_POS = 4000;
-    public static final double CLAW_OPEN_POS = 1.0, CLAW_CLOSE_POS = -1.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0; //These are not final values
+    public static final double CLAW_OPEN_POS = 100.0, CLAW_CLOSE_POS = -100.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0; //These are not final values
     // How long the carousel motor must be spinning for in order to deliver the duck.
     public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
@@ -27,13 +27,13 @@ public class MechanismDriving {
     public void updateClaw(Robot robot) {
         switch (robot.desiredClawState) {
             case OPEN:
-                robot.claw.setPosition(CLAW_OPEN_POS);
+                robot.claw.setPower(CLAW_OPEN_POS);//open
                 break;
             case CUBE:
-                robot.claw.setPosition(CLAW_CUBE_POS);
+                robot.claw.setPower(CLAW_CLOSE_POS);//close
                 break;
             case SPHERE:
-                robot.claw.setPosition(CLAW_SPHERE_POS);
+                robot.claw.setPower(CLAW_SPHERE_POS);//current stopping
                 break;
         }
     }
@@ -46,7 +46,7 @@ public class MechanismDriving {
                 robot.carousel.setPower(0);
                 break;
             case SPINNING:
-                robot.carousel.setPower(1);
+                robot.carousel.setPower(0.5);
                 break;
         }
     }
