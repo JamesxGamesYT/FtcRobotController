@@ -8,6 +8,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import java.util.Map;
  *  Also has a "desired state" for mechanism driving.
  */
 public class Robot {
-    // Finite state machine
+    // Robot desired states.
     public enum CarouselState {STOPPED, SPINNING}
     public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
     public enum ClawState {OPEN, SPHERE, CUBE}
@@ -34,6 +35,8 @@ public class Robot {
     int numBarcodeAttempts = 0;
     int barcodeScanResult = -1;
 
+    boolean fineMovement = false;
+    boolean fineRotation = false;
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;

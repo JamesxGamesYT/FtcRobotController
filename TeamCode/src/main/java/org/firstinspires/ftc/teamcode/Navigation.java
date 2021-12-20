@@ -30,6 +30,8 @@ public class Navigation
     public enum NavigationMode {DUCK, FREIGHT, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
+    // AUTON CONSTANTS
+    // ===============
     final double STRAFE_POWER = 0.75;
     final double ROTATION_POWER = 0.75;  // Power to use while rotating.
     final double MIN_POWER = 0.1;  // Power to use at start/end of ramp up/down.
@@ -42,6 +44,13 @@ public class Navigation
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
+
+    // TELEOP CONSTANTS
+    // ================
+    final double COARSE_MOVEMENT_POWER = 1.0;
+    final double FINE_MOVEMENT_POWER = 0.25;
+    final double COARSE_ROTATION_POWER = 0.4;
+    final double FINE_ROTATION_POWER = 0.1;
 
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
 
@@ -108,13 +117,22 @@ public class Navigation
         if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
             turn = 0;
         }
-        turn /= 2.0;  // Scale input sensitivity.
+        if (robot.fineRotation) {
+            turn *= FINE_ROTATION_POWER;
+        } else {
+            turn += COARSE_ROTATION_POWER;
+        }
 
         moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
 
         power = Range.clip(Math.sqrt(Math.pow(joystickValues.gamepad1LeftStickX, 2) + Math.pow(-joystickValues.gamepad1LeftStickY, 2)),0,1);
         if (power <= 0.05) { // joystick dead zone
             power = 0;
+        }
+        if (robot.fineMovement) {
+            power *= FINE_MOVEMENT_POWER;
+        } else {
+            turn *= COARSE_MOVEMENT_POWER;
         }
 
         sinMoveDirection = Math.sin(moveDirection);

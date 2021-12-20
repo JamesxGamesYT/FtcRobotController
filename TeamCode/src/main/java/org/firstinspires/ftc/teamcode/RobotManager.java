@@ -88,6 +88,14 @@ public class RobotManager {
             robot.desiredSlidesState = Robot.SlidesState.CAPPING;
         }
 
+        // Fine movement/rotation.
+        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_MOVEMENT_MODE)) {
+            robot.fineMovement = !robot.fineMovement;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_ROTATION_MODE)) {
+            robot.fineRotation = !robot.fineRotation;
+        }
+
         previousStateGamepads.copyGamepads(gamepads);
     }
 
