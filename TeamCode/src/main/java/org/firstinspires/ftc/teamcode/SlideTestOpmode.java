@@ -9,7 +9,7 @@ public class SlideTestOpmode extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-        Robot robot =new Robot(hardwareMap);
+        Robot robot = new Robot(hardwareMap, telemetry);
         MechanismDriving mechs=new MechanismDriving();
 
         waitForStart();//wait for the play button to be pressed
@@ -32,7 +32,7 @@ public class SlideTestOpmode extends LinearOpMode {
                 robot.desiredSlidesState= Robot.SlidesState.CAPPING;
             }
 
-            telemetry.addData("encoders", "carousel "+robot.carousel.getCurrentPosition()+" slidesLeft "+robot.slidesLeft.getCurrentPosition()+" slidesRight "+robot.slidesRight.getCurrentPosition());
+//            telemetry.addData("encoders", "Slides state: " + robot.slidesMotorsState + "; Carousel: "+robot.carousel.getCurrentPosition()+"; Slides left: "+robot.slidesLeft.getCurrentPosition()+"; Slides right: "+robot.slidesRight.getCurrentPosition() + ";");
             telemetry.update();
         }
     }

@@ -12,26 +12,17 @@ import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 public class FreightFrenzyAuton extends LinearOpMode {
 
     private RobotManager robotManager;
-    private ElapsedTime elapsedTime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
-                                        allianceColor, telemetry, elapsedTime);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor, telemetry);
 
         waitForStart(); // wait for the play button to be pressed
 
-        switch (navigationMode) {
-            case DUCK:
-                robotManager.travelToNextPOI();  // Move robot to shipping hub.
-                robotManager.deliverToShippingHub(/* TODO: use result from CV */ Robot.SlidesState.L1);
-                
-        }
+        while (opModeIsActive()) { // loop this until stop button is pressed
 
-//         while (opModeIsActive()) { // loop this until stop button is pressed
-// 
-//         }
+        }
     }
 
     // ANDROID SHARED PREFERENCES

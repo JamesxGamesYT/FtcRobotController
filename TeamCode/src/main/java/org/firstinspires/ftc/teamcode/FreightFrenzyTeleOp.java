@@ -9,26 +9,26 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 /** Autonomous OpMode for Freight Frenzy. Uses a finite state machine.
  */
+@TeleOp(name="Freight Frenzy Tele-Op", group="TeleOp OpMode")
 public class FreightFrenzyTeleOp extends OpMode {
     private RobotManager robotManager;
 
     @Override
     public void init() {
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, telemetry);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, Navigation.NavigationMode.TELEOP,
+                /* doesn't really matter which color */ Navigation.AllianceColor.BLUE, telemetry);
     }
 
     @Override
-    public void start() {
-
-    }
+    public void start() {}
 
     @Override
     public void loop() {
-
+        robotManager.readControllerInputs();
+        robotManager.driveMechanisms();
+        robotManager.maneuver();
     }
 
     @Override
-    public void stop() {
-
-    }
+    public void stop() {}
 }

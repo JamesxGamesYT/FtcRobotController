@@ -1,4 +1,6 @@
 /* Authors: Arin Khare, Kai Vernooy
+this is an unofficial version of this call meant for testing purposes only
+disregard all changes in this version of this class when merging
  */
 
 package org.firstinspires.ftc.teamcode;
@@ -24,6 +26,14 @@ public class Robot {
     public CarouselState desiredCarouselState;
     public SlidesState desiredSlidesState;
     public ClawState desiredClawState;
+
+    enum BarcodeScanState {CHECK_SCAN, SCAN}
+    public BarcodeScanState barcodeScanState;
+
+    static final int MaxBarcodeAttempts = 100;  // How many times to try scanning the barcode before giving up
+    int numBarcodeAttempts = 0;
+    int barcodeScanResult = -1;
+
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
@@ -56,10 +66,12 @@ public class Robot {
         rearLeftDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_LEFT_DRIVE));
         claw = hardwareMap.get(Servo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
 
-        frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rearLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
-        rearRightDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        rearLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        rearRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        slidesLeft.setDirection(DcMotor.Direction.FORWARD);
+        slidesRight.setDirection(DcMotor.Direction.REVERSE);
 
         frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rearLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -74,6 +86,19 @@ public class Robot {
         rearRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    /** Returns the position of the robot.
+     */
+    public Position getPosition() {
+        return positionManager.position;
     }
 }
 

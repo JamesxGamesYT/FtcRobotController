@@ -57,7 +57,8 @@ public class GamepadWrapper {
             case SET_CLAW_CUBE:
                 return gamepad2.y;
         }
-        return false;  // NOTE: if the function actually gets here, something is wrong.
+        assert false;
+        return false;
     }
 
     /** Returns the x and y coordinates of each of the 4 joysticks.
@@ -71,8 +72,8 @@ public class GamepadWrapper {
 /** Stores 8 joystick values (an x and y coordinate for each of 4 sticks across 2 gamepads).
  */
 class JoystickValues {
-    double gamepad1RightStickX, gamepad1RightStickY, gamepad1LeftStickX, gamepad1LeftStickY,
-           gamepad2RightStickX, gamepad2RightStickY, gamepad2LeftStickX, gamepad2LeftStickY;
+    public double gamepad1RightStickX, gamepad1RightStickY, gamepad1LeftStickX, gamepad1LeftStickY,
+                  gamepad2RightStickX, gamepad2RightStickY, gamepad2LeftStickX, gamepad2LeftStickY;
 
     public JoystickValues(Gamepad gamepad1, Gamepad gamepad2) {
         this.gamepad1RightStickX = gamepad1.right_stick_x;

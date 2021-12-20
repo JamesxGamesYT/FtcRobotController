@@ -1,23 +1,53 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 /** Estimates the robot's position based on the encoders on the drivetrain's motors. This will require a baseline
  *  position to add onto.
  */
 public class EncoderPositioning {
-    /** Checks the encoder's DC motors
+    /** Checks the robot's encoders to get an estimate of the distance and direction traveled.
      *  @return a position in the form of a vector from the origin that can be added to an existing measurement
      */
-    private Position updateDeltaEstimate(Robot robot) {return null;}
+    public Position updateDeltaEstimate(Robot robot) {
+        // Read encoder values and use them to create a Position that represents the robot's movement relative to the last time the encoders were read.
+        // Reset encoder values to zero.
+        // call submitEstimate
 
+        // 280 encoder counts per revolution
 
-    /** Takes an existing position, either as a param or member (based on existence of robot class)
-     *  @return an absolute position that combines the delta and the reference position
-     */
-    public Position getPositionEstimate(Position position) {return null;}
+        double ADEncCount = robot.frontLeftDrive.getCurrentPosition() + robot.rearRightDrive.getCurrentPosition();
+        double BCEncCount = robot.rearLeftDrive.getCurrentPosition() + robot.frontRightDrive.getCurrentPosition();
+
+        double ADangle = Math.acos((2 * ADEncCount + Math.sqrt(8 - 4 * (ADEncCount * ADEncCount))) / 4);
+        double BCangle = Math.acos((2 * BCEncCount + Math.sqrt(8 - 4 * (BCEncCount * BCEncCount))) / 4);
+
+        double secondXcor = robot.getPosition().getX() + BCEncCount * Math.cos(BCangle);
+        double secondYcor = robot.getPosition().getY() + BCEncCount * Math.sin(BCangle);
+
+        double thirdXcor = secondXcor - ADEncCount * Math.cos(ADangle);
+        double thirdYcor = secondYcor + ADEncCount * Math.sin(ADangle);
+
+        robot.getPosition().setX(thirdXcor);
+        robot.getPosition().setY(thirdYcor);
+        return null;
+    }
 
 
     /** Updates the encoder's position estimate in the robot's PositionManager
      */
-    public void submitEstimate(Robot robot) {}
+    private void submitEstimate(Robot robot, Position delta) {
+        robot.positionManager.updateEncoderPosition(delta);
+    }
+    
+    
+    /** Resets the encoder values to zero.
+     */
+    private void resetEncoders(Robot robot) {
+        robot.frontLeftDrive.setTargetPosition(0);
+        robot.frontRightDrive.setTargetPosition(0);
+        robot.rearLeftDrive.setTargetPosition(0);
+        robot.rearRightDrive.setTargetPosition(0);
+    }
 }
