@@ -117,7 +117,7 @@ public class Navigation
             turn *= FINE_ROTATION_POWER;
         }
         else {
-            turn += COARSE_ROTATION_POWER;
+            turn *= COARSE_ROTATION_POWER;
         }
 
         moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
@@ -159,67 +159,67 @@ public class Navigation
      */
     private void rotate(double target, Robot robot) //target is also on [-pi, pi)
     {
-        // TODO: update robot position
-
-        // Both values are restricted to interval [-pi, pi) for simplified comparisons.
-        double startingRotation = robot.positionManager.position.rotation;
-        double currentRotation = startingRotation;
-
-        if (target - startingRotation < -Math.PI/2) {} //counterclockwise
-        else if (target - startingRotation >= -Math.PI/2 && target - startingRotation < 0) {} //clockwise
-        else if (target - startingRotation > 0 && target - startingRotation <= Math.PI/2) {} //counterclockwise
-        else if (target - startingRotation > Math.PI/2) {} //clockwise
-
-        // Ramping algorithm:
-        // - Check whether to ramp up or down based on whether you are halfway to target
-        // - Set power proportional to distance to target when ramping down, inversely proportional when ramping up
-        // - Clip value between max/min powers
-
-        boolean rampUp = true;
-        double power = MIN_POWER;
-        double angle =0,RAMP_SLOPE_ROTATION=0.5,targetRotation=0;//TODO figure this out in nav branch
-        RotationDirection direction = (angle > 0) ? RotationDirection.CLOCKWISE : RotationDirection.COUNTERCLOCKWISE;
-
-        rotate(direction, power, robot);
-
-        // While position is not reached.
-        while (Math.abs(currentRotation - target) > EPSILON_ANGLE)
-        {
-            // TODO: update robot position
-            if (currentRotation < 0.0) {
-                currentRotation = (2 * Math.PI) + robot.positionManager.position.rotation;
-            }
-            if (rampUp) {
-                switch (direction) {
-                    case CLOCKWISE:
-                        // As currentRotation decreases (along unit circle), power should increase.
-                        power = (startingRotation - currentRotation) * RAMP_SLOPE_ROTATION;
-                    case COUNTERCLOCKWISE:
-                        // As currentRotation increases, power should increase.
-                        power = (currentRotation - startingRotation) * RAMP_SLOPE_ROTATION;
-                }
-                rotate(direction, power, robot);
-                // Check whether to start ramping down (if we're at least halfway there).
-                rampUp = Math.abs(startingRotation - currentRotation) >= angle / 2;
-            }
-            else
-            {
-                switch (direction) {
-                    case CLOCKWISE:
-                        // As currentRotation decreases, power should decrease.
-                        power = (currentRotation - targetRotation) * RAMP_SLOPE_ROTATION;
-                    case COUNTERCLOCKWISE:
-                        // As currentRotation increases, power should decrease.
-                        power = (targetRotation - currentRotation) * RAMP_SLOPE_ROTATION;
-                }
-                rotate(direction, power, robot);
-            }
-        }
-
-        robot.rearLeftDrive.setPower(0);
-        robot.frontLeftDrive.setPower(0);
-        robot.rearRightDrive.setPower(0);
-        robot.frontRightDrive.setPower(0);
+//        // TODO: update robot position
+//
+//        // Both values are restricted to interval [-pi, pi) for simplified comparisons.
+//        double startingRotation = robot.positionManager.position.rotation;
+//        double currentRotation = startingRotation;
+//
+//        if (target - startingRotation < -Math.PI/2) {} //counterclockwise
+//        else if (target - startingRotation >= -Math.PI/2 && target - startingRotation < 0) {} //clockwise
+//        else if (target - startingRotation > 0 && target - startingRotation <= Math.PI/2) {} //counterclockwise
+//        else if (target - startingRotation > Math.PI/2) {} //clockwise
+//
+//        // Ramping algorithm:
+//        // - Check whether to ramp up or down based on whether you are halfway to target
+//        // - Set power proportional to distance to target when ramping down, inversely proportional when ramping up
+//        // - Clip value between max/min powers
+//
+//        boolean rampUp = true;
+//        double power = MIN_POWER;
+//        double angle =0,RAMP_SLOPE_ROTATION=0.5,targetRotation=0;//TODO figure this out in nav branch
+//        RotationDirection direction = (angle > 0) ? RotationDirection.CLOCKWISE : RotationDirection.COUNTERCLOCKWISE;
+//
+//        rotate(direction, power, robot);
+//
+//        // While position is not reached.
+//        while (Math.abs(currentRotation - target) > EPSILON_ANGLE)
+//        {
+//            // TODO: update robot position
+//            if (currentRotation < 0.0) {
+//                currentRotation = (2 * Math.PI) + robot.positionManager.position.rotation;
+//            }
+//            if (rampUp) {
+//                switch (direction) {
+//                    case CLOCKWISE:
+//                        // As currentRotation decreases (along unit circle), power should increase.
+//                        power = (startingRotation - currentRotation) * RAMP_SLOPE_ROTATION;
+//                    case COUNTERCLOCKWISE:
+//                        // As currentRotation increases, power should increase.
+//                        power = (currentRotation - startingRotation) * RAMP_SLOPE_ROTATION;
+//                }
+//                rotate(direction, power, robot);
+//                // Check whether to start ramping down (if we're at least halfway there).
+//                rampUp = Math.abs(startingRotation - currentRotation) >= angle / 2;
+//            }
+//            else
+//            {
+//                switch (direction) {
+//                    case CLOCKWISE:
+//                        // As currentRotation decreases, power should decrease.
+//                        power = (currentRotation - targetRotation) * RAMP_SLOPE_ROTATION;
+//                    case COUNTERCLOCKWISE:
+//                        // As currentRotation increases, power should decrease.
+//                        power = (targetRotation - currentRotation) * RAMP_SLOPE_ROTATION;
+//                }
+//                rotate(direction, power, robot);
+//            }
+//        }
+//
+//        robot.rearLeftDrive.setPower(0);
+//        robot.frontLeftDrive.setPower(0);
+//        robot.rearRightDrive.setPower(0);
+//        robot.frontRightDrive.setPower(0);
     }
 
     /** Sets motor powers to rotate the robot in a certain direction.
