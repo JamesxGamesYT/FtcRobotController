@@ -119,7 +119,7 @@ public class MechanismDriving {
                 robot.slidesRight.setPower(-reducedSpeed);
             }
         }
-
+        robot.telemetry.addData("slides: target: ",desiredSlidePosition+" current pos right: "+robot.slidesRight.getCurrentPosition()+ " current pos left: "+robot.slidesLeft.getCurrentPosition());
         // Stop motors when we have reached the desired position
         if (Math.abs(robot.slidesRight.getCurrentPosition() - desiredSlidePosition) < EPSILON) {
             robot.slidesLeft.setPower(0);
@@ -129,5 +129,7 @@ public class MechanismDriving {
         else {
             return false;
         }
+
+
     }
 }
