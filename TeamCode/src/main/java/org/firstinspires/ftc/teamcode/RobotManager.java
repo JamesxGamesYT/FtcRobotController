@@ -162,9 +162,9 @@ public class RobotManager {
     public void deliverDuck() {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
-        try {
-            Thread.sleep(MechanismDriving.DUCK_SPIN_TIME);
-        } catch (InterruptedException e) {}
+        double startingTime = robot.elapsedTime.milliseconds();
+        // Sleep for MechanismDriving.DUCK_SPIN_TIME milliseconds.
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.DUCK_SPIN_TIME) {}
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
         mechanismDriving.updateCarousel(robot);
     }
@@ -191,8 +191,7 @@ public class RobotManager {
             extended = mechanismDriving.updateSlides(robot);
         }
         robot.desiredClawState = Robot.ClawState.OPEN;
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
+        double startingTime = robot.elapsedTime.milliseconds();
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CLAW_SERVO_TIME) {}
     }
 }

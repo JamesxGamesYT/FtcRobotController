@@ -309,7 +309,7 @@ public class Navigation
         Point startLoc = robot.positionManager.position.location;
         Point currentLoc = startLoc;
 
-        double moveDirection, sinMoveDirection, cosMoveDirection, travelDistance, power,
+        double moveDirection, sinMoveDirection, cosMoveDirection, travelDistance, power, elapsedTime, startingTime,
                frontLeftPower, frontRightPower, rearLeftPower, rearRightPower, predictedTime;
 
         predictedTime = -1.0;
@@ -325,23 +325,24 @@ public class Navigation
         rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
         rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
 
-        robot.elapsedTime.reset();
         power = 0;
+        startingTime = robot.elapsedTime.milliseconds();
         while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
+            elapsedTime = robot.elapsedTime.milliseconds() - startingTime;
 
             if (getEuclideanDistance(startLoc, currentLoc) < travelDistance / 2) {
                 // Ramping up.
-                if (robot.elapsedTime.milliseconds() <= RAMP_DURATION) {
-                    power = (robot.elapsedTime.milliseconds() / RAMP_DURATION) * STRAFE_POWER;
+                if (elapsedTime <= RAMP_DURATION) {
+                    power = (elapsedTime / RAMP_DURATION) * STRAFE_POWER;
                 }
             }
             else {
                 // Ramping down.
                 if (predictedTime < 0) {
-                    predictedTime = robot.elapsedTime.milliseconds() * 2;
+                    predictedTime = elapsedTime * 2;
                 }
-                if (robot.elapsedTime.milliseconds() >= predictedTime - RAMP_DURATION) {
-                    power = STRAFE_POWER * ((predictedTime - robot.elapsedTime.milliseconds()) / RAMP_DURATION);
+                if (elapsedTime >= predictedTime - RAMP_DURATION) {
+                    power = STRAFE_POWER * ((predictedTime - elapsedTime) / RAMP_DURATION);
                 }
             }
 
