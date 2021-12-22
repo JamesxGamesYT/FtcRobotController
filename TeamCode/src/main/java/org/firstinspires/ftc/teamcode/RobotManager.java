@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
@@ -23,15 +24,17 @@ public class RobotManager {
     private GamepadWrapper gamepads, previousStateGamepads;
 
     private Telemetry telemetry;
+    private ElapsedTime elapsedTime;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
                         Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor,
-                        Telemetry telemetry) {
+                        Telemetry telemetry, ElapsedTime elapsedTime) {
 
+        elapsedTime.reset();
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
 
-        robot = new Robot(hardwareMap, telemetry);
+        robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -79,6 +82,14 @@ public class RobotManager {
         }
         if (getButtonRelease(GamepadWrapper.DriverAction.SET_SLIDES_CAPPING)) {
             robot.desiredSlidesState = Robot.SlidesState.CAPPING;
+        }
+
+        // Fine movement/rotation.
+        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_MOVEMENT_MODE)) {
+            robot.fineMovement = !robot.fineMovement;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_ROTATION_MODE)) {
+            robot.fineRotation = !robot.fineRotation;
         }
 
         previousStateGamepads.copyGamepads(gamepads);

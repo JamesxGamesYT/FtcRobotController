@@ -7,7 +7,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
@@ -18,7 +21,7 @@ import java.util.Map;
  *  Also has a "desired state" for mechanism driving.
  */
 public class Robot {
-    // Finite state machine
+    // Robot desired states.
     public enum CarouselState {STOPPED, SPINNING}
     public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
     public enum ClawState {CLOSED, OPEN}
@@ -34,6 +37,8 @@ public class Robot {
     int numBarcodeAttempts = 0;
     int barcodeScanResult = -1;
 
+    boolean fineMovement = false;
+    boolean fineRotation = false;
 
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
@@ -41,12 +46,14 @@ public class Robot {
 
     // Other
     public Telemetry telemetry;
+    public ElapsedTime elapsedTime;
 
     // Positioning
     public PositionManager positionManager;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime) {
         this.telemetry = telemetry;
+        this.elapsedTime = elapsedTime;
         positionManager = new PositionManager();
 
         // Initialize desired states.
@@ -70,6 +77,7 @@ public class Robot {
         rearRightDrive.setDirection(DcMotor.Direction.FORWARD);
         slidesLeft.setDirection(DcMotor.Direction.FORWARD);
         slidesRight.setDirection(DcMotor.Direction.REVERSE);
+        carousel.setDirection(DcMotor.Direction.REVERSE);
 
         frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rearLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

@@ -24,6 +24,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -39,11 +40,12 @@ import org.openftc.easyopencv.OpenCvPipeline;
 public class CVOpModeTests extends LinearOpMode {
 
     CVPositioning cvPositioning;
+    private ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, Navigation.NavigationMode.DUCK,
-                Navigation.AllianceColor.BLUE, telemetry);
+                Navigation.AllianceColor.BLUE, telemetry,runtime);
 
         cvPositioning = new CVPositioning(hardwareMap);
 
