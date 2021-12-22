@@ -5,13 +5,15 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.Range;
 
 /** Wraps a gamepad so that button mappings are stored in one place.
  */
 public class GamepadWrapper {
     public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
                               SET_SLIDES_CAPPING, OPEN_CLAW, SET_CLAW_SPHERE, SET_CLAW_CUBE, CHANGE_MOVEMENT_MODE,
-                              CHANGE_ROTATION_MODE}
+                              CHANGE_ROTATION_MODE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
+                              MOVE_STRAIGHT_RIGHT}
 
     Gamepad gamepad1, gamepad2;
 
@@ -61,6 +63,14 @@ public class GamepadWrapper {
                 return gamepad1.left_bumper;
             case CHANGE_ROTATION_MODE:
                 return gamepad1.right_bumper;
+            case MOVE_STRAIGHT_FORWARD:
+                return gamepad1.dpad_up;
+            case MOVE_STRAIGHT_BACKWARD:
+                return gamepad1.dpad_down;
+            case MOVE_STRAIGHT_LEFT:
+                return gamepad1.dpad_left;
+            case MOVE_STRAIGHT_RIGHT:
+                return gamepad1.dpad_right;
         }
         assert false;
         return false;

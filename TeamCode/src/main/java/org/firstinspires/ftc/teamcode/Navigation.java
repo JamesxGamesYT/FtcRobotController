@@ -42,6 +42,7 @@ public class Navigation
 
     // TELEOP CONSTANTS
     // ================
+    final double STRAIGHT_MOVEMENT_POWER = 0.75;
     final double COARSE_MOVEMENT_POWER = 1.0;
     final double FINE_MOVEMENT_POWER = 0.25;
     final double COARSE_ROTATION_POWER = 0.4;
@@ -98,6 +99,65 @@ public class Navigation
         }
     }
 
+    /** Moves the robot straight in one of the cardinal directions or at a 45 degree angle.
+     */
+    public boolean moveStraight(boolean forward, boolean backward, boolean left, boolean right, Robot robot) {
+        double frontLeftPower = 0, frontRightPower = 0, rearLeftPower = 0, rearRightPower = 0;
+
+        if (forward) {
+            if (right) {
+                frontLeftPower = STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = STRAIGHT_MOVEMENT_POWER;
+            }
+            else if (left) {
+                frontRightPower = STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = STRAIGHT_MOVEMENT_POWER;
+            }
+            else {
+                frontLeftPower = STRAIGHT_MOVEMENT_POWER;
+                frontRightPower = STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = STRAIGHT_MOVEMENT_POWER;
+            }
+        }
+        else if (backward) {
+            if (right) {
+                frontRightPower = -STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
+            }
+            else if (left) {
+                frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = -STRAIGHT_MOVEMENT_POWER;
+            }
+            else {
+                frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
+                frontRightPower = -STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = -STRAIGHT_MOVEMENT_POWER;
+            }
+        }
+        else if (right) {
+            frontLeftPower = STRAIGHT_MOVEMENT_POWER;
+            frontRightPower = -STRAIGHT_MOVEMENT_POWER;
+            rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
+            rearRightPower = STRAIGHT_MOVEMENT_POWER;
+        }
+        else if (left) {
+            frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
+            frontRightPower = STRAIGHT_MOVEMENT_POWER;
+            rearLeftPower = STRAIGHT_MOVEMENT_POWER;
+            rearRightPower = -STRAIGHT_MOVEMENT_POWER;
+        }
+        else return false;
+
+        robot.frontLeftDrive.setPower(frontLeftPower);
+        robot.frontRightDrive.setPower(frontRightPower);
+        robot.rearLeftDrive.setPower(rearLeftPower);
+        robot.rearRightDrive.setPower(rearRightPower);
+
+        return true;
+    }
+
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver(JoystickValues joystickValues, Robot robot) {
@@ -116,7 +176,7 @@ public class Navigation
             turn *= FINE_ROTATION_POWER;
         }
         else {
-            turn += COARSE_ROTATION_POWER;
+            turn *= COARSE_ROTATION_POWER;
         }
 
         moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);

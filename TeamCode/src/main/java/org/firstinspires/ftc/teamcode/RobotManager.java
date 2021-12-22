@@ -110,7 +110,16 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-        navigation.maneuver(gamepads.getJoystickValues(), robot);
+        boolean movedStraight = navigation.moveStraight(
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_LEFT),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_RIGHT),
+                robot
+        );
+        if (!movedStraight) {
+            navigation.maneuver(gamepads.getJoystickValues(), robot);
+        }
     }
 
     /** Determines whether the button for a particular action was released in the current OpMode iteration.
