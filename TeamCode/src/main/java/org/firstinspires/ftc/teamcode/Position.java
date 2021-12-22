@@ -16,6 +16,10 @@ public class Position {
         location = new Point(x, y, "");
         setRotation(r);
     }
+    Position(Point p, double r) {
+        location = p;
+        setRotation(r);
+    }
 
     public void setX(double x) {
         location.setX(x);
@@ -25,8 +29,9 @@ public class Position {
         location.setY(y);
     }
 
-    public void setRotation(double r) {
+    public Position setRotation(double r) {
         this.rotation = r;
+        return this;
     }
 
     public double getX() {
@@ -41,9 +46,6 @@ public class Position {
         return rotation;
     }
 
-    public boolean equals(Position a) {
-        return a.location.x == this.location.x && a.location.y == this.location.y;
-    }
 
     /** Stores an x/y coordinate.
      *  @see Point for more information

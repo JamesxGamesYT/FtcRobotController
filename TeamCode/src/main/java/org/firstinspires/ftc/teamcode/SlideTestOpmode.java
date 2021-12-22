@@ -2,14 +2,16 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="slide test", group="Linear Opmode")//register this op mode in the op mode list on the phone
 public class SlideTestOpmode extends LinearOpMode {
+    private ElapsedTime runtime = new ElapsedTime();
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-        Robot robot = new Robot(hardwareMap, telemetry);
+        Robot robot = new Robot(hardwareMap, telemetry,runtime);
         MechanismDriving mechs=new MechanismDriving();
 
         waitForStart();//wait for the play button to be pressed

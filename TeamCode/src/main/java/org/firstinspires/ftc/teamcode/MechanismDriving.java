@@ -10,13 +10,13 @@ public class MechanismDriving {
     // TODO: get the exact values the slides will need to move to inorder to be be at the correct levels for the shipping hub.
     //       get exact values for the claw as well when open, holding a sphere, and holding a cube
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3000, CAPPING_POS = 4000;
-    public static final double CLAW_OPEN_POS = 1.0, CLAW_CLOSE_POS = -1.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0; //These are not final values
+    public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.5; //These are not final values
     // How long the carousel motor must be spinning for in order to deliver the duck.
     public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
-    double slideRampDownDist=1000,maxSpeedCoeffishent=0.5,reducedSpeedCoeffishent=0.25;
+    double slideRampDownDist=1000, maxSpeedCoefficient =0.5, reducedSpeedCoefficient =0.25;
 
     MechanismDriving() {}
 
@@ -26,14 +26,11 @@ public class MechanismDriving {
      */
     public void updateClaw(Robot robot) {
         switch (robot.desiredClawState) {
+            case CLOSED:
+                robot.claw.setPower(CLAW_CLOSED_POS);//closed
+                break;
             case OPEN:
-                robot.claw.setPosition(CLAW_OPEN_POS);
-                break;
-            case CUBE:
-                robot.claw.setPosition(CLAW_CUBE_POS);
-                break;
-            case SPHERE:
-                robot.claw.setPosition(CLAW_SPHERE_POS);
+                robot.claw.setPower(CLAW_OPEN_POS);//open
                 break;
         }
     }
@@ -46,7 +43,7 @@ public class MechanismDriving {
                 robot.carousel.setPower(0);
                 break;
             case SPINNING:
-                robot.carousel.setPower(1);
+                robot.carousel.setPower(0.5);
                 break;
         }
     }
@@ -84,8 +81,8 @@ public class MechanismDriving {
         }
 
         double mainSpeed,reducedSpeed;//"ramp" the motor speeds down based on how far away from the destination the motors are
-        mainSpeed=maxSpeedCoeffishent*Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
-        reducedSpeed=reducedSpeedCoeffishent*Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+        mainSpeed= maxSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+        reducedSpeed= reducedSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
         mainSpeed=Range.clip(mainSpeed,0.05,1);//limit the max speed to 1 and the min speed to 0.05
         reducedSpeed=Range.clip(reducedSpeed,0.04,1);
 

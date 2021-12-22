@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
@@ -61,14 +62,11 @@ public class RobotManager {
         }
 
         // Claw
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_CUBE)) {
-            robot.desiredClawState = Robot.ClawState.CUBE;
-        }
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_SPHERE)) {
-            robot.desiredClawState = Robot.ClawState.SPHERE;
-        }
         if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
             robot.desiredClawState = Robot.ClawState.OPEN;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW)) {
+            robot.desiredClawState = Robot.ClawState.CLOSED;
         }
 
         // Linear slides
@@ -173,23 +171,14 @@ public class RobotManager {
 
     /** Grabs a cube piece of freight using the claw.
      */
-    public void grabCube() {
-        robot.desiredClawState = Robot.ClawState.CUBE;
+    public void openClaw() {
+        robot.desiredClawState = Robot.ClawState.OPEN;
         mechanismDriving.updateClaw(robot);
         try {
             Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
         } catch (InterruptedException e) {}
     }
 
-    /** Grabs a sphere piece of freight using the claw.
-     */
-    public void grabSphere() {
-        robot.desiredClawState = Robot.ClawState.SPHERE;
-        mechanismDriving.updateClaw(robot);
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
-    }
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
      *
