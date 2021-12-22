@@ -14,7 +14,6 @@ public class GamepadWrapper {
                               SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, CHANGE_MOVEMENT_MODE,
                               CHANGE_ROTATION_MODE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
                               MOVE_STRAIGHT_RIGHT}
-    }
 
     Gamepad gamepad1, gamepad2;
 

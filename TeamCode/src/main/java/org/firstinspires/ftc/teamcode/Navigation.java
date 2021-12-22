@@ -326,6 +326,7 @@ public class Navigation
         rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
 
         robot.elapsedTime.reset();
+        power = 0;
         while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
 
             if (getEuclideanDistance(startLoc, currentLoc) < travelDistance / 2) {
@@ -344,10 +345,10 @@ public class Navigation
                 }
             }
 
-            robot.frontLeftDrive.setPower(frontLeftPower) * power;
-            robot.frontRightDrive.setPower(frontRightPower) * power;
-            robot.rearLeftDrive.setPower(rearLeftPower) * power;
-            robot.rearRightDrive.setPower(rearRightPower) * power;
+            robot.frontLeftDrive.setPower(frontLeftPower * power);
+            robot.frontRightDrive.setPower(frontRightPower * power);
+            robot.rearLeftDrive.setPower(rearLeftPower * power);
+            robot.rearRightDrive.setPower(rearRightPower * power);
         }
 
         robot.frontLeftDrive.setPower(0);
