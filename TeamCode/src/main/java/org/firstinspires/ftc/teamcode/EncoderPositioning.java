@@ -7,14 +7,14 @@ import java.util.HashMap;
  */
 public class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
-    static int MAGICAL_FACTOR = 1;
+    static double MAGICAL_FACTOR = 1.0;
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 
-    static HashMap<Robot.WheelConfiguration, Double> RollerAngles = new HashMap<Robot.WheelConfiguration, Double> (){{
-        put(Robot.WheelConfiguration.FRONTRIGHT, Math.PI / 4.d);
-        put(Robot.WheelConfiguration.FRONTLEFT, 3 * Math.PI / 4.d);
-        put(Robot.WheelConfiguration.REARLEFT, Math.PI / 4.d);
-        put(Robot.WheelConfiguration.REARRIGHT, 3 * Math.PI / 4.d);
+    static HashMap<RobotConfig.DriveMotors, Double> RollerAngles = new HashMap<RobotConfig.DriveMotors, Double>() {{
+        put(RobotConfig.DriveMotors.FRONT_RIGHT, Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.FRONT_LEFT, 3 * Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.REAR_LEFT, Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.REAR_RIGHT, 3 * Math.PI / 4.d);
     }};
 
 
@@ -28,7 +28,7 @@ public class EncoderPositioning {
         double theta = robot.positionManager.position.getRotation();
         double deltaPSumX = 0.0d, deltaPSumY = 0.0;;
 
-        for (HashMap.Entry<Robot.WheelConfiguration, Double> rollerAngle : RollerAngles.entrySet()) {
+        for (HashMap.Entry<RobotConfig.DriveMotors, Double> rollerAngle : RollerAngles.entrySet()) {
             int encoderCounts = robot.driveMotors.get(rollerAngle.getKey()).getCurrentPosition();
             double force = rollerAngle.getValue();
 
@@ -67,9 +67,8 @@ public class EncoderPositioning {
     /** Resets the encoder values to zero.
      */
     private void resetEncoders(Robot robot) {
-        robot.frontLeftDrive.setTargetPosition(0);
-        robot.frontRightDrive.setTargetPosition(0);
-        robot.rearLeftDrive.setTargetPosition(0);
-        robot.rearRightDrive.setTargetPosition(0);
+        for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
+            robot.driveMotors.get(motor).setTargetPosition(0);
+        }
     }
 }
