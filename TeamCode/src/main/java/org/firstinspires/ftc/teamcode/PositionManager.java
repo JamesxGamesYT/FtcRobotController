@@ -16,6 +16,14 @@ public class PositionManager {
 
     public Position position;
 
+    /** Calls all appropriate sensor update methods to get an updated estimate of the Robot's current position
+     * @param robot Robot object whose estimate should be updated
+     */
+    public void updatePosition(Robot robot) {
+        encoderPositioning.getDeltaEstimate(robot);
+    }
+
+
     public EncoderPositioning encoderPositioning;
     public CVPositioning cvPositioning;
 
@@ -24,7 +32,7 @@ public class PositionManager {
      *  @param delta A delta position represented as a vector from the last seen position.
      *               e.g. delta = Position(1, 1, 0) would mean a movement of 1 inch on all axis with no rotation
      */
-    public void updateEncoderPosition(Position delta) {}
+    private void updateEncoderPosition(Position delta) {}
 
     /** Sets the encoder delta back to (0, 0, 0).
      *  To be called when an image is received, so that the delta stores the movement done during image processing

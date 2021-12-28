@@ -24,7 +24,7 @@ public class EncoderPositioning {
      *  Call submitEstimate
      *  @return a position in the form of a vector from the origin that can be added to an existing measurement
      */
-    public void updateDeltaEstimate(Robot robot) {
+    public Position getDeltaEstimate(Robot robot) {
         double theta = robot.positionManager.position.getRotation();
         double deltaPSumX = 0.0d, deltaPSumY = 0.0;;
 
@@ -36,7 +36,8 @@ public class EncoderPositioning {
             deltaPSumY += (encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force)))) / 2.0;
         }
 
-        submitEstimate(robot, new Position(MAGICAL_RATIO * (deltaPSumX), MAGICAL_RATIO * (deltaPSumY), 0.0));
+        resetEncoders(robot);
+        return new Position(MAGICAL_RATIO * (deltaPSumX), MAGICAL_RATIO * (deltaPSumY), 0.0);
 
 
 //        double ADEncCount = robot.frontLeftDrive.getCurrentPosition() + robot.rearRightDrive.getCurrentPosition();
@@ -53,14 +54,6 @@ public class EncoderPositioning {
 //        double orientation = Math.atan(thirdXcor / thirdYcor);
 
 //        submitEstimate(robot, new Position(thirdXcor, thirdYcor, 0.0));
-        resetEncoders(robot);
-    }
-
-
-    /** Updates the encoder's position estimate in the robot's PositionManager
-     */
-    private void submitEstimate(Robot robot, Position delta) {
-        robot.positionManager.updateEncoderPosition(delta);
     }
 
 
