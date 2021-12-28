@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 
@@ -22,7 +23,7 @@ public class RobotManager {
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
+    public RobotManager(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2,
                         Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
 
         navigation = new Navigation(navMode, allianceColor);
@@ -30,7 +31,7 @@ public class RobotManager {
 
         robot = new Robot(hardwareMap);
 
-        computerVision = new ComputerVision(hardwareMap, new CVOpModePipeline(robot));
+        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
