@@ -5,15 +5,13 @@ package org.firstinspires.ftc.teamcode;
  */
 public class Position {
     Position() {
-        setX(0.0);
-        setY(0.0);
+        location = new Point(0.0, 0.0, "");
         setRotation(0.0);
     }
 
-    Position(double x, double y, double r) {
-        setX(x);
-        setY(y);
-        setRotation(r);
+    Position(double x, double y, double theta) {
+        location = new Point(x, y, "");
+        setRotation(theta);
     }
 
     public void setX(double x) {
@@ -24,8 +22,8 @@ public class Position {
         location.setY(y);
     }
 
-    public void setRotation(double r) {
-        this.rotation = r;
+    public void setRotation(double theta) {
+        this.rotation = theta;
     }
 
     public double getX() {
@@ -40,10 +38,22 @@ public class Position {
         return rotation;
     }
 
+    public void reset() {
+        setX(0.0);
+        setY(0.0);
+        setRotation(0.0);
+    }
+
+    public static Position add(Position a, Position b) {
+        return new Position(a.getX() + b.getX(), a.getY() + b.getY(), (a.getRotation() + b.getRotation()) % (2 * Math.PI));
+    }
 
     /** Stores an x/y coordinate.
      *  @see Point for more information
      */
     private Point location;
+
+    /** A rotation, in radians, in the interval [0, 2pi)
+     */
     private double rotation;
 }

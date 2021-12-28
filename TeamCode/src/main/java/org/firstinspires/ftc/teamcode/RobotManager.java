@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 
@@ -18,16 +19,19 @@ public class RobotManager {
 
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
+    public ComputerVision computerVision;
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
+    public RobotManager(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2,
                         Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
 
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
 
         robot = new Robot(hardwareMap);
+
+        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -115,19 +119,18 @@ public class RobotManager {
      *          farthest from the hub.
      */
     public int readBarcode() {
-        robotState.barcodeScanResult = -1;
-        robotState.barcodeScanState = Robot.BarcodeScanState.SCAN;
-        robotState.numBarcodeAttempts = 0;
+        robot.barcodeScanResult = -1;
+        robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
+        robot.numBarcodeAttempts = 0;
 
-        while (robotState.barcodeScanState == Robot.BarcodeScanState.SCAN) {
+        while (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             try {
-                // Wait for execution on the CV thread to finish
                 TimeUnit.MICROSECONDS.sleep(10);
             }
             catch (InterruptedException e) {}
         }
 
-        return robotState.barcodeScanResult;
+        return robot.barcodeScanResult;
     }
 
 
