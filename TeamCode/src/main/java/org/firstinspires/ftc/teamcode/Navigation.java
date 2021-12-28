@@ -9,16 +9,6 @@ import com.qualcomm.robotcore.util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-import org.jetbrains.annotations.NotNull;
 
 
 /** Keeps track of the robot's desired path and makes it follow it accurately.
@@ -32,7 +22,7 @@ public class Navigation
 
     // AUTON CONSTANTS
     // ===============
-    final double RAMP_DURATION = 750;
+    final double RAMP_DISTANCE = 10;
     final double STRAFE_POWER = 0.75;
     final double ROTATION_POWER = 0.75;  // Power to use while rotating.
     final double MIN_POWER = 0.1;  // Power to use at start/end of ramp up/down.
@@ -54,6 +44,32 @@ public class Navigation
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     private ArrayList<Position> path;
+
+    /* Contains a power for each of the wheels that causes the robot to strafe in a certain direction at max speed.
+     *
+     * Multiplying these by a constant factor will scale the speed of the strafe movement.
+     */
+    static class PowerRatios {
+        public double frontLeftPower;
+        public double frontRightPower;
+        public double rearLeftPower;
+        public double rearRightPower;
+
+        public PowerRatios(double moveDirection) {
+            setMoveDirection(moveDirection);
+        }
+
+        public void setMoveDirection(double moveDirection) {
+            double sinMoveDirection = Math.sin(moveDirection);
+            double cosMoveDirection = Math.cos(moveDirection);
+
+            // Set the power for each wheel based on the angle of movement.
+            frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
+            frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
+            rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
+            rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
+        }
+    }
 
     public Navigation(NavigationMode navMode, AllianceColor allianceColor) {
         if (navMode == NavigationMode.TELEOP) {
@@ -105,10 +121,7 @@ public class Navigation
         // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
         //       upon initialization.
 
-        double moveDirection, power, turn, sinMoveDirection, cosMoveDirection, frontLeftPower, frontRightPower,
-                rearLeftPower, rearRightPower;
-
-        turn = joystickValues.gamepad1RightStickX;
+        double turn = joystickValues.gamepad1RightStickX;
         if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
             turn = 0;
         }
@@ -119,9 +132,11 @@ public class Navigation
             turn += COARSE_ROTATION_POWER;
         }
 
-        moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
+        double moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
 
-        power = Range.clip(Math.sqrt(Math.pow(joystickValues.gamepad1LeftStickX, 2) + Math.pow(-joystickValues.gamepad1LeftStickY, 2)),0,1);
+        // Determine power scale factor using constant from distance of joystick from center.
+        double power = Range.clip(Math.sqrt(Math.pow(joystickValues.gamepad1LeftStickX, 2)
+                                   + Math.pow(-joystickValues.gamepad1LeftStickY, 2)), 0, 1);
         if (power <= 0.05) { // joystick dead zone
             power = 0;
         }
@@ -132,24 +147,18 @@ public class Navigation
             turn *= COARSE_MOVEMENT_POWER;
         }
 
-        sinMoveDirection = Math.sin(moveDirection);
-        cosMoveDirection = Math.cos(moveDirection);
+        PowerRatios powerRatios = new PowerRatios(moveDirection);
 
-        // Set the power for each wheel based on the angle of the stick and how far the stick is from center
-        frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power + turn;
-        frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power - turn;
-        rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1) * power + turn;
-        rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1) * power - turn;
-
-        robot.frontLeftDrive.setPower(frontLeftPower);
-        robot.frontRightDrive.setPower(frontRightPower);
-        robot.rearLeftDrive.setPower(rearLeftPower);
-        robot.rearRightDrive.setPower(rearRightPower);
+        robot.frontLeftDrive.setPower(powerRatios.frontLeftPower * power + turn);
+        robot.frontRightDrive.setPower(powerRatios.frontRightPower * power - turn);
+        robot.rearLeftDrive.setPower(powerRatios.rearLeftPower * power + turn);
+        robot.rearRightDrive.setPower(powerRatios.rearRightPower * power - turn);
 
         robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
-        robot.telemetry.addData("Left Stick Position", Math.toDegrees(moveDirection) + " degrees");
-        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
-        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)", rearLeftPower, rearRightPower);
+        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
+                powerRatios.frontLeftPower * power + turn, powerRatios.frontRightPower * power - turn);
+        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
+                powerRatios.rearLeftPower * power + turn, powerRatios.rearRightPower * power - turn);
     }
 
     /** Rotates the robot a number of degrees.
@@ -241,6 +250,8 @@ public class Navigation
 
     /** Makes the robot travel in a straight line for a certain distance.
      *
+     *  TODO: path correction
+     *
      *  @param target The desired position of the robot.
      */
     private void travelLinear(Point target, Robot robot) {
@@ -248,63 +259,52 @@ public class Navigation
         Point startLoc = robot.positionManager.position.location;
         Point currentLoc = startLoc;
 
-        double moveDirection, sinMoveDirection, cosMoveDirection, travelDistance, power,
-               frontLeftPower, frontRightPower, rearLeftPower, rearRightPower, predictedTime;
+        double totalDistance = getEuclideanDistance(startLoc, target);
+        double strafeDirection = getAngleBetween(currentLoc, target);
+        // Calculates relative power level of each motor to strafe in a particular direction.
+        PowerRatios powerRatios = new PowerRatios(strafeDirection);
 
-        predictedTime = -1.0;
-
-        travelDistance = getEuclideanDistance(startLoc, target);
-        moveDirection = getAngleBetween(startLoc, target);
-        sinMoveDirection = Math.sin(moveDirection);
-        cosMoveDirection = Math.cos(moveDirection);
-
-        // Values are relative to one another, ratios must be fixed so that strafe direction remains constant.
-        frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
-        frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
-        rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
-        rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
-
-        robot.elapsedTime.reset();
+        double power = 0;
+        double distanceTraveled;
         while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
+            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
-            if (getEuclideanDistance(startLoc, currentLoc) < travelDistance / 2) {
+            if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
-                if (robot.elapsedTime.milliseconds() <= RAMP_DURATION) {
-                    power = (robot.elapsedTime.milliseconds() / RAMP_DURATION) * STRAFE_POWER;
+                if (distanceTraveled <= RAMP_DISTANCE) {
+                    power = (distanceTraveled / RAMP_DISTANCE) * STRAFE_POWER;
                 }
             }
             else {
                 // Ramping down.
-                if (predictedTime < 0) {
-                    predictedTime = robot.elapsedTime.milliseconds() * 2;
-                }
-                if (robot.elapsedTime.milliseconds() >= predictedTime - RAMP_DURATION) {
-                    power = STRAFE_POWER * ((predictedTime - robot.elapsedTime.milliseconds()) / RAMP_DURATION);
+                if (distanceTraveled >= totalDistance - RAMP_DISTANCE) {
+                    power = ((totalDistance - distanceTraveled) / RAMP_DISTANCE) * STRAFE_POWER;
                 }
             }
 
-            robot.frontLeftDrive.setPower(frontLeftPower) * power;
-            robot.frontRightDrive.setPower(frontRightPower) * power;
-            robot.rearLeftDrive.setPower(rearLeftPower) * power;
-            robot.rearRightDrive.setPower(rearRightPower) * power;
+            robot.frontLeftDrive.setPower(powerRatios.frontLeftPower * power);
+            robot.frontRightDrive.setPower(powerRatios.frontRightPower * power);
+            robot.rearLeftDrive.setPower(powerRatios.rearLeftPower * power);
+            robot.rearRightDrive.setPower(powerRatios.rearRightPower * power);
+
+            // TODO: update robot position
+            currentLoc = robot.positionManager.position.location;
+
+            robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
+                    powerRatios.frontLeftPower * power, powerRatios.frontRightPower * power);
+            robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
+                    powerRatios.rearLeftPower * power, powerRatios.rearRightPower * power);
         }
 
         robot.frontLeftDrive.setPower(0);
         robot.frontRightDrive.setPower(0);
         robot.rearLeftDrive.setPower(0);
         robot.rearRightDrive.setPower(0);
-
-
-        robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
-        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)", frontLeftPower, frontRightPower);
-        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)", rearLeftPower, rearRightPower);
-
-        }
     }
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
      */
-    private double getAngleBetween(Point a, Point b) { return Math.atan2((b.y-a.y), (b.x-a.x)); }
+    private double getAngleBetween(Point a, Point b) { return Math.atan2((b.y - a.y), (b.x - a.x)); }
 
     /** Calculates the euclidean distance between two points.
      *
