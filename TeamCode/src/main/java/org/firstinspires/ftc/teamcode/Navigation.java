@@ -15,9 +15,7 @@ import java.util.Collections;
  */
 public class Navigation
 {
-    // DUCK: deliver duck from carousel.
-    // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
-    public enum NavigationMode {DUCK, FREIGHT, TELEOP}
+    public enum NavigationMode {DUCK, NO_DUCK, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
     // AUTON CONSTANTS
@@ -52,11 +50,10 @@ public class Navigation
         else if (navMode == NavigationMode.DUCK) {
             path = AutonomousPaths.DUCK_PATH;
         }
-        else if (navMode == NavigationMode.FREIGHT) {
+        else if (navMode == NavigationMode.NO_DUCK) {
             path = AutonomousPaths.FREIGHT_PATH;
         }
 
-        // NOTE: This may actually have to be the other way around. It depends on which side we do our measurements for.
         if (allianceColor == AllianceColor.RED) {
             reflectPath();
         }
@@ -179,8 +176,6 @@ public class Navigation
 
     /** Makes the robot travel in a straight line for a certain distance.
      *
-     *  TODO: path correction
-     *
      *  @param target The desired position of the robot.
      */
     private void travelLinear(Point target, Robot robot) {
@@ -189,7 +184,6 @@ public class Navigation
         Point currentLoc = startLoc;
 
         double totalDistance = getEuclideanDistance(startLoc, target);
-        double strafeDirection = getAngleBetween(currentLoc, target);
 
         double power = 0;
         double distanceTraveled;
@@ -209,7 +203,7 @@ public class Navigation
                 }
             }
 
-            setDriveMotorPowers(strafeDirection, power, 0.0, robot);
+            setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot);
 
             robot.positionManager.updatePosition(robot);
             currentLoc = robot.getPosition().getLocation();
@@ -234,7 +228,12 @@ public class Navigation
 
     /** Reflects the path to the other side of the playing field.
      */
-    private void reflectPath() {}
+    private void reflectPath() {
+        for (Position pos : path) {
+            pos.setX(144.0 - pos.getX());
+            pos.setRotation(Math.PI - pos.getRotation());
+        }
+    }
 
     /** Sets drive motor powers to make the robot move a certain way.
      *
