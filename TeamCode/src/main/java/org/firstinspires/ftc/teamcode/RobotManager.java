@@ -8,6 +8,7 @@ package org.firstinspires.ftc.teamcode;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -21,21 +22,23 @@ public class RobotManager {
 
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
+    public ComputerVision computerVision;
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
     private Telemetry telemetry;
     private ElapsedTime elapsedTime;
 
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
-                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor,
-                        Telemetry telemetry, ElapsedTime elapsedTime) {
+    public RobotManager(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2,
+                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor, ElapsedTime elapsedTime) {
 
         elapsedTime.reset();
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
+
+        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -137,7 +140,6 @@ public class RobotManager {
 
         while (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             try {
-                // Wait for execution on the CV thread to finish
                 TimeUnit.MICROSECONDS.sleep(10);
             }
             catch (InterruptedException e) {}
