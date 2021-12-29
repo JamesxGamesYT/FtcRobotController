@@ -6,17 +6,20 @@ import android.preference.PreferenceManager;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 
 @Autonomous(name="FreightFrenzyAuton", group="Linear OpMode")
 public class FreightFrenzyAuton extends LinearOpMode {
 
     private RobotManager robotManager;
+    private ElapsedTime elapsedTime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, telemetry, gamepad1, gamepad2, navigationMode, allianceColor);
+        robotManager = new RobotManager(hardwareMap, telemetry, elapsedTime, gamepad1,
+                                        gamepad2, navigationMode, allianceColor);
 
         waitForStart(); // wait for the play button to be pressed
 

@@ -2,14 +2,17 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @TeleOp
 public class CVTestOpMode extends LinearOpMode {
 
+    private ElapsedTime elapsedTime = new ElapsedTime();
+
     @Override
     public void runOpMode() {
-        RobotManager robotManager = new RobotManager(hardwareMap, telemetry, gamepad1, gamepad2, Navigation.NavigationMode.DUCK, Navigation.AllianceColor.BLUE);
+        RobotManager robotManager = new RobotManager(hardwareMap, telemetry, elapsedTime, gamepad1, gamepad2, Navigation.NavigationMode.DUCK, Navigation.AllianceColor.BLUE);
         ComputerVision cv = robotManager.computerVision;
 
         telemetry.addLine("Waiting for start");

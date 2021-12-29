@@ -36,6 +36,7 @@ public class Robot {
 
     boolean fineMovement = false;
     boolean fineRotation = false;
+
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
 
     // Hardware
@@ -70,17 +71,13 @@ public class Robot {
             driveMotors.get(motor).setDirection(RobotConfig.DriveMotorsDirections.get(motor));
             driveMotors.get(motor).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             driveMotors.get(motor).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            driveMotors.get(motor).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
         slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }

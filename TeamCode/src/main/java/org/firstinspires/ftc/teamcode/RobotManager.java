@@ -8,6 +8,7 @@ package org.firstinspires.ftc.teamcode;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -29,9 +30,8 @@ public class RobotManager {
     private Telemetry telemetry;
     private ElapsedTime elapsedTime;
 
-    public RobotManager(HardwareMap hardwareMap, Telemetry telemetry, Gamepad gamepad1, Gamepad gamepad2,
-                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor, ElapsedTime elapsedTime) {
-
+    public RobotManager(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime, Gamepad gamepad1,
+                        Gamepad gamepad2, Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
         elapsedTime.reset();
         navigation = new Navigation(navMode, allianceColor);
         mechanismDriving = new MechanismDriving();
