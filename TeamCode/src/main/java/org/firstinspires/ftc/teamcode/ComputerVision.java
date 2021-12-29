@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.google.gson.JsonArray;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import androidx.annotation.Nullable;
 import android.os.Environment;
+import android.util.Base64;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,16 +25,18 @@ import org.opencv.features2d.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.calib3d.Calib3d;
 
-
 import org.openftc.easyopencv.*;
 
-//Imageio.read()
 
 /** Managing class for opening cameras, attaching pipelines, and beginning streaming.
  */
 public class ComputerVision {
+
     public OpenCvCamera camera;
     public OpenCvPipeline pipeline;
+
+    public static String DataDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata";
+
 
     ComputerVision(HardwareMap hardwareMap, OpenCvPipeline pipeline) {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -60,7 +68,6 @@ public class ComputerVision {
  * This will
  */
 class AutonPipeline extends OpenCvPipeline {
-
     final private Robot robot;
     final private Telemetry telemetry;
     final private Mat output;  // Frame to be displayed on the phone
@@ -376,7 +383,7 @@ class CalibrationPipeline extends OpenCvPipeline {
     boolean displayCapture;
     int displayCaptureFrames = 0;
     static final int MaxDisplayCaptureDelay = 20;
-    static final int NumTotalCaptures = 3;
+    static final int NumTotalCaptures = 1;
 
     final static Size BoardSize = new Size(10, 7);
     final static double boardSquareSize = 1.0;  // TODO: measure this
@@ -404,6 +411,49 @@ class CalibrationPipeline extends OpenCvPipeline {
         }
 
         CheckerboardWorldCoords.fromList(checkerboardWorldCoordsList);
+    }
+
+
+    static public class MatJsonFmt {
+        int rows;
+        int cols;
+        int type;
+        float[] data;
+    }
+
+    final static private Gson gson = new Gson();
+
+    /** Reference: https://answers.opencv.org/question/8873/best-way-to-store-a-mat-object-in-android/
+     * @param mat Opencv Mat to be written to file
+     */
+    public static String MatToJson(Mat mat) {
+        JsonObject obj = new JsonObject();
+
+        if (!mat.isContinuous()) return "{}";
+
+        double[] data = new double[(int)mat.total() * mat.channels()];
+        mat.get(0, 0, data);
+//        return "test";
+//
+//        String dataString = new String(Base64.encode(data, Base64.DEFAULT));
+        JsonArray dataArr = gson.toJsonTree(data).getAsJsonArray();
+
+        obj.addProperty("rows", mat.rows());
+        obj.addProperty("cols", mat.cols());
+        obj.addProperty("type", mat.type());
+        obj.add("data", dataArr);
+        return gson.toJson(obj);
+    }
+
+    /** Reference: https://answers.opencv.org/question/8873/best-way-to-store-a-mat-object-in-android/
+     * @param json JSON string to be parsed to an OpenCV Mat
+     */
+    public static Mat MatFromJson(String json) {
+        MatJsonFmt fmt = gson.fromJson(json, MatJsonFmt.class);
+
+        Mat mat = new Mat(fmt.rows, fmt.cols, fmt.type);
+        mat.put(0, 0, fmt.data);
+        return mat;
     }
 
 
