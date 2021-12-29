@@ -1,4 +1,4 @@
-/* Authors: Ningning Ying, Elicia Esmeris, Smyan Sengupta, Cristian Santibanez, Arin Khare, Kristal Lin
+/* Authors: Ningning Ying, Elicia Esmeris, Smyan Sengupta, Cristian Santibanez, Arin Khare, Kristal Lin, Jesse Angrist
  */
 
 package org.firstinspires.ftc.teamcode;
@@ -9,17 +9,6 @@ import com.qualcomm.robotcore.util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
-import org.jetbrains.annotations.NotNull;
 
 
 /** Keeps track of the robot's desired path and makes it follow it accurately.
@@ -33,10 +22,10 @@ public class Navigation
 
     // AUTON CONSTANTS
     // ===============
-    final double RAMP_DISTANCE = 10;
+    final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
+    final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double STRAFE_POWER = 0.75;
     final double ROTATION_POWER = 0.75;  // Power to use while rotating.
-    final double MIN_POWER = 0.1;  // Power to use at start/end of ramp up/down.
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
@@ -55,32 +44,6 @@ public class Navigation
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     private ArrayList<Position> path;
-
-    /* Contains a power for each of the wheels that causes the robot to strafe in a certain direction at max speed.
-     *
-     * Multiplying these by a constant factor will scale the speed of the strafe movement.
-     */
-    static class PowerRatios {
-        public double frontLeftPower;
-        public double frontRightPower;
-        public double rearLeftPower;
-        public double rearRightPower;
-
-        public PowerRatios(double moveDirection) {
-            setMoveDirection(moveDirection);
-        }
-
-        public void setMoveDirection(double moveDirection) {
-            double sinMoveDirection = Math.sin(moveDirection);
-            double cosMoveDirection = Math.cos(moveDirection);
-
-            // Set the power for each wheel based on the angle of movement.
-            frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
-            frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
-            rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
-            rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
-        }
-    }
 
     public Navigation(NavigationMode navMode, AllianceColor allianceColor) {
         if (navMode == NavigationMode.TELEOP) {
@@ -156,18 +119,9 @@ public class Navigation
             turn *= COARSE_MOVEMENT_POWER;
         }
 
-        PowerRatios powerRatios = new PowerRatios(moveDirection);
-
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(powerRatios.frontLeftPower * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(powerRatios.frontRightPower * power - turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(powerRatios.rearLeftPower * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(powerRatios.rearRightPower * power - turn);
+        setDriveMotorPowers(moveDirection, power, turn, robot);
 
         robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
-        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
-                powerRatios.frontLeftPower * power + turn, powerRatios.frontRightPower * power - turn);
-        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
-                powerRatios.rearLeftPower * power + turn, powerRatios.rearRightPower * power - turn);
     }
 
     /** Rotates the robot a number of degrees.
@@ -180,7 +134,7 @@ public class Navigation
         robot.positionManager.updatePosition(robot);
 
         // Both values are restricted to interval (-pi, pi].
-        double startingRotation = robot.positionManager.position.getRotation();
+        double startingRotation = robot.getPosition().getRotation();
         double currentRotation = startingRotation;
 
         // Determine rotation direction.
@@ -193,35 +147,34 @@ public class Navigation
             direction = RotationDirection.CLOCKWISE;
         }
 
-        rotate(direction, ROTATION_POWER, robot);
+        double rotationSize = Math.abs(angleDiff);
+        if (rotationSize > Math.PI) {
+            rotationSize = 2 * Math.PI - rotationSize;
+        }
+
+        double power = 0;
+        double rotationProgress = Math.abs(currentRotation - startingRotation);
         while (Math.abs(targetRotation - currentRotation) > EPSILON_ANGLE) {
             robot.positionManager.updatePosition(robot);
-            currentRotation = robot.positionManager.position.getRotation();
+            currentRotation = robot.getPosition().getRotation();
+
+            if (rotationProgress < rotationSize / 2) {
+                // Ramping up.
+                if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
+                    power = (rotationProgress / ROTATION_RAMP_DISTANCE) * ROTATION_POWER;
+                }
+            }
+            else {
+                // Ramping down.
+                if (rotationProgress >= rotationSize - ROTATION_RAMP_DISTANCE) {
+                    power = ((rotationSize - rotationProgress) / ROTATION_RAMP_DISTANCE) * ROTATION_POWER;
+                }
+            }
+
+            setDriveMotorPowers(0.0, 0.0, power, robot);
         }
 
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(0);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(0);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(0);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(0);
-    }
-
-    /** Sets motor powers to rotate the robot in a certain direction.
-     */
-    private void rotate(RotationDirection direction, double power, Robot robot) {
-        switch (direction) {
-            case CLOCKWISE:
-                // Right wheels go forward and left ones go backward.
-                robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(-power);
-                robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(-power);
-                robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(power);
-                robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(power);
-            case COUNTERCLOCKWISE:
-                // Right wheels go backward and left ones go forward.
-                robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(power);
-                robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(power);
-                robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(-power);
-                robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(-power);
-        }
+        stopMovement(robot);
     }
 
     /** Makes the robot travel in a straight line for a certain distance.
@@ -232,13 +185,11 @@ public class Navigation
      */
     private void travelLinear(Point target, Robot robot) {
         robot.positionManager.updatePosition(robot);
-        Point startLoc = robot.positionManager.position.getLocation();
+        Point startLoc = robot.getPosition().getLocation();
         Point currentLoc = startLoc;
 
         double totalDistance = getEuclideanDistance(startLoc, target);
         double strafeDirection = getAngleBetween(currentLoc, target);
-        // Calculates relative power level of each motor to strafe in a particular direction.
-        PowerRatios powerRatios = new PowerRatios(strafeDirection);
 
         double power = 0;
         double distanceTraveled;
@@ -247,35 +198,24 @@ public class Navigation
 
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
-                if (distanceTraveled <= RAMP_DISTANCE) {
-                    power = (distanceTraveled / RAMP_DISTANCE) * STRAFE_POWER;
+                if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
+                    power = (distanceTraveled / STRAFE_RAMP_DISTANCE) * STRAFE_POWER;
                 }
             }
             else {
                 // Ramping down.
-                if (distanceTraveled >= totalDistance - RAMP_DISTANCE) {
-                    power = ((totalDistance - distanceTraveled) / RAMP_DISTANCE) * STRAFE_POWER;
+                if (distanceTraveled >= totalDistance - STRAFE_RAMP_DISTANCE) {
+                    power = ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * STRAFE_POWER;
                 }
             }
 
-            robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(powerRatios.frontLeftPower * power);
-            robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(powerRatios.frontRightPower * power);
-            robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(powerRatios.rearLeftPower * power);
-            robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(powerRatios.rearRightPower * power);
+            setDriveMotorPowers(strafeDirection, power, 0.0, robot);
 
             robot.positionManager.updatePosition(robot);
-            currentLoc = robot.positionManager.position.getLocation();
-
-            robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
-                    powerRatios.frontLeftPower * power, powerRatios.frontRightPower * power);
-            robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
-                    powerRatios.rearLeftPower * power, powerRatios.rearRightPower * power);
+            currentLoc = robot.getPosition().getLocation();
         }
 
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(0);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(0);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(0);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(0);
+        stopMovement(robot);
     }
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
@@ -295,6 +235,42 @@ public class Navigation
     /** Reflects the path to the other side of the playing field.
      */
     private void reflectPath() {}
+
+    /** Sets drive motor powers to make the robot move a certain way.
+     *
+     *  @param strafeDirection the direction in which the robot should strafe.
+     *  @param power the speed at which the robot should strafe. Must be in the interval [-1, 1]. Set this to zero if
+     *               you only want the robot to rotate.
+     *  @param turn the speed at which the robot should rotate (clockwise). Must be in the interval [-1, 1]. Set this to
+     *              zero if you only want the robot to strafe.
+     */
+    private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot) {
+        double sinMoveDirection = Math.sin(strafeDirection);
+        double cosMoveDirection = Math.cos(strafeDirection);
+
+        double frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
+        double frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
+        double rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
+        double rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
+
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rearLeftPower * power + turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rearRightPower * power - turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(frontLeftPower * power + turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(frontRightPower * power - turn);
+
+        robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
+                frontLeftPower * power, frontRightPower * power);
+        robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
+                rearLeftPower * power, rearRightPower * power);
+    }
+
+    /** Sets all drivetrain motor powers to zero.
+     */
+    private void stopMovement(Robot robot) {
+        for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
+            robot.driveMotors.get(motor).setPower(0.0);
+        }
+    }
 
     // PATHFINDING
     // ===========
