@@ -17,8 +17,20 @@ public class MechanismDriving {
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
     double slideRampDownDist=1000, maxSpeedCoefficient =0.5, reducedSpeedCoefficient =0.25;
+    public static final double CAROUSEL_SPEED = 0.5;
 
-    MechanismDriving() {}
+    private double carouselPower;
+
+    MechanismDriving(RobotManager.AllianceColor allianceColor) {
+        switch (allianceColor) {
+            case BLUE:
+                carouselPower = CAROUSEL_SPEED;
+                break;
+            case RED:
+                carouselPower = -CAROUSEL_SPEED;
+                break;
+        }
+    }
 
     // TODO: rewrite this class to deal with a continuous rotation servo
 
@@ -43,7 +55,7 @@ public class MechanismDriving {
                 robot.carousel.setPower(0);
                 break;
             case SPINNING:
-                robot.carousel.setPower(0.5);
+                robot.carousel.setPower(carouselPower);
                 break;
         }
     }

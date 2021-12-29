@@ -12,7 +12,7 @@ public class SlideTestOpmode extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
         Robot robot = new Robot(hardwareMap, telemetry,runtime);
-        MechanismDriving mechs=new MechanismDriving();
+        MechanismDriving mechs=new MechanismDriving(RobotManager.AllianceColor.BLUE);
 
         waitForStart();//wait for the play button to be pressed
 

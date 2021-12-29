@@ -34,8 +34,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
     private static SharedPreferences sharedPrefs;
 
-    private static Navigation.AllianceColor allianceColor;
-    private static Navigation.NavigationMode navigationMode;
+    private static RobotManager.AllianceColor allianceColor;
+    private static RobotManager.NavigationMode navigationMode;
 
     public void initSharedPreferences() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.hardwareMap.appContext);
@@ -44,17 +44,17 @@ public class FreightFrenzyAuton extends LinearOpMode {
         String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
 
         if (allianceColor.equals("BLUE")) {
-            this.allianceColor = Navigation.AllianceColor.BLUE;
+            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
         }
         else if (allianceColor.equals("RED")) {
-            this.allianceColor = Navigation.AllianceColor.RED;
+            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.RED;
         }
 
         if (autonMode.equals("DUCK")) {
-            navigationMode = Navigation.NavigationMode.DUCK;
+            FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK;
         }
-        else if (autonMode.equals("FREIGHT")) {
-            navigationMode = Navigation.NavigationMode.FREIGHT;
+        else if (autonMode.equals("NO_DUCK")) {
+            FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK;
         }
     }
 }

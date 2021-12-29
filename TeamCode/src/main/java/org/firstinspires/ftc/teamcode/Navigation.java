@@ -25,11 +25,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Navigation
 {
-    // DUCK: deliver duck from carousel.
-    // FREIGHT: deliver one piece of freight from the warehouse to the shipping hub.
-    public enum NavigationMode {DUCK, FREIGHT, TELEOP}
-    public enum AllianceColor {BLUE, RED}
-
     // AUTON CONSTANTS
     // ===============
     final double RAMP_DURATION = 750;
@@ -56,19 +51,20 @@ public class Navigation
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     private ArrayList<Position> path;
 
-    public Navigation(NavigationMode navMode, AllianceColor allianceColor) {
-        if (navMode == NavigationMode.TELEOP) {
-            path = new ArrayList<>(Collections.emptyList());
-        }
-        else if (navMode == NavigationMode.DUCK) {
-            path = AutonomousPaths.DUCK_PATH;
-        }
-        else if (navMode == NavigationMode.FREIGHT) {
-            path = AutonomousPaths.FREIGHT_PATH;
+    public Navigation(RobotManager.NavigationMode navMode, RobotManager.AllianceColor allianceColor) {
+        switch (navMode) {
+            case TELEOP:
+                path = new ArrayList<>(Collections.emptyList());
+                break;
+            case DUCK:
+                path = AutonomousPaths.DUCK_PATH;
+                break;
+            case NO_DUCK:
+                path = AutonomousPaths.NO_DUCK_PATH;
+                break;
         }
 
-        // NOTE: This may actually have to be the other way around. It depends on which side we do our measurements for.
-        if (allianceColor == AllianceColor.RED) {
+        if (allianceColor == RobotManager.AllianceColor.RED) {
             reflectPath();
         }
     }
@@ -652,5 +648,5 @@ class AutonomousPaths {
     public static final ArrayList<Position> DUCK_PATH = new ArrayList<>(Arrays.asList(
             // Construct Position objects
     ));
-    public static final ArrayList<Position> FREIGHT_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> NO_DUCK_PATH = new ArrayList<>(Arrays.asList());
 }

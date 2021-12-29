@@ -18,6 +18,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  */
 public class RobotManager {
 
+    public enum NavigationMode {DUCK, NO_DUCK, TELEOP}
+    public enum AllianceColor {BLUE, RED}
+
     public Robot robot;
 
     public MechanismDriving mechanismDriving;
@@ -29,12 +32,12 @@ public class RobotManager {
     private ElapsedTime elapsedTime;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
-                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor,
+                        NavigationMode navigationMode, AllianceColor allianceColor,
                         Telemetry telemetry, ElapsedTime elapsedTime) {
 
         elapsedTime.reset();
-        navigation = new Navigation(navMode, allianceColor);
-        mechanismDriving = new MechanismDriving();
+        navigation = new Navigation(navigationMode, allianceColor);
+        mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
