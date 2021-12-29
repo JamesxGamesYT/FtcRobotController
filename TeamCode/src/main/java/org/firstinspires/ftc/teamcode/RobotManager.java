@@ -18,7 +18,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  */
 public class RobotManager {
 
-    public enum NavigationMode {DUCK, NO_DUCK, TELEOP}
+    // These indicate both the tasks and the starting position. For example, DUCK_CAROUSEL has the robot start close to
+    // the carousel and deliver the duck.
+    public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
     public Robot robot;

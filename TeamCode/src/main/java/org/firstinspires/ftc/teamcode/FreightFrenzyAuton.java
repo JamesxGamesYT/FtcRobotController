@@ -50,11 +50,19 @@ public class FreightFrenzyAuton extends LinearOpMode {
             FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.RED;
         }
 
-        if (autonMode.equals("DUCK")) {
-            FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK;
-        }
-        else if (autonMode.equals("NO_DUCK")) {
-            FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK;
+        switch (autonMode) {
+            case "DUCK_CAROUSEL":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_CAROUSEL;
+                break;
+            case "DUCK_WAREHOUSE":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_WAREHOUSE;
+                break;
+            case "NO_DUCK_CAROUSEL":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK_CAROUSEL;
+                break;
+            case "NO_DUCK_WAREHOUSE":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK_WAREHOUSE;
+                break;
         }
     }
 }

@@ -44,7 +44,7 @@ public class CVOpModeTests extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.DUCK,
+        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.DUCK_CAROUSEL,
                 RobotManager.AllianceColor.BLUE, telemetry,runtime);
 
         cvPositioning = new CVPositioning(hardwareMap);

@@ -56,11 +56,17 @@ public class Navigation
             case TELEOP:
                 path = new ArrayList<>(Collections.emptyList());
                 break;
-            case DUCK:
-                path = AutonomousPaths.DUCK_PATH;
+            case DUCK_CAROUSEL:
+                path = AutonomousPaths.DUCK_CAROUSEL_PATH;
                 break;
-            case NO_DUCK:
-                path = AutonomousPaths.NO_DUCK_PATH;
+            case DUCK_WAREHOUSE:
+                path = AutonomousPaths.DUCK_WAREHOUSE_PATH;
+                break;
+            case NO_DUCK_CAROUSEL:
+                path = AutonomousPaths.NO_DUCK_CAROUSEL_PATH;
+                break;
+            case NO_DUCK_WAREHOUSE:
+                path = AutonomousPaths.NO_DUCK_WAREHOUSE_PATH;
                 break;
         }
 
@@ -645,8 +651,10 @@ public class Navigation
 /** Hardcoded paths through the playing field during the Autonomous period.
  */
 class AutonomousPaths {
-    public static final ArrayList<Position> DUCK_PATH = new ArrayList<>(Arrays.asList(
+    public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList(
             // Construct Position objects
     ));
-    public static final ArrayList<Position> NO_DUCK_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> NO_DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> NO_DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
 }
