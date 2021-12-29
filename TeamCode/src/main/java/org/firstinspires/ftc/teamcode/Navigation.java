@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -154,64 +155,31 @@ public class Navigation
 
     /** Rotates the robot a number of degrees.
      *
-     * @param target the orientation the robot should assume once this method exits.
+     * @param targetRotation The orientation the robot should assume once this method exits.
+     *                       Within the interval (-pi, pi].
      */
-    private void rotate(double target, Robot robot) //target is also on [-pi, pi)
+    private void rotate(double targetRotation, Robot robot)
     {
         // TODO: update robot position
 
-        // Both values are restricted to interval [-pi, pi) for simplified comparisons.
+        // Both values are restricted to interval (-pi, pi].
         double startingRotation = robot.positionManager.position.rotation;
         double currentRotation = startingRotation;
 
-        if (target - startingRotation < -Math.PI/2) {} //counterclockwise
-        else if (target - startingRotation >= -Math.PI/2 && target - startingRotation < 0) {} //clockwise
-        else if (target - startingRotation > 0 && target - startingRotation <= Math.PI/2) {} //counterclockwise
-        else if (target - startingRotation > Math.PI/2) {} //clockwise
+        // Determine rotation direction.
+        double angleDiff = targetRotation - startingRotation;
+        RotationDirection direction = RotationDirection.COUNTERCLOCKWISE;
+        if (angleDiff >= -Math.PI && angleDiff < 0) {
+            direction = RotationDirection.CLOCKWISE;
+        }
+        else if (angleDiff > Math.PI) {
+            direction = RotationDirection.CLOCKWISE;
+        }
 
-        // Ramping algorithm:
-        // - Check whether to ramp up or down based on whether you are halfway to target
-        // - Set power proportional to distance to target when ramping down, inversely proportional when ramping up
-        // - Clip value between max/min powers
-
-        boolean rampUp = true;
-        double power = MIN_POWER;
-        RotationDirection direction = (angle > 0) ? RotationDirection.CLOCKWISE : RotationDirection.COUNTERCLOCKWISE;
-
-        rotate(direction, power, robot);
-
-        // While position is not reached.
-        while (Math.abs(currentRotation - target) > EPSILON_ANGLE)
-        {
+        rotate(direction, ROTATION_POWER, robot);
+        while (Math.abs(targetRotation - currentRotation) > EPSILON_ANGLE) {
             // TODO: update robot position
-            if (currentRotation < 0.0) {
-                currentRotation = (2 * Math.PI) + robot.positionManager.position.rotation;
-            }
-            if (rampUp) {
-                switch (direction) {
-                    case CLOCKWISE:
-                        // As currentRotation decreases (along unit circle), power should increase.
-                        power = (startingRotation - currentRotation) * RAMP_SLOPE_ROTATION;
-                    case COUNTERCLOCKWISE:
-                        // As currentRotation increases, power should increase.
-                        power = (currentRotation - startingRotation) * RAMP_SLOPE_ROTATION;
-                }
-                rotate(direction, power, robot);
-                // Check whether to start ramping down (if we're at least halfway there).
-                rampUp = Math.abs(startingRotation - currentRotation) >= angle / 2;
-            }
-            else
-            {
-                switch (direction) {
-                    case CLOCKWISE:
-                        // As currentRotation decreases, power should decrease.
-                        power = (currentRotation - targetRotation) * RAMP_SLOPE_ROTATION;
-                    case COUNTERCLOCKWISE:
-                        // As currentRotation increases, power should decrease.
-                        power = (targetRotation - currentRotation) * RAMP_SLOPE_ROTATION;
-                }
-                rotate(direction, power, robot);
-            }
+            currentRotation = robot.positionManager.position.rotation;
         }
 
         robot.rearLeftDrive.setPower(0);
