@@ -5,18 +5,19 @@ import android.preference.PreferenceManager;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name="FreightFrenzyAuton", group="Linear OpMode")
 public class FreightFrenzyAuton extends LinearOpMode {
 
     private RobotManager robotManager;
+    private ElapsedTime elapsedTime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor, telemetry);
+        robotManager = new RobotManager(hardwareMap, telemetry, elapsedTime, gamepad1,
+                                        gamepad2, navigationMode, allianceColor);
 
         waitForStart(); // wait for the play button to be pressed
 
@@ -51,8 +52,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
         if (autonMode.equals("DUCK")) {
             navigationMode = Navigation.NavigationMode.DUCK;
         }
-        else if (autonMode.equals("FREIGHT")) {
-            navigationMode = Navigation.NavigationMode.FREIGHT;
+        else if (autonMode.equals("NO_DUCK")) {
+            navigationMode = Navigation.NavigationMode.NO_DUCK;
         }
     }
 }
