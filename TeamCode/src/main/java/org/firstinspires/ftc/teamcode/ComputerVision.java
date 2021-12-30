@@ -1,15 +1,18 @@
+/* Author: Kai Vernooy
+ */
+
 package org.firstinspires.ftc.teamcode;
 
 import com.google.gson.JsonArray;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import java.io.*;
+
 import androidx.annotation.Nullable;
 import android.os.Environment;
-import android.util.Base64;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -64,6 +67,8 @@ public class ComputerVision {
 }
 
 
+
+
 /** Contains all image processing done for scanning the barcode and getting position.
  * This will
  */
@@ -93,6 +98,11 @@ class AutonPipeline extends OpenCvPipeline {
         barcodeTapeRegionsBlue = new Mat();
         barcodeTapeRegionsRed1 = new Mat();
         barcodeTapeRegionsRed2 = new Mat();
+
+        try {
+            cameraMatrix = CalibrationPipeline.MatFromFile(ComputerVision.DataDir + "/camera-matrix.json");
+            distortionMatrix = new MatOfDouble(CalibrationPipeline.MatFromFile(ComputerVision.DataDir + "/distortion-matrix.json"));
+        } catch (FileNotFoundException e) {}
 
         this.telemetry = telemetry;
     }
@@ -127,6 +137,11 @@ class AutonPipeline extends OpenCvPipeline {
 
     // CV POSITIONING
     // =================
+
+    // TODO: May want to abstract this into a calibration class
+    private final Mat cameraMatrix;
+    private final MatOfDouble distortionMatrix;
+
     private static final SIFT Sift = SIFT.create();
     private static final ORB Orb = ORB.create();
     private static final BFMatcher BfMatcher = BFMatcher.create(BFMatcher.BRUTEFORCE_HAMMING, false);
@@ -260,8 +275,17 @@ class AutonPipeline extends OpenCvPipeline {
         Imgproc.line(output, screenPoints.toArray()[1], screenPoints.toArray()[2], new Scalar(0, 0, 255), 4);
         Imgproc.line(output, screenPoints.toArray()[2], screenPoints.toArray()[3], new Scalar(255, 0, 0), 4);
         Imgproc.line(output, screenPoints.toArray()[3], screenPoints.toArray()[0], new Scalar(0, 255, 255), 4);
+
+        // TODO: Clean this into a real-world coord finder method
+        Mat tvec = new Mat(), rvec = new Mat();
+        MatOfPoint3f worldCoords = new MatOfPoint3f();
+        worldCoords.fromList(NavTargetsWorldSpace);
+
+        // TODO: Determine which algorithm is most appropriate here
+        // Calib3d.solvePnPRansac(worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
+        Calib3d.solvePnP(worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
+
         return null;
-//        Calib3d.solvePnP(NavTargetsWorldSpace, screenPoints, )
     }
 
 
@@ -414,7 +438,7 @@ class CalibrationPipeline extends OpenCvPipeline {
     }
 
 
-    static public class MatJsonFmt {
+    static private class MatJsonFmt {
         int rows;
         int cols;
         int type;
@@ -426,7 +450,7 @@ class CalibrationPipeline extends OpenCvPipeline {
     /** Reference: https://answers.opencv.org/question/8873/best-way-to-store-a-mat-object-in-android/
      * @param mat Opencv Mat to be written to file
      */
-    public static String MatToJson(Mat mat) {
+    static private String MatToJson(Mat mat) {
         JsonObject obj = new JsonObject();
 
         if (!mat.isContinuous()) return "{}";
@@ -448,12 +472,40 @@ class CalibrationPipeline extends OpenCvPipeline {
     /** Reference: https://answers.opencv.org/question/8873/best-way-to-store-a-mat-object-in-android/
      * @param json JSON string to be parsed to an OpenCV Mat
      */
-    public static Mat MatFromJson(String json) {
+    static private Mat MatFromJson(String json) {
         MatJsonFmt fmt = gson.fromJson(json, MatJsonFmt.class);
 
         Mat mat = new Mat(fmt.rows, fmt.cols, fmt.type);
         mat.put(0, 0, fmt.data);
         return mat;
+    }
+
+
+    public static void MatToFile(Mat mat, String path) {
+        try (FileOutputStream stream = new FileOutputStream(path)) {
+            stream.write(MatToJson(mat).getBytes());
+        } catch (IOException e) {}
+    }
+
+
+    public static Mat MatFromFile(String path) throws FileNotFoundException {
+        File fl = new File(path);
+        FileInputStream fin = new FileInputStream(fl);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(fin));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+
+            reader.close();
+            fin.close();
+        } catch (IOException e) {}
+
+
+        return MatFromJson(sb.toString());
     }
 
 
