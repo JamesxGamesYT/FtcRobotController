@@ -15,16 +15,10 @@ public class PositionManager {
         encoderPositioning = new EncoderPositioning();
     }
 
-    public void initComputerVision(Robot robot, HardwareMap hardwareMap, Telemetry telemetry) {
-        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry));
-    }
-
-
     // Stores the best guess of the robot's position (location + orientation) at any given time. To be accessed by nav methods
     public Position position;
 
     public EncoderPositioning encoderPositioning;
-    public ComputerVision computerVision;
 
 
     /** Calls all appropriate sensor update methods to get an updated estimate of the Robot's current position

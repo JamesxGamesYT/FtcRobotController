@@ -75,14 +75,16 @@ class AutonPipeline extends OpenCvPipeline {
     final private Robot robot;
     final private Telemetry telemetry;
     final private Mat output;  // Frame to be displayed on the phone
+    final private Navigation.AllianceColor allianceColor;
 
 
-    AutonPipeline(Robot robot, Telemetry telemetry) {
+    AutonPipeline(Robot robot, Telemetry telemetry, Navigation.AllianceColor allianceColor) {
         super();
         this.robot = robot;
 
         // TODO: there might be a cleaner way to default-initialize these
         output = new Mat();
+
 
         // Initialize barcode data
         barcodeHsv = new Mat();
@@ -104,6 +106,7 @@ class AutonPipeline extends OpenCvPipeline {
         } catch (FileNotFoundException e) {}
 
         this.telemetry = telemetry;
+        this.allianceColor = allianceColor;
     }
 
 
@@ -151,14 +154,52 @@ class AutonPipeline extends OpenCvPipeline {
     private static final MatOfKeyPoint kp1 = new MatOfKeyPoint(), kp2 = new MatOfKeyPoint();
     private static final Mat des1 = new Mat(), des2 = new Mat();
 
-//    enum NavTargets {ALLIANCE}
 
-    static List<Point3> NavTargetsWorldSpace = new ArrayList<Point3> () {{
-        add(new Point3(0,42 + (5.5),5.75 - (8.5 / 2))); // br
-        add(new Point3(0,42 - (5.5),5.75 - (8.5 / 2))); // bl
-        add(new Point3(0,42 - (5.5),5.75 + (8.5 / 2))); // tl
-        add(new Point3(0,42 + (5.5),5.75 + (8.5 / 2))); // tr
-    }};
+    enum NavTarget {
+        BLUE_ALLIANCE_WALL(Navigation.AllianceColor.BLUE, "/", Arrays.asList()),
+        BLUE_STORAGE_UNIT(Navigation.AllianceColor.BLUE, "/", Arrays.asList()),
+        RED_ALLIANCE_WALL(Navigation.AllianceColor.RED, "/", Arrays.asList()),
+        RED_STORAGE_UNIT(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
+                new Point3(0,42 + (5.5),5.75 - (8.5 / 2)), // br
+                new Point3(0,42 - (5.5),5.75 - (8.5 / 2)), // bl
+                new Point3(0,42 - (5.5),5.75 + (8.5 / 2)), // tl
+                new Point3(0,42 + (5.5),5.75 + (8.5 / 2))  // tr
+        ));
+
+
+        public final Navigation.AllianceColor allianceColor;
+        public final String path;
+        public final Mat image;
+        public final MatOfPoint3f worldCoords;
+        public final MatOfPoint2f imgCoords;
+
+
+        private NavTarget(Navigation.AllianceColor allianceColor, String path, List<Point3> worldCoords) {
+            this.allianceColor = allianceColor;
+            this.path = ComputerVision.DataDir + path;
+
+            this.image = new Mat();
+            this.imgCoords = new MatOfPoint2f();
+            this.worldCoords = new MatOfPoint3f();
+            this.worldCoords.fromList(worldCoords);
+
+            // Read and process nav image from disk
+            Bitmap bitmap = BitmapFactory.decodeFile(this.path);
+            Utils.bitmapToMat(bitmap, image);
+            Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
+
+            // Determine the corners from the dims of the loaded image
+            this.imgCoords.fromList(Arrays.asList(
+                new org.opencv.core.Point(image.cols(), image.rows()),   // br
+                new org.opencv.core.Point(0, image.rows()),           // bl
+                new org.opencv.core.Point(0, 0),                   // tl
+                new org.opencv.core.Point(image.cols(), 0)            // tr
+            ));
+
+
+        }
+    };
+
 
 
     /** Transforms a set of points on a provided 2d template image onto the instance of the template in frame using the detected homography transformation.
@@ -171,14 +212,14 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Nullable
     private static MatOfPoint2f DetectTemplate(Mat template, Mat frame, MatOfPoint2f points, Mat output) {
-        Orb.detectAndCompute(template, new Mat(), kp1, des1);
-        Orb.detectAndCompute(frame, new Mat(), kp2, des2);
+        Sift.detectAndCompute(template, new Mat(), kp1, des1);
+        Sift.detectAndCompute(frame, new Mat(), kp2, des2);
 //        Features2d.drawKeypoints(frame, kp2, output);
 //        return null;
 
         // find a way to set knn params here
-        MatOfDMatch matchesB = new MatOfDMatch();
-////        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
+//        MatOfDMatch matchesB = new MatOfDMatch();
+        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
         List<DMatch> goodMatches = new ArrayList<DMatch>(des1.rows());
 //
 //
@@ -188,116 +229,107 @@ class AutonPipeline extends OpenCvPipeline {
         des1.convertTo(des1, CvType.CV_32F);
         des2.convertTo(des2, CvType.CV_32F);
 
-////        FbMatcher.knnMatch(des1, des2, matches, 2);
-//
-////        BfMatcher.knnMatch(des1, des2, matches, 2);
-        BfMatcher.match(des1, des2, matchesB);
-//
-        for (int i = 0; i < des1.rows(); i++) {
-            goodMatches.add(matchesB.toList().get(i));
-        }
+        FbMatcher.knnMatch(des1, des2, matches, 2);
 
-        Collections.sort(goodMatches, new Comparator<DMatch>() {
-            public int compare(DMatch m1, DMatch m2) {
-                return Double.compare(m1.distance, m2.distance);
-            }
-        });
+//        BfMatcher.knnMatch(des1, des2, matches, 2);
+//        BfMatcher.match(des1, des2, matchesB);
+//
+//        for (int i = 0; i < des1.rows(); i++) {
+//            goodMatches.add(matchesB.toList().get(i));
+//        }
+//
+//        Collections.sort(goodMatches, new Comparator<DMatch>() {
+//            public int compare(DMatch m1, DMatch m2) {
+//                return Double.compare(m1.distance, m2.distance);
+//            }
+//        });
 
 //        List<DMatch> matches =
 
-//////
-////        for (MatOfDMatch matchSet : matches) {
-////            DMatch[] matchSetArr = matchSet.toArray();
-////            if (matchSetArr.length < 2)
-////                continue;
-////
-////            DMatch m1 = matchSetArr[0];
-////            DMatch m2 = matchSetArr[1];
-////
-////            if (m1.distance < 0.7 * m2.distance)
-////                goodMatches.add(m1);
-////
-//////            if (m2.distance - m1.distance > 0.19)
-//////                goodMatches.add(m1);
-////        }
-////
+//
+        for (MatOfDMatch matchSet : matches) {
+            DMatch[] matchSetArr = matchSet.toArray();
+            if (matchSetArr.length < 2)
+                continue;
+
+            DMatch m1 = matchSetArr[0];
+            DMatch m2 = matchSetArr[1];
+
+            if (m1.distance < 0.7 * m2.distance)
+                goodMatches.add(m1);
+
+//            if (m2.distance - m1.distance > 0.19)
+//                goodMatches.add(m1);
+        }
+
 //
         MatOfDMatch goodMatchesMat = new MatOfDMatch();
-        goodMatchesMat.fromList(goodMatches.subList(0, Math.min(goodMatches.size(), 10)));
+        goodMatchesMat.fromList(goodMatches/*.subList(0, Math.min(goodMatches.size(), 10))*/);
 
-        Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
+//        Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
         Imgproc.resize(output, output, frame.size(), 0, 0, Imgproc.INTER_CUBIC);
-        return null;
-//        if (goodMatches.size() < 10) return null;
-//
-//        ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
-//        ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
-//
-//        for (DMatch match : goodMatches) {
-//            obj.add(kp1.toList().get(match.queryIdx).pt);
-//            scene.add(kp2.toList().get(match.trainIdx).pt);
-//        }
-//
-//        MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
-//        objM.fromList(obj);
-//        sceneM.fromList(scene);
-//
-////        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
-//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
-//
-//        MatOfPoint2f result = new MatOfPoint2f();
-//        Core.perspectiveTransform(points, result, homography);
+//        return null;
+        if (goodMatches.size() < 10) return null;
+
+        ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
+        ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
+
+        for (DMatch match : goodMatches) {
+            obj.add(kp1.toList().get(match.queryIdx).pt);
+            scene.add(kp2.toList().get(match.trainIdx).pt);
+        }
+
+        MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
+        objM.fromList(obj);
+        sceneM.fromList(scene);
+
+//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
+        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
+
+        MatOfPoint2f result = new MatOfPoint2f();
+        Core.perspectiveTransform(points, result, homography);
 //
 //        // homography LMeDS
-//        return result;
+        return result;
     }
 
 
-    Mat template1 = new Mat();
 
-    /** Main CV localization estimator - determines position relative to any detected navigation targets2
+    /** Main CV localization estimator - determines position relative to any detected navigation targets
      * @param input The frame to be processed (either containing nav targets or not)
-     * //@param output
-     * @return Determined pos("Stuff", frame.at(Point3.class, 0, 0).getV());
-        telemetry.update(ition of the robot, as presented in the {@param input} image.
+     * @return Determined position of the robot, as presented in the {@param input} image.
      */
     @Nullable
     Position processPositioningFrame(Mat input, Mat output) {
-        Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata/features3.jpg");
-        Utils.bitmapToMat(bitmap, template1);
-
         input.copyTo(output);
-
-        Imgproc.cvtColor(template1, template1, Imgproc.COLOR_BGR2GRAY);
         Imgproc.cvtColor(input, input, Imgproc.COLOR_BGR2GRAY);
 
-        List<org.opencv.core.Point> templateCorners = new ArrayList<org.opencv.core.Point> () {{
-            add(new org.opencv.core.Point(template1.cols(), template1.rows()));     // br
-            add(new org.opencv.core.Point(0, template1.rows()));                 // bl
-            add(new org.opencv.core.Point(0, 0));                             // tl
-            add(new org.opencv.core.Point(template1.cols(), 0));                 // tr
-        }};
 
-        MatOfPoint2f points = new MatOfPoint2f();
-        points.fromList(templateCorners);
+        for (NavTarget t : NavTarget.values()) {
+            if (t.allianceColor == allianceColor) {
+                MatOfPoint2f screenPoints = DetectTemplate(t.image, input, t.imgCoords, output);
 
-        MatOfPoint2f screenPoints = DetectTemplate(template1, input, points, output);
+                if (screenPoints == null) continue;
 
-        if (screenPoints == null) return null;
-//        input.copyTo(output);
-//        Imgproc.line(output, screenPoints.toArray()[0], screenPoints.toArray()[1], new Scalar(0, 255, 0), 4);
-//        Imgproc.line(output, screenPoints.toArray()[1], screenPoints.toArray()[2], new Scalar(0, 0, 255), 4);
-//        Imgproc.line(output, screenPoints.toArray()[2], screenPoints.toArray()[3], new Scalar(255, 0, 0), 4);
-//        Imgproc.line(output, screenPoints.toArray()[3], screenPoints.toArray()[0], new Scalar(0, 255, 255), 4);
+                Imgproc.line(output, screenPoints.toArray()[0], screenPoints.toArray()[1], new Scalar(0, 255, 0), 4);
+                Imgproc.line(output, screenPoints.toArray()[1], screenPoints.toArray()[2], new Scalar(0, 0, 255), 4);
+                Imgproc.line(output, screenPoints.toArray()[2], screenPoints.toArray()[3], new Scalar(255, 0, 0), 4);
+                Imgproc.line(output, screenPoints.toArray()[3], screenPoints.toArray()[0], new Scalar(0, 255, 255), 4);
 
-        // TODO: Clean this into a real-world coord finder method
-        Mat tvec = new Mat(), rvec = new Mat();
-        MatOfPoint3f worldCoords = new MatOfPoint3f();
-        worldCoords.fromList(NavTargetsWorldSpace);
+                // TODO: Clean this into a real-world coord finder method
+                Mat tvec = new Mat(), rvec = new Mat();
 
-        // TODO: Determine which algorithm is most appropriate here
-        // Calib3d.solvePnPRansac(worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
-        Calib3d.solvePnP(worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
+                // TODO: Determine which algorithm is most appropriate here
+                // Calib3d.solvePnPRansac(worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
+                Calib3d.solvePnP(t.worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
+
+                telemetry.addData("rvec", rvec.dump());
+                telemetry.addData("tvec", tvec.dump());
+                telemetry.update();
+
+                break;
+            }
+        }
 
         return null;
     }
