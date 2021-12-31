@@ -14,9 +14,8 @@ import android.os.Environment;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 import org.opencv.android.Utils;
 import android.graphics.BitmapFactory;
@@ -139,12 +138,14 @@ class AutonPipeline extends OpenCvPipeline {
     // =================
 
     // TODO: May want to abstract this into a calibration class
-    private final Mat cameraMatrix;
-    private final MatOfDouble distortionMatrix;
+    private Mat cameraMatrix = new Mat();
+    private MatOfDouble distortionMatrix = new MatOfDouble();
 
     private static final SIFT Sift = SIFT.create();
-    private static final ORB Orb = ORB.create();
+//    private static final ORB Orb = ORB.create(500, 1.2f, 8, 31, 0, 2, ORB.HARRIS_SCORE, 31, 20);
+    private static final ORB Orb = ORB.create(1000, 1.2f, 8, 31, 0, 2, ORB.FAST_SCORE, 31, 10);
     private static final BFMatcher BfMatcher = BFMatcher.create(BFMatcher.BRUTEFORCE_HAMMING, false);
+    private static final FlannBasedMatcher FbMatcher = FlannBasedMatcher.create();
 
 
     private static final MatOfKeyPoint kp1 = new MatOfKeyPoint(), kp2 = new MatOfKeyPoint();
@@ -172,71 +173,83 @@ class AutonPipeline extends OpenCvPipeline {
     private static MatOfPoint2f DetectTemplate(Mat template, Mat frame, MatOfPoint2f points, Mat output) {
         Orb.detectAndCompute(template, new Mat(), kp1, des1);
         Orb.detectAndCompute(frame, new Mat(), kp2, des2);
+//        Features2d.drawKeypoints(frame, kp2, output);
+//        return null;
 
         // find a way to set knn params here
-//        FlannBasedMatcher matcher = FlannBasedMatcher.create();
         MatOfDMatch matchesB = new MatOfDMatch();
-//        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
-        ArrayList<DMatch> goodMatches = new ArrayList<DMatch>();
-
-
+////        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
+        List<DMatch> goodMatches = new ArrayList<DMatch>(des1.rows());
+//
+//
         if (des1.empty() || des2.empty()) return null;
         if (kp1.total() < 2 && kp2.total() < 2) return null;
-
+//
         des1.convertTo(des1, CvType.CV_32F);
         des2.convertTo(des2, CvType.CV_32F);
-//        matcher.knnMatch(des1, des2, matches, 2);
 
-//        BfMatcher.knnMatch(des1, des2, matches, 2);
+////        FbMatcher.knnMatch(des1, des2, matches, 2);
+//
+////        BfMatcher.knnMatch(des1, des2, matches, 2);
         BfMatcher.match(des1, des2, matchesB);
-
+//
         for (int i = 0; i < des1.rows(); i++) {
-            if ((matchesB.toList().get(i)).distance < 200) goodMatches.add(matchesB.toList().get(i));
+            goodMatches.add(matchesB.toList().get(i));
         }
-//
-//        for (MatOfDMatch matchSet : matches) {
-//            DMatch[] matchSetArr = matchSet.toArray();
-//            if (matchSetArr.length < 2)
-//                continue;
-//
-//            DMatch m1 = matchSetArr[0];
-//            DMatch m2 = matchSetArr[1];
-//
-//            if (m1.distance < 0.7 * m2.distance)
-//                goodMatches.add(m1);
-//
-////            if (m2.distance - m1.distance > 0.19)
-////                goodMatches.add(m1);
-//        }
-//
 
+        Collections.sort(goodMatches, new Comparator<DMatch>() {
+            public int compare(DMatch m1, DMatch m2) {
+                return Double.compare(m1.distance, m2.distance);
+            }
+        });
+
+//        List<DMatch> matches =
+
+//////
+////        for (MatOfDMatch matchSet : matches) {
+////            DMatch[] matchSetArr = matchSet.toArray();
+////            if (matchSetArr.length < 2)
+////                continue;
+////
+////            DMatch m1 = matchSetArr[0];
+////            DMatch m2 = matchSetArr[1];
+////
+////            if (m1.distance < 0.7 * m2.distance)
+////                goodMatches.add(m1);
+////
+//////            if (m2.distance - m1.distance > 0.19)
+//////                goodMatches.add(m1);
+////        }
+////
+//
         MatOfDMatch goodMatchesMat = new MatOfDMatch();
-        goodMatchesMat.fromList(goodMatches);
+        goodMatchesMat.fromList(goodMatches.subList(0, Math.min(goodMatches.size(), 10)));
+
         Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
         Imgproc.resize(output, output, frame.size(), 0, 0, Imgproc.INTER_CUBIC);
-
-        if (goodMatches.size() < 10) return null;
-
-        ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
-        ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
-
-        for (DMatch match : goodMatches) {
-            obj.add(kp1.toList().get(match.queryIdx).pt);
-            scene.add(kp2.toList().get(match.trainIdx).pt);
-        }
-
-        MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
-        objM.fromList(obj);
-        sceneM.fromList(scene);
-
-//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
-        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
-
-        MatOfPoint2f result = new MatOfPoint2f();
-        Core.perspectiveTransform(points, result, homography);
-
-        // homography LMeDS
-        return result;
+        return null;
+//        if (goodMatches.size() < 10) return null;
+//
+//        ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
+//        ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
+//
+//        for (DMatch match : goodMatches) {
+//            obj.add(kp1.toList().get(match.queryIdx).pt);
+//            scene.add(kp2.toList().get(match.trainIdx).pt);
+//        }
+//
+//        MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
+//        objM.fromList(obj);
+//        sceneM.fromList(scene);
+//
+////        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
+//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
+//
+//        MatOfPoint2f result = new MatOfPoint2f();
+//        Core.perspectiveTransform(points, result, homography);
+//
+//        // homography LMeDS
+//        return result;
     }
 
 
@@ -250,7 +263,7 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Nullable
     Position processPositioningFrame(Mat input, Mat output) {
-        Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navimgs/features3.png");
+        Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata/features3.jpg");
         Utils.bitmapToMat(bitmap, template1);
 
         input.copyTo(output);
@@ -271,10 +284,11 @@ class AutonPipeline extends OpenCvPipeline {
         MatOfPoint2f screenPoints = DetectTemplate(template1, input, points, output);
 
         if (screenPoints == null) return null;
-        Imgproc.line(output, screenPoints.toArray()[0], screenPoints.toArray()[1], new Scalar(0, 255, 0), 4);
-        Imgproc.line(output, screenPoints.toArray()[1], screenPoints.toArray()[2], new Scalar(0, 0, 255), 4);
-        Imgproc.line(output, screenPoints.toArray()[2], screenPoints.toArray()[3], new Scalar(255, 0, 0), 4);
-        Imgproc.line(output, screenPoints.toArray()[3], screenPoints.toArray()[0], new Scalar(0, 255, 255), 4);
+//        input.copyTo(output);
+//        Imgproc.line(output, screenPoints.toArray()[0], screenPoints.toArray()[1], new Scalar(0, 255, 0), 4);
+//        Imgproc.line(output, screenPoints.toArray()[1], screenPoints.toArray()[2], new Scalar(0, 0, 255), 4);
+//        Imgproc.line(output, screenPoints.toArray()[2], screenPoints.toArray()[3], new Scalar(255, 0, 0), 4);
+//        Imgproc.line(output, screenPoints.toArray()[3], screenPoints.toArray()[0], new Scalar(0, 255, 255), 4);
 
         // TODO: Clean this into a real-world coord finder method
         Mat tvec = new Mat(), rvec = new Mat();
@@ -406,11 +420,13 @@ class CalibrationPipeline extends OpenCvPipeline {
     boolean doCapture;
     boolean displayCapture;
     int displayCaptureFrames = 0;
-    static final int MaxDisplayCaptureDelay = 20;
-    static final int NumTotalCaptures = 1;
+    static final int MaxDisplayCaptureDelay = 10;
+    static final int NumTotalCaptures = 30;
 
     final static Size BoardSize = new Size(10, 7);
-    final static double boardSquareSize = 1.0;  // TODO: measure this
+
+    // the dimensions of a single square on the board, in inches
+    final static double boardSquareSize = 0.845;
     static MatOfPoint3f CheckerboardWorldCoords = new MatOfPoint3f();
 
 
@@ -442,7 +458,7 @@ class CalibrationPipeline extends OpenCvPipeline {
         int rows;
         int cols;
         int type;
-        float[] data;
+        double[] data;
     }
 
     final static private Gson gson = new Gson();
