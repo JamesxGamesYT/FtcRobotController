@@ -107,17 +107,20 @@ class AutonPipeline extends OpenCvPipeline {
         try {
             cameraMatrix = CalibrationPipeline.MatFromFile(ComputerVision.DataDir + "/camera-matrix.json");
             distortionMatrix = new MatOfDouble(CalibrationPipeline.MatFromFile(ComputerVision.DataDir + "/distortion-matrix.json"));
-        } catch (FileNotFoundException e) {}
+        } catch (FileNotFoundException e) {
+        }
 
         this.telemetry = telemetry;
         this.allianceColor = allianceColor;
     }
 
 
-    /** The main pipeline method, called whenever a frame is received. It will execute all necessary CV tasks, such as localization and barcode scanning
-     *  @param input The current frame read from the attached camera.
-     *               NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
-     *  @return An output frame to be displayed on the phone
+    /**
+     * The main pipeline method, called whenever a frame is received. It will execute all necessary CV tasks, such as localization and barcode scanning
+     *
+     * @param input The current frame read from the attached camera.
+     *              NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
+     * @return An output frame to be displayed on the phone
      */
     @Override
     public Mat processFrame(Mat input) {
@@ -129,8 +132,8 @@ class AutonPipeline extends OpenCvPipeline {
             if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
                 robot.barcodeScanResult = result; // result may still be -1, meaning no result
                 robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
-            }
-            else return input;  // We have more iterations of barcode scanning to do, so don't waste time on positioning
+            } else
+                return input;  // We have more iterations of barcode scanning to do, so don't waste time on positioning
         }
 
         Position currentPosition = processPositioningFrame(input, output);
@@ -138,7 +141,6 @@ class AutonPipeline extends OpenCvPipeline {
 
         return output;
     }
-
 
 
     // CV POSITIONING
@@ -157,33 +159,34 @@ class AutonPipeline extends OpenCvPipeline {
     // The dimensions of the field tiles in inches
     private final static double tileSize = 24.0;
 
-    /** Represents each navigation image on the field walls, as well as necessary data about them.
-     *  Contains the image, coordinates, and alliance color corresponding to each nav image.
+    /**
+     * Represents each navigation image on the field walls, as well as necessary data about them.
+     * Contains the image, coordinates, and alliance color corresponding to each nav image.
      */
     static enum NavTarget {
         BLUE_ALLIANCE_WALL(Navigation.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
-                new Point3(0,(3.5 * tileSize) + templateOffsetX,5.75 - templateOffsetY), // br
-                new Point3(0,(3.5 * tileSize) - templateOffsetX,5.75 - templateOffsetY), // bl
-                new Point3(0,(3.5 * tileSize) - templateOffsetX,5.75 + templateOffsetY), // tl
-                new Point3(0,(3.5 * tileSize) + templateOffsetX,5.75 + templateOffsetY)  // tr
+                new Point3(0, (3.5 * tileSize) + templateOffsetX, 5.75 - templateOffsetY), // br
+                new Point3(0, (3.5 * tileSize) - templateOffsetX, 5.75 - templateOffsetY), // bl
+                new Point3(0, (3.5 * tileSize) - templateOffsetX, 5.75 + templateOffsetY), // tl
+                new Point3(0, (3.5 * tileSize) + templateOffsetX, 5.75 + templateOffsetY)  // tr
         )),
         BLUE_STORAGE_UNIT(Navigation.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
-                new Point3((1.5 * tileSize) - templateOffsetX,0,5.75 - templateOffsetY), // br
-                new Point3((1.5 * tileSize) + templateOffsetX,0,5.75 - templateOffsetY), // bl
-                new Point3((1.5 * tileSize) + templateOffsetX,0,5.75 + templateOffsetY), // tl
-                new Point3((1.5 * tileSize) - templateOffsetX,0,5.75 + templateOffsetY)  // tr
+                new Point3((1.5 * tileSize) - templateOffsetX, 0, 5.75 - templateOffsetY), // br
+                new Point3((1.5 * tileSize) + templateOffsetX, 0, 5.75 - templateOffsetY), // bl
+                new Point3((1.5 * tileSize) + templateOffsetX, 0, 5.75 + templateOffsetY), // tl
+                new Point3((1.5 * tileSize) - templateOffsetX, 0, 5.75 + templateOffsetY)  // tr
         )),
         RED_ALLIANCE_WALL(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
-                new Point3(6 * tileSize,(3.5 * tileSize) - templateOffsetX,5.75 - templateOffsetY), // br
-                new Point3(6 * tileSize,(3.5 * tileSize) + templateOffsetX,5.75 - templateOffsetY), // bl
-                new Point3(6 * tileSize,(3.5 * tileSize) + templateOffsetX,5.75 + templateOffsetY), // tl
-                new Point3(6 * tileSize,(3.5 * tileSize) - templateOffsetX,5.75 + templateOffsetY)  // tr
+                new Point3(6 * tileSize, (3.5 * tileSize) - templateOffsetX, 5.75 - templateOffsetY), // br
+                new Point3(6 * tileSize, (3.5 * tileSize) + templateOffsetX, 5.75 - templateOffsetY), // bl
+                new Point3(6 * tileSize, (3.5 * tileSize) + templateOffsetX, 5.75 + templateOffsetY), // tl
+                new Point3(6 * tileSize, (3.5 * tileSize) - templateOffsetX, 5.75 + templateOffsetY)  // tr
         )),
         RED_STORAGE_UNIT(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
-                new Point3((4.5 * tileSize) - templateOffsetX,0,5.75 - templateOffsetY), // br
-                new Point3((4.5 * tileSize) + templateOffsetX,0,5.75 - templateOffsetY), // bl
-                new Point3((4.5 * tileSize) + templateOffsetX,0,5.75 + templateOffsetY), // tl
-                new Point3((4.5 * tileSize) - templateOffsetX,0,5.75 + templateOffsetY)  // tr
+                new Point3((4.5 * tileSize) - templateOffsetX, 0, 5.75 - templateOffsetY), // br
+                new Point3((4.5 * tileSize) + templateOffsetX, 0, 5.75 - templateOffsetY), // bl
+                new Point3((4.5 * tileSize) + templateOffsetX, 0, 5.75 + templateOffsetY), // tl
+                new Point3((4.5 * tileSize) - templateOffsetX, 0, 5.75 + templateOffsetY)  // tr
         ));
 
 
@@ -219,13 +222,15 @@ class AutonPipeline extends OpenCvPipeline {
             // Determine the corners from the dims of the loaded image
             this.imgCoords = new MatOfPoint2f();
             this.imgCoords.fromList(Arrays.asList(
-                new org.opencv.core.Point(image.cols(), image.rows()),   // br
-                new org.opencv.core.Point(0, image.rows()),           // bl
-                new org.opencv.core.Point(0, 0),                   // tl
-                new org.opencv.core.Point(image.cols(), 0)            // tr
+                    new org.opencv.core.Point(image.cols(), image.rows()),   // br
+                    new org.opencv.core.Point(0, image.rows()),           // bl
+                    new org.opencv.core.Point(0, 0),                   // tl
+                    new org.opencv.core.Point(image.cols(), 0)            // tr
             ));
         }
-    };
+    }
+
+    ;
 
 
 //    private static final ORB Orb = ORB.create(500, 1.2f, 8, 31, 0, 2, ORB.HARRIS_SCORE, 31, 20);
@@ -243,13 +248,23 @@ class AutonPipeline extends OpenCvPipeline {
     private static final Mat frameDescriptors = new Mat();
 
 
-    /** Detects and computes keypoints and descriptors in a given frame. Abstracted for template keypoint caching.
+    /**
+     * Detects and computes keypoints and descriptors in a given frame. Abstracted for template keypoint caching.
+     *
      * @param frame the image to be analyzed
-     * @param kp the output keypoints
-     * @param des the output descriptors
+     * @param kp    the output keypoints
+     * @param des   the output descriptors
      */
     private static void DetectKeyPointsAndDesc(Mat frame, MatOfKeyPoint kp, Mat des) {
         Sift.detectAndCompute(frame, new Mat(), kp, des);
+    }
+
+
+    /** Detects and filters the best matches between two detected keypoint descriptor sets
+     *  Either will end up using binary matching or a flann matcher.
+     */
+    private static MatOfDMatch MatchAndFilter(Mat des1, Mat des2) {
+
     }
 
 
@@ -262,22 +277,22 @@ class AutonPipeline extends OpenCvPipeline {
     @Nullable
     private static MatOfPoint2f DetectTargetScreenCorners(NavTarget target, Mat frame, Mat output) {
         DetectKeyPointsAndDesc(frame, frameKeyPoints, frameDescriptors);
-        Features2d.drawKeypoints(frame, frameKeyPoints, output);
-        return null;
+//        Features2d.drawKeypoints(frame, frameKeyPoints, output);
+//        return null;
 
         // find a way to set knn params here
 ////        MatOfDMatch matchesB = new MatOfDMatch();
-//        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
-//        List<DMatch> goodMatches = new ArrayList<DMatch>(des1.rows());
+        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
+        List<DMatch> goodMatches = new ArrayList<DMatch>(target.descriptors.rows());
 ////
 ////
-//        if (des1.empty() || des2.empty()) return null;
-//        if (kp1.total() < 2 && kp2.total() < 2) return null;
-////
+        if (frameDescriptors.empty() || target.descriptors.empty()) return null;
+        if (frameKeyPoints.total() < 2 && target.keyPoints.total() < 2) return null;
+//
 //        des1.convertTo(des1, CvType.CV_32F);
 //        des2.convertTo(des2, CvType.CV_32F);
 //
-//        FbMatcher.knnMatch(des1, des2, matches, 2);
+        FbMatcher.knnMatch(frameDescriptors, target.descriptors, matches, 2);
 //
 ////        BfMatcher.knnMatch(des1, des2, matches, 2);
 ////        BfMatcher.match(des1, des2, matchesB);
@@ -295,50 +310,50 @@ class AutonPipeline extends OpenCvPipeline {
 ////        List<DMatch> matches =
 //
 ////
-//        for (MatOfDMatch matchSet : matches) {
-//            DMatch[] matchSetArr = matchSet.toArray();
-//            if (matchSetArr.length < 2)
-//                continue;
-//
-//            DMatch m1 = matchSetArr[0];
-//            DMatch m2 = matchSetArr[1];
-//
-//            if (m1.distance < 0.7 * m2.distance)
+        for (MatOfDMatch matchSet : matches) {
+            DMatch[] matchSetArr = matchSet.toArray();
+            if (matchSetArr.length < 2)
+                continue;
+
+            DMatch m1 = matchSetArr[0];
+            DMatch m2 = matchSetArr[1];
+
+            if (m1.distance < 0.7 * m2.distance)
+                goodMatches.add(m1);
+
+//            if (m2.distance - m1.distance > 0.19)
 //                goodMatches.add(m1);
-//
-////            if (m2.distance - m1.distance > 0.19)
-////                goodMatches.add(m1);
-//        }
+        }
 //
 ////
-//        MatOfDMatch goodMatchesMat = new MatOfDMatch();
-//        goodMatchesMat.fromList(goodMatches/*.subList(0, Math.min(goodMatches.size(), 10))*/);
+        MatOfDMatch goodMatchesMat = new MatOfDMatch();
+        goodMatchesMat.fromList(goodMatches/*.subList(0, Math.min(goodMatches.size(), 10))*/);
 //
 ////        Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
 //        Imgproc.resize(output, output, frame.size(), 0, 0, Imgproc.INTER_CUBIC);
 ////        return null;
-//        if (goodMatches.size() < 10) return null;
+        if (goodMatches.size() < 10) return null;
 //
-//        ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
-//        ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
+        ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
+        ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
+
+        for (DMatch match : goodMatches) {
+            obj.add(target.keyPoints.toList().get(match.queryIdx).pt);
+            scene.add(frameKeyPoints.toList().get(match.trainIdx).pt);
+        }
 //
-//        for (DMatch match : goodMatches) {
-//            obj.add(kp1.toList().get(match.queryIdx).pt);
-//            scene.add(kp2.toList().get(match.trainIdx).pt);
-//        }
-//
-//        MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
-//        objM.fromList(obj);
-//        sceneM.fromList(scene);
+        MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
+        objM.fromList(obj);
+        sceneM.fromList(scene);
 //
 ////        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
-//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
+        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
 //
-//        MatOfPoint2f result = new MatOfPoint2f();
-//        Core.perspectiveTransform(points, result, homography);
-////
-////        // homography LMeDS
-//        return result;
+        MatOfPoint2f result = new MatOfPoint2f();
+        Core.perspectiveTransform(target.imgCoords, result, homography);
+//
+//        // homography LMeDS
+        return result;
     }
 
 
@@ -401,6 +416,7 @@ class AutonPipeline extends OpenCvPipeline {
     final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
+
 
     /** Isolates the sections of an image in a given HSV range and removes noise, to find large solid-color areas
      * @param hsv The input image to be isolated, in HSV color format
@@ -485,7 +501,6 @@ class AutonPipeline extends OpenCvPipeline {
 //        camera.pauseViewport();
     }
 }
-
 
 
 

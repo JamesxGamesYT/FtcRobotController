@@ -71,7 +71,10 @@ public class PositionManager {
  */
 class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
-    static double MAGICAL_FACTOR = 1.0;
+    static double MAGICAL_FACTOR = 2.0 * Math.sqrt(2) * Math.PI;
+
+//    static double MAGICAL_FACTOR = 4 * Math.PI;
+
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 
     static HashMap<RobotConfig.DriveMotors, Double> RollerAngles = new HashMap<RobotConfig.DriveMotors, Double>() {{
@@ -144,6 +147,4 @@ class IMUPositioning {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
     }
-
-
 }
