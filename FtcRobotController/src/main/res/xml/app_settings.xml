@@ -90,4 +90,22 @@ See https://developer.android.com/guide/topics/ui/settings.html
 
   </PreferenceCategory>
 
+    <!-- ALLIANCE COLOR -->
+    <ListPreference
+            android:key="alliance_color"
+            android:title="Alliance Color"
+            android:summary="Select an alliance color"
+            android:entries="@array/allianceColor"
+            android:defaultValue="BLUE"
+            android:entryValues="@array/allianceColorAlias" />
+
+    <!-- AUTON TYPE -->
+    <ListPreference
+            android:key="auton_type"
+            android:title="Auton Type"
+            android:summary="Select an auton type"
+            android:entries="@array/autonType"
+            android:defaultValue="DUCK_CAROUSEL"
+            android:entryValues="@array/autonTypeAlias" />
+
 </PreferenceScreen>

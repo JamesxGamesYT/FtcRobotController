@@ -15,9 +15,6 @@ import java.util.Collections;
  */
 public class Navigation
 {
-    public enum NavigationMode {DUCK, NO_DUCK, TELEOP}
-    public enum AllianceColor {BLUE, RED}
-
     // AUTON CONSTANTS
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
@@ -30,6 +27,7 @@ public class Navigation
 
     // TELEOP CONSTANTS
     // ================
+    final double STRAIGHT_MOVEMENT_POWER = 0.75;
     final double COARSE_MOVEMENT_POWER = 1.0;
     final double FINE_MOVEMENT_POWER = 0.25;
     final double COARSE_ROTATION_POWER = 0.4;
@@ -43,18 +41,26 @@ public class Navigation
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     private ArrayList<Position> path;
 
-    public Navigation(NavigationMode navMode, AllianceColor allianceColor) {
-        if (navMode == NavigationMode.TELEOP) {
-            path = new ArrayList<>(Collections.emptyList());
-        }
-        else if (navMode == NavigationMode.DUCK) {
-            path = AutonomousPaths.DUCK_PATH;
-        }
-        else if (navMode == NavigationMode.NO_DUCK) {
-            path = AutonomousPaths.FREIGHT_PATH;
+    public Navigation(RobotManager.NavigationMode navMode, RobotManager.AllianceColor allianceColor) {
+        switch (navMode) {
+            case TELEOP:
+                path = new ArrayList<>(Collections.emptyList());
+                break;
+            case DUCK_CAROUSEL:
+                path = AutonomousPaths.DUCK_CAROUSEL_PATH;
+                break;
+            case DUCK_WAREHOUSE:
+                path = AutonomousPaths.DUCK_WAREHOUSE_PATH;
+                break;
+            case NO_DUCK_CAROUSEL:
+                path = AutonomousPaths.NO_DUCK_CAROUSEL_PATH;
+                break;
+            case NO_DUCK_WAREHOUSE:
+                path = AutonomousPaths.NO_DUCK_WAREHOUSE_PATH;
+                break;
         }
 
-        if (allianceColor == AllianceColor.RED) {
+        if (allianceColor == RobotManager.AllianceColor.RED) {
             reflectPath();
         }
     }
@@ -81,6 +87,65 @@ public class Navigation
             path.remove(0);
             if (target.getLocation().name.substring(0, 3).equals("POI")) break;
         }
+    }
+
+    /** Moves the robot straight in one of the cardinal directions or at a 45 degree angle.
+     */
+    public boolean moveStraight(boolean forward, boolean backward, boolean left, boolean right, Robot robot) {
+        double frontLeftPower = 0, frontRightPower = 0, rearLeftPower = 0, rearRightPower = 0;
+
+        if (forward) {
+            if (right) {
+                frontLeftPower = STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = STRAIGHT_MOVEMENT_POWER;
+            }
+            else if (left) {
+                frontRightPower = STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = STRAIGHT_MOVEMENT_POWER;
+            }
+            else {
+                frontLeftPower = STRAIGHT_MOVEMENT_POWER;
+                frontRightPower = STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = STRAIGHT_MOVEMENT_POWER;
+            }
+        }
+        else if (backward) {
+            if (right) {
+                frontRightPower = -STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
+            }
+            else if (left) {
+                frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = -STRAIGHT_MOVEMENT_POWER;
+            }
+            else {
+                frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
+                frontRightPower = -STRAIGHT_MOVEMENT_POWER;
+                rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
+                rearRightPower = -STRAIGHT_MOVEMENT_POWER;
+            }
+        }
+        else if (right) {
+            frontLeftPower = STRAIGHT_MOVEMENT_POWER;
+            frontRightPower = -STRAIGHT_MOVEMENT_POWER;
+            rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
+            rearRightPower = STRAIGHT_MOVEMENT_POWER;
+        }
+        else if (left) {
+            frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
+            frontRightPower = STRAIGHT_MOVEMENT_POWER;
+            rearLeftPower = STRAIGHT_MOVEMENT_POWER;
+            rearRightPower = -STRAIGHT_MOVEMENT_POWER;
+        }
+        else return false;
+
+        robot.frontLeftDrive.setPower(frontLeftPower);
+        robot.frontRightDrive.setPower(frontRightPower);
+        robot.rearLeftDrive.setPower(rearLeftPower);
+        robot.rearRightDrive.setPower(rearRightPower);
+
+        return true;
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
@@ -544,8 +609,10 @@ public class Navigation
 /** Hardcoded paths through the playing field during the Autonomous period.
  */
 class AutonomousPaths {
-    public static final ArrayList<Position> DUCK_PATH = new ArrayList<>(Arrays.asList(
+    public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList(
             // Construct Position objects
     ));
-    public static final ArrayList<Position> FREIGHT_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> NO_DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
+    public static final ArrayList<Position> NO_DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
 }

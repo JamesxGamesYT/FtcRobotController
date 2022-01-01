@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
@@ -18,6 +19,11 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  *  this class in order to send or receive any data with the real robot.
  */
 public class RobotManager {
+
+    // These indicate both the tasks and the starting position. For example, DUCK_CAROUSEL has the robot start close to
+    // the carousel and deliver the duck.
+    public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
+    public enum AllianceColor {BLUE, RED}
 
     public Robot robot;
 
@@ -30,11 +36,13 @@ public class RobotManager {
     private Telemetry telemetry;
     private ElapsedTime elapsedTime;
 
-    public RobotManager(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime, Gamepad gamepad1,
-                        Gamepad gamepad2, Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
+    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
+                        NavigationMode navigationMode, AllianceColor allianceColor,
+                        Telemetry telemetry, ElapsedTime elapsedTime) {
+
         elapsedTime.reset();
-        navigation = new Navigation(navMode, allianceColor);
-        mechanismDriving = new MechanismDriving();
+        navigation = new Navigation(navigationMode, allianceColor);
+        mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
@@ -64,14 +72,11 @@ public class RobotManager {
         }
 
         // Claw
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_CUBE)) {
-            robot.desiredClawState = Robot.ClawState.CUBE;
-        }
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_SPHERE)) {
-            robot.desiredClawState = Robot.ClawState.SPHERE;
-        }
         if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
             robot.desiredClawState = Robot.ClawState.OPEN;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW)) {
+            robot.desiredClawState = Robot.ClawState.CLOSED;
         }
 
         // Linear slides
@@ -113,7 +118,16 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-        navigation.maneuver(gamepads.getJoystickValues(), robot);
+        boolean movedStraight = navigation.moveStraight(
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_LEFT),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_RIGHT),
+                robot
+        );
+        if (!movedStraight) {
+            navigation.maneuver(gamepads.getJoystickValues(), robot);
+        }
     }
 
     /** Determines whether the button for a particular action was released in the current OpMode iteration.
@@ -157,32 +171,23 @@ public class RobotManager {
     public void deliverDuck() {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
-        try {
-            Thread.sleep(MechanismDriving.DUCK_SPIN_TIME);
-        } catch (InterruptedException e) {}
+        double startingTime = robot.elapsedTime.milliseconds();
+        // Sleep for MechanismDriving.DUCK_SPIN_TIME milliseconds.
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.DUCK_SPIN_TIME) {}
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
         mechanismDriving.updateCarousel(robot);
     }
 
     /** Grabs a cube piece of freight using the claw.
      */
-    public void grabCube() {
-        robot.desiredClawState = Robot.ClawState.CUBE;
+    public void openClaw() {
+        robot.desiredClawState = Robot.ClawState.OPEN;
         mechanismDriving.updateClaw(robot);
         try {
             Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
         } catch (InterruptedException e) {}
     }
 
-    /** Grabs a sphere piece of freight using the claw.
-     */
-    public void grabSphere() {
-        robot.desiredClawState = Robot.ClawState.SPHERE;
-        mechanismDriving.updateClaw(robot);
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
-    }
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
      *
@@ -195,8 +200,7 @@ public class RobotManager {
             extended = mechanismDriving.updateSlides(robot);
         }
         robot.desiredClawState = Robot.ClawState.OPEN;
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
+        double startingTime = robot.elapsedTime.milliseconds();
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CLAW_SERVO_TIME) {}
     }
 }

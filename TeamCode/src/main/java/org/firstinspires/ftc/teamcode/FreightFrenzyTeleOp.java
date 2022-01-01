@@ -3,6 +3,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -18,8 +20,9 @@ public class FreightFrenzyTeleOp extends OpMode {
 
     @Override
     public void init() {
-        robotManager = new RobotManager(hardwareMap, telemetry, elapsedTime, gamepad1, gamepad2,
-                                        Navigation.NavigationMode.TELEOP, Navigation.AllianceColor.BLUE);
+        initSharedPreferences();
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.TELEOP,
+                                        allianceColor, telemetry, elapsedTime);
     }
 
     @Override
@@ -40,4 +43,26 @@ public class FreightFrenzyTeleOp extends OpMode {
 
     @Override
     public void stop() {}
+
+    // ANDROID SHARED PREFERENCES
+    // ==========================
+
+    // I have no idea if this works. Adapted from https://github.com/ver09934/twentytwenty/blob/ian-dev/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SkystoneAuton.java
+
+    private static SharedPreferences sharedPrefs;
+
+    private static RobotManager.AllianceColor allianceColor;
+
+    public void initSharedPreferences() {
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.hardwareMap.appContext);
+
+        String allianceColor = sharedPrefs.getString("alliance_color", "ERROR");
+
+        if (allianceColor.equals("BLUE")) {
+            FreightFrenzyTeleOp.allianceColor = RobotManager.AllianceColor.BLUE;
+        }
+        else if (allianceColor.equals("RED")) {
+            FreightFrenzyTeleOp.allianceColor = RobotManager.AllianceColor.RED;
+        }
+    }
 }

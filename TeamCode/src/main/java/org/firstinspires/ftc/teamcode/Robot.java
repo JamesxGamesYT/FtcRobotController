@@ -3,6 +3,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -21,7 +22,7 @@ public class Robot {
     // Robot desired states.
     public enum CarouselState {STOPPED, SPINNING}
     public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
-    public enum ClawState {OPEN, SPHERE, CUBE}
+    public enum ClawState {CLOSED, OPEN}
 
     public CarouselState desiredCarouselState;
     public SlidesState desiredSlidesState;
@@ -40,8 +41,8 @@ public class Robot {
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
 
     // Hardware
-    public DcMotor carousel, slidesLeft, slidesRight;
-    public Servo claw;
+    public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
+    public CRServo claw;
 
     // Other
     public Telemetry telemetry;
@@ -58,7 +59,7 @@ public class Robot {
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
         desiredSlidesState = SlidesState.RETRACTED;
-        desiredClawState = ClawState.OPEN;
+        desiredClawState = ClawState.CLOSED;
 
         // Initialize hardware.
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));

@@ -19,6 +19,10 @@ public class Position {
         location = new Point(x, y, "");
         setRotation(theta);
     }
+    Position(Point p, double r) {
+        location = p;
+        setRotation(r);
+    }
 
     public void setX(double x) {
         location.setX(x);
@@ -28,8 +32,9 @@ public class Position {
         location.setY(y);
     }
 
-    public void setRotation(double theta) {
-        this.rotation = theta;
+    public Position setRotation(double r) {
+        this.rotation = r;
+        return this;
     }
 
     public double getX() {
