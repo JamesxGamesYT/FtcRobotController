@@ -66,7 +66,7 @@ public class Robot {
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Initialize position manager.
-        positionManager = new PositionManager();
+        positionManager = new PositionManager(hardwareMap);
     }
 }
 

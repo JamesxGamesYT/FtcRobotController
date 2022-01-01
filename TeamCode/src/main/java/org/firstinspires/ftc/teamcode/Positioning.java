@@ -1,11 +1,75 @@
 package org.firstinspires.ftc.teamcode;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+
 import java.util.HashMap;
+
+
+/** Incorporates estimates from multiple sources to create a single positioning estimate
+ */
+public class PositionManager {
+    PositionManager(HardwareMap hardwareMap) {
+        position = new Position();
+        initSensors(hardwareMap);
+    }
+
+    PositionManager(HardwareMap hardwareMap, double x, double y, double theta){
+        position = new Position(x, y, theta);
+        initSensors(hardwareMap);
+    }
+
+
+    private void initSensors(HardwareMap hardwareMap) {
+        encoderPositioning = new EncoderPositioning();
+        imuPositioning = new IMUPositioning(hardwareMap);
+    }
+
+
+    // Stores the best guess of the robot's position (location + orientation) at any given time. To be accessed by nav methods
+    public Position position;
+
+    public EncoderPositioning encoderPositioning;
+    public IMUPositioning imuPositioning;
+
+
+    /** Calls all appropriate sensor update methods to get an updated estimate of the Robot's current position
+     * @param robot Robot object whose estimate should be updated
+     */
+    public void updatePosition(Robot robot) {
+        updateEncoderPosition(encoderPositioning.getDeltaEstimate(robot));
+    }
+
+
+    /** Adds new detected encoder movement change to both a temporary encoderDelta variable and to the overall position attribute
+     *
+     *  @param delta A delta position represented as a vector from the last seen position.
+     *               e.g. delta = Position(1, 1, 0) would mean a movement of 1 inch on all axis with no rotation
+     */
+    private void updateEncoderPosition(Position subDelta) {
+        position = Position.add(position, subDelta);
+        encoderDelta = Position.add(encoderDelta, subDelta);
+    }
+
+
+    /** To be called from the CV positioning Pipeline; incorporates a new cv estimate into the position using the encoder deltas
+     * @param newPos The CV estimate
+     */
+    public void updateCvPosition(Position newPos) {
+        Position compounded = Position.add(newPos, encoderDelta);
+
+        // NOTE: combine compounded with current position (compounded shouldn't be an unnecessary local)
+        position = compounded;
+        encoderDelta.reset();
+    }
+
+    private Position encoderDelta;
+}
 
 /** Estimates the robot's position based on the encoders on the drivetrain's motors. This will require a baseline
  *  position to add onto.
  */
-public class EncoderPositioning {
+class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
     static double MAGICAL_FACTOR = 1.0;
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
@@ -64,4 +128,22 @@ public class EncoderPositioning {
             robot.driveMotors.get(motor).setTargetPosition(0);
         }
     }
+}
+
+
+class IMUPositioning {
+    private BNO055IMU imu;
+
+    IMUPositioning(HardwareMap hardwareMap) {
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = false;
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+    }
+
+
 }
