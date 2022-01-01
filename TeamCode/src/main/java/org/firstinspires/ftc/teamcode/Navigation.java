@@ -178,7 +178,7 @@ public class Navigation
      *
      *  @param target The desired position of the robot.
      */
-    private void travelLinear(Point target, Robot robot) {
+    public void travelLinear(Point target, Robot robot) {
         robot.positionManager.updatePosition(robot);
         Point startLoc = robot.getPosition().getLocation();
         Point currentLoc = startLoc;
@@ -187,7 +187,9 @@ public class Navigation
 
         double power = 0;
         double distanceTraveled;
-        while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
+        double startTime = robot.elapsedTime.milliseconds();
+//        while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
+        while (robot.elapsedTime.milliseconds() - startTime <= 1000) {
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
             if (distanceTraveled < totalDistance / 2) {
