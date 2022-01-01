@@ -1,16 +1,27 @@
 /* Authors: Arin Khare, Kai Vernooy
  */
 
+// TODO: Change "desired" to "target"
+
 package org.firstinspires.ftc.teamcode;
+
+import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 /** A completely encompassing class of all functionality of the robot. An OpMode should interface through an instance of
  *  this class in order to send or receive any data with the real robot.
  */
 public class RobotManager {
+
+    // These indicate both the tasks and the starting position. For example, DUCK_CAROUSEL has the robot start close to
+    // the carousel and deliver the duck.
+    public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
+    public enum AllianceColor {BLUE, RED}
 
     public Robot robot;
 
@@ -19,13 +30,18 @@ public class RobotManager {
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
+    private Telemetry telemetry;
+    private ElapsedTime elapsedTime;
+
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
-                        Navigation.NavigationMode navMode, Navigation.AllianceColor allianceColor) {
+                        NavigationMode navigationMode, AllianceColor allianceColor,
+                        Telemetry telemetry, ElapsedTime elapsedTime) {
 
-        navigation = new Navigation(navMode, allianceColor);
-        mechanismDriving = new MechanismDriving();
+        elapsedTime.reset();
+        navigation = new Navigation(navigationMode, allianceColor);
+        mechanismDriving = new MechanismDriving(allianceColor);
 
-        robot = new Robot(hardwareMap);
+        robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -51,14 +67,11 @@ public class RobotManager {
         }
 
         // Claw
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_CUBE)) {
-            robot.desiredClawState = Robot.ClawState.CUBE;
-        }
-        if (getButtonRelease(GamepadWrapper.DriverAction.SET_CLAW_SPHERE)) {
-            robot.desiredClawState = Robot.ClawState.SPHERE;
-        }
         if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
             robot.desiredClawState = Robot.ClawState.OPEN;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CLOSE_CLAW)) {
+            robot.desiredClawState = Robot.ClawState.CLOSED;
         }
 
         // Linear slides
@@ -78,6 +91,14 @@ public class RobotManager {
             robot.desiredSlidesState = Robot.SlidesState.CAPPING;
         }
 
+        // Fine movement/rotation.
+        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_MOVEMENT_MODE)) {
+            robot.fineMovement = !robot.fineMovement;
+        }
+        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_ROTATION_MODE)) {
+            robot.fineRotation = !robot.fineRotation;
+        }
+
         previousStateGamepads.copyGamepads(gamepads);
     }
 
@@ -92,7 +113,16 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-        navigation.maneuver(gamepads.getJoystickValues(), robot);
+        boolean movedStraight = navigation.moveStraight(
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_LEFT),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_RIGHT),
+                robot
+        );
+        if (!movedStraight) {
+            navigation.maneuver(gamepads.getJoystickValues(), robot);
+        }
     }
 
     /** Determines whether the button for a particular action was released in the current OpMode iteration.
@@ -111,10 +141,23 @@ public class RobotManager {
     /** Determines the position of the capstone on the barcode.
      *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
      *          farthest from the hub.
-     *
-     *  TODO: figure out a CV system that lets us implement this as a synchronous method; or, figure out a better system.
      */
-    public int readBarcode() { return 0; }
+    public int readBarcode() {
+        robot.barcodeScanResult = -1;
+        robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
+        robot.numBarcodeAttempts = 0;
+
+        while (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
+            try {
+                // Wait for execution on the CV thread to finish
+                TimeUnit.MICROSECONDS.sleep(10);
+            }
+            catch (InterruptedException e) {}
+        }
+
+        return robot.barcodeScanResult;
+    }
+
 
     // Each of these methods manually sets the robot state so that a specific task is started, and forces these tasks to
     // be synchronous by repeatedly calling the mechanism driving methods. These are to be used in an autonomous OpMode.
@@ -124,32 +167,23 @@ public class RobotManager {
     public void deliverDuck() {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
-        try {
-            Thread.sleep(MechanismDriving.DUCK_SPIN_TIME);
-        } catch (InterruptedException e) {}
+        double startingTime = robot.elapsedTime.milliseconds();
+        // Sleep for MechanismDriving.DUCK_SPIN_TIME milliseconds.
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.DUCK_SPIN_TIME) {}
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
         mechanismDriving.updateCarousel(robot);
     }
 
     /** Grabs a cube piece of freight using the claw.
      */
-    public void grabCube() {
-        robot.desiredClawState = Robot.ClawState.CUBE;
+    public void openClaw() {
+        robot.desiredClawState = Robot.ClawState.OPEN;
         mechanismDriving.updateClaw(robot);
         try {
             Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
         } catch (InterruptedException e) {}
     }
 
-    /** Grabs a sphere piece of freight using the claw.
-     */
-    public void grabSphere() {
-        robot.desiredClawState = Robot.ClawState.SPHERE;
-        mechanismDriving.updateClaw(robot);
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
-    }
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
      *
@@ -162,8 +196,7 @@ public class RobotManager {
             extended = mechanismDriving.updateSlides(robot);
         }
         robot.desiredClawState = Robot.ClawState.OPEN;
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
+        double startingTime = robot.elapsedTime.milliseconds();
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CLAW_SERVO_TIME) {}
     }
 }

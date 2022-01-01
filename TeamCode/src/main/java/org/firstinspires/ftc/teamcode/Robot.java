@@ -1,11 +1,17 @@
 /* Authors: Arin Khare, Kai Vernooy
+this is an unofficial version of this call meant for testing purposes only
+disregard all changes in this version of this class when merging
  */
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,27 +21,45 @@ import java.util.Map;
  *  Also has a "desired state" for mechanism driving.
  */
 public class Robot {
-    // Finite state machine
+    // Robot desired states.
     public enum CarouselState {STOPPED, SPINNING}
     public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
-    public enum ClawState {OPEN, SPHERE, CUBE}
+    public enum ClawState {CLOSED, OPEN}
 
     public CarouselState desiredCarouselState;
     public SlidesState desiredSlidesState;
     public ClawState desiredClawState;
 
+    enum BarcodeScanState {CHECK_SCAN, SCAN}
+    public BarcodeScanState barcodeScanState;
+
+    static final int MaxBarcodeAttempts = 100;  // How many times to try scanning the barcode before giving up
+    int numBarcodeAttempts = 0;
+    int barcodeScanResult = -1;
+
+    boolean fineMovement = false;
+    boolean fineRotation = false;
+
     // Hardware
     public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
-    public Servo claw;
+    public CRServo claw;
+
+    // Other
+    public Telemetry telemetry;
+    public ElapsedTime elapsedTime;
 
     // Positioning
     public PositionManager positionManager;
 
-    public Robot(HardwareMap hardwareMap) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime) {
+        this.telemetry = telemetry;
+        this.elapsedTime = elapsedTime;
+        positionManager = new PositionManager();
+
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
         desiredSlidesState = SlidesState.RETRACTED;
-        desiredClawState = ClawState.OPEN;
+        desiredClawState = ClawState.CLOSED;
 
         // Initialize hardware.
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
@@ -45,12 +69,15 @@ public class Robot {
         rearRightDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_RIGHT_DRIVE));
         frontLeftDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.FRONT_LEFT_DRIVE));
         rearLeftDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_LEFT_DRIVE));
-        claw = hardwareMap.get(Servo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
+        claw = hardwareMap.get(CRServo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
 
-        frontLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rearLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        frontRightDrive.setDirection(DcMotor.Direction.REVERSE);
-        rearRightDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        rearLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        rearRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        slidesLeft.setDirection(DcMotor.Direction.FORWARD);
+        slidesRight.setDirection(DcMotor.Direction.REVERSE);
+        carousel.setDirection(DcMotor.Direction.REVERSE);
 
         frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rearLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -66,8 +93,18 @@ public class Robot {
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // Initialize position manager.
-        positionManager = new PositionManager();
+        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rearRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    /** Returns the position of the robot.
+     */
+    public Position getPosition() {
+        return positionManager.position;
     }
 }
 

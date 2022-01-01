@@ -5,12 +5,15 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.Range;
 
 /** Wraps a gamepad so that button mappings are stored in one place.
  */
 public class GamepadWrapper {
     public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
-                              SET_SLIDES_CAPPING, OPEN_CLAW, SET_CLAW_SPHERE, SET_CLAW_CUBE}
+                              SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, CHANGE_MOVEMENT_MODE,
+                              CHANGE_ROTATION_MODE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
+                              MOVE_STRAIGHT_RIGHT}
 
     Gamepad gamepad1, gamepad2;
 
@@ -50,14 +53,25 @@ public class GamepadWrapper {
                 return gamepad2.dpad_up;
             case SET_SLIDES_CAPPING:
                 return gamepad2.right_bumper;
-            case OPEN_CLAW:
+            case CLOSE_CLAW:
                 return gamepad2.b;
-            case SET_CLAW_SPHERE:
-                return gamepad2.x;
-            case SET_CLAW_CUBE:
+            case OPEN_CLAW:
                 return gamepad2.y;
+            case CHANGE_MOVEMENT_MODE:
+                return gamepad1.left_bumper;
+            case CHANGE_ROTATION_MODE:
+                return gamepad1.right_bumper;
+            case MOVE_STRAIGHT_FORWARD:
+                return gamepad1.dpad_up;
+            case MOVE_STRAIGHT_BACKWARD:
+                return gamepad1.dpad_down;
+            case MOVE_STRAIGHT_LEFT:
+                return gamepad1.dpad_left;
+            case MOVE_STRAIGHT_RIGHT:
+                return gamepad1.dpad_right;
         }
-        return false;  // NOTE: if the function actually gets here, something is wrong.
+        assert false;
+        return false;
     }
 
     /** Returns the x and y coordinates of each of the 4 joysticks.
@@ -71,8 +85,8 @@ public class GamepadWrapper {
 /** Stores 8 joystick values (an x and y coordinate for each of 4 sticks across 2 gamepads).
  */
 class JoystickValues {
-    double gamepad1RightStickX, gamepad1RightStickY, gamepad1LeftStickX, gamepad1LeftStickY,
-           gamepad2RightStickX, gamepad2RightStickY, gamepad2LeftStickX, gamepad2LeftStickY;
+    public double gamepad1RightStickX, gamepad1RightStickY, gamepad1LeftStickX, gamepad1LeftStickY,
+                  gamepad2RightStickX, gamepad2RightStickY, gamepad2LeftStickX, gamepad2LeftStickY;
 
     public JoystickValues(Gamepad gamepad1, Gamepad gamepad2) {
         this.gamepad1RightStickX = gamepad1.right_stick_x;

@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.util.Range;
 
 /** Controls motors and servos that are not involved in moving the robot around the field.
  */
@@ -9,14 +10,27 @@ public class MechanismDriving {
     // TODO: get the exact values the slides will need to move to inorder to be be at the correct levels for the shipping hub.
     //       get exact values for the claw as well when open, holding a sphere, and holding a cube
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3000, CAPPING_POS = 4000;
-    public static final double CLAW_OPEN_POS = 0.0, CLAW_CUBE_POS = 0.0, CLAW_SPHERE_POS = 0.0;
+    public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.5; //These are not final values
     // How long the carousel motor must be spinning for in order to deliver the duck.
     public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
+    double slideRampDownDist=1000, maxSpeedCoefficient =0.5, reducedSpeedCoefficient =0.25;
+    public static final double CAROUSEL_SPEED = 0.5;
 
-    MechanismDriving() {}
+    private double carouselPower;
+
+    MechanismDriving(RobotManager.AllianceColor allianceColor) {
+        switch (allianceColor) {
+            case BLUE:
+                carouselPower = CAROUSEL_SPEED;
+                break;
+            case RED:
+                carouselPower = -CAROUSEL_SPEED;
+                break;
+        }
+    }
 
     // TODO: rewrite this class to deal with a continuous rotation servo
 
@@ -24,14 +38,11 @@ public class MechanismDriving {
      */
     public void updateClaw(Robot robot) {
         switch (robot.desiredClawState) {
+            case CLOSED:
+                robot.claw.setPower(CLAW_CLOSED_POS);//closed
+                break;
             case OPEN:
-                robot.claw.setPosition(CLAW_OPEN_POS);
-                break;
-            case CUBE:
-                robot.claw.setPosition(CLAW_CUBE_POS);
-                break;
-            case SPHERE:
-                robot.claw.setPosition(CLAW_SPHERE_POS);
+                robot.claw.setPower(CLAW_OPEN_POS);//open
                 break;
         }
     }
@@ -44,7 +55,7 @@ public class MechanismDriving {
                 robot.carousel.setPower(0);
                 break;
             case SPINNING:
-                robot.carousel.setPower(1);
+                robot.carousel.setPower(carouselPower);
                 break;
         }
     }
@@ -81,20 +92,26 @@ public class MechanismDriving {
                 break;
         }
 
+        double mainSpeed,reducedSpeed;//"ramp" the motor speeds down based on how far away from the destination the motors are
+        mainSpeed= maxSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+        reducedSpeed= reducedSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+        mainSpeed=Range.clip(mainSpeed,0.05,1);//limit the max speed to 1 and the min speed to 0.05
+        reducedSpeed=Range.clip(reducedSpeed,0.04,1);
+
         // If the current position is less than desired position then move it up
         if (desiredSlidePosition - robot.slidesRight.getCurrentPosition() > EPSILON) {
             // Ensures that one motor does not go beyond the other too much
             if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(0.5);
-                robot.slidesRight.setPower(0.5);
+                robot.slidesLeft.setPower(mainSpeed);
+                robot.slidesRight.setPower(mainSpeed);
             }
             else if(robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(0.25);
-                robot.slidesRight.setPower(0.5);
+                robot.slidesLeft.setPower(reducedSpeed);
+                robot.slidesRight.setPower(mainSpeed);
             }
             else if(robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(0.5);
-                robot.slidesRight.setPower(0.25);
+                robot.slidesLeft.setPower(mainSpeed);
+                robot.slidesRight.setPower(reducedSpeed);
             }
         }
 
@@ -102,19 +119,19 @@ public class MechanismDriving {
         if (robot.slidesRight.getCurrentPosition() - desiredSlidePosition > EPSILON) {
             // Ensures that one motor does not go beyond the other too much
             if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.5); // Go in the opposite direction
-                robot.slidesRight.setPower(-0.5);
+                robot.slidesLeft.setPower(-mainSpeed); // Go in the opposite direction
+                robot.slidesRight.setPower(-mainSpeed);
             }
             else if (robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.25);
-                robot.slidesRight.setPower(-0.5);
+                robot.slidesLeft.setPower(-reducedSpeed);
+                robot.slidesRight.setPower(-mainSpeed);
             }
             else if (robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-0.5);
-                robot.slidesRight.setPower(-0.25);
+                robot.slidesLeft.setPower(-mainSpeed);
+                robot.slidesRight.setPower(-reducedSpeed);
             }
         }
-
+        robot.telemetry.addData("slides: target: ",desiredSlidePosition+" current pos right: "+robot.slidesRight.getCurrentPosition()+ " current pos left: "+robot.slidesLeft.getCurrentPosition());
         // Stop motors when we have reached the desired position
         if (Math.abs(robot.slidesRight.getCurrentPosition() - desiredSlidePosition) < EPSILON) {
             robot.slidesLeft.setPower(0);
@@ -124,5 +141,7 @@ public class MechanismDriving {
         else {
             return false;
         }
+
+
     }
 }

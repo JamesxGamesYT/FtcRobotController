@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ALLIANCE COLOR -->
+
+    <string-array name="allianceColor">
+        <item>Blue Alliance</item>
+        <item>Red Alliance</item>
+    </string-array>
+
+    <string-array name="allianceColorAlias">
+        <item>"BLUE"</item>
+        <item>"RED"</item>
+    </string-array>
+
+    <!-- AUTON TYPE -->
+
+    <string-array name="autonType">
+        <item>Duck (carousel side)</item>
+        <item>Duck (warehouse side)</item>
+        <item>No Duck (carousel side)</item>
+        <item>No Duck (warehouse side)</item>
+    </string-array>
+
+    <string-array name="autonTypeAlias">
+        <item>"DUCK_CAROUSEL"</item>
+        <item>"DUCK_WAREHOUSE"</item>
+        <item>"NO_DUCK_CAROUSEL"</item>
+        <item>"NO_DUCK_WAREHOUSE"</item>
+    </string-array>
+
+</resources>

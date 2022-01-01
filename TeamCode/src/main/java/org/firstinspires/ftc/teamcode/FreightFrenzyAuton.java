@@ -6,17 +6,19 @@ import android.preference.PreferenceManager;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 
 @Autonomous(name="FreightFrenzyAuton", group="Linear OpMode")
 public class FreightFrenzyAuton extends LinearOpMode {
 
     private RobotManager robotManager;
+    private ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor, telemetry,runtime);
 
         waitForStart(); // wait for the play button to be pressed
 
@@ -32,8 +34,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
     private static SharedPreferences sharedPrefs;
 
-    private static Navigation.AllianceColor allianceColor;
-    private static Navigation.NavigationMode navigationMode;
+    private static RobotManager.AllianceColor allianceColor;
+    private static RobotManager.NavigationMode navigationMode;
 
     public void initSharedPreferences() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.hardwareMap.appContext);
@@ -42,17 +44,25 @@ public class FreightFrenzyAuton extends LinearOpMode {
         String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
 
         if (allianceColor.equals("BLUE")) {
-            this.allianceColor = Navigation.AllianceColor.BLUE;
+            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
         }
         else if (allianceColor.equals("RED")) {
-            this.allianceColor = Navigation.AllianceColor.RED;
+            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.RED;
         }
 
-        if (autonMode.equals("DUCK")) {
-            navigationMode = Navigation.NavigationMode.DUCK;
-        }
-        else if (autonMode.equals("FREIGHT")) {
-            navigationMode = Navigation.NavigationMode.FREIGHT;
+        switch (autonMode) {
+            case "DUCK_CAROUSEL":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_CAROUSEL;
+                break;
+            case "DUCK_WAREHOUSE":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_WAREHOUSE;
+                break;
+            case "NO_DUCK_CAROUSEL":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK_CAROUSEL;
+                break;
+            case "NO_DUCK_WAREHOUSE":
+                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK_WAREHOUSE;
+                break;
         }
     }
 }
