@@ -9,6 +9,14 @@ import java.util.HashMap;
 /** Incorporates estimates from multiple sources to create a single positioning estimate
  */
 public class PositionManager {
+    // Stores the best guess of the robot's position (location + orientation) at any given time. To be accessed by nav methods
+    public Position position;
+
+    public EncoderPositioning encoderPositioning;
+//    public IMUPositioning imuPositioning;
+
+    private Position encoderDelta = new Position(0, 0, 0);
+
     PositionManager(HardwareMap hardwareMap) {
         position = new Position();
         initSensors(hardwareMap);
@@ -22,15 +30,8 @@ public class PositionManager {
 
     private void initSensors(HardwareMap hardwareMap) {
         encoderPositioning = new EncoderPositioning();
-        imuPositioning = new IMUPositioning(hardwareMap);
+//        imuPositioning = new IMUPositioning(hardwareMap);
     }
-
-
-    // Stores the best guess of the robot's position (location + orientation) at any given time. To be accessed by nav methods
-    public Position position;
-
-    public EncoderPositioning encoderPositioning;
-    public IMUPositioning imuPositioning;
 
 
     /** Calls all appropriate sensor update methods to get an updated estimate of the Robot's current position
@@ -43,8 +44,8 @@ public class PositionManager {
 
     /** Adds new detected encoder movement change to both a temporary encoderDelta variable and to the overall position attribute
      *
-     *  @param delta A delta position represented as a vector from the last seen position.
-     *               e.g. delta = Position(1, 1, 0) would mean a movement of 1 inch on all axis with no rotation
+     *  @param subDelta A delta position represented as a vector from the last seen position.
+     *                  e.g. delta = Position(1, 1, 0) would mean a movement of 1 inch on all axis with no rotation
      */
     private void updateEncoderPosition(Position subDelta) {
         position = Position.add(position, subDelta);
@@ -62,8 +63,6 @@ public class PositionManager {
         position = compounded;
         encoderDelta.reset();
     }
-
-    private Position encoderDelta;
 }
 
 /** Estimates the robot's position based on the encoders on the drivetrain's motors. This will require a baseline
@@ -71,9 +70,9 @@ public class PositionManager {
  */
 class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
-    static double MAGICAL_FACTOR = 2.0 * Math.sqrt(2) * Math.PI;
+//    static double MAGICAL_FACTOR = 2.0 * Math.sqrt(2) * Math.PI;
 
-//    static double MAGICAL_FACTOR = 4 * Math.PI;
+    static double MAGICAL_FACTOR = 4 * Math.PI;
 
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 
@@ -134,17 +133,17 @@ class EncoderPositioning {
 }
 
 
-class IMUPositioning {
-    private BNO055IMU imu;
-
-    IMUPositioning(HardwareMap hardwareMap) {
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.mode = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = false;
-
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
-    }
-}
+//class IMUPositioning {
+//    private BNO055IMU imu;
+//
+//    IMUPositioning(HardwareMap hardwareMap) {
+//        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+//        parameters.mode = BNO055IMU.SensorMode.IMU;
+//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+//        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+//        parameters.loggingEnabled = false;
+//
+//        imu = hardwareMap.get(BNO055IMU.class, "imu");
+//        imu.initialize(parameters);
+//    }
+//}

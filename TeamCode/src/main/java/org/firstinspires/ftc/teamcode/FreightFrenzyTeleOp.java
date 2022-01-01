@@ -30,6 +30,12 @@ public class FreightFrenzyTeleOp extends OpMode {
         robotManager.readControllerInputs();
         robotManager.driveMechanisms();
         robotManager.maneuver();
+        robotManager.robot.positionManager.updatePosition(robotManager.robot);
+
+        telemetry.addData("Pos X", robotManager.robot.positionManager.position.getX());
+        telemetry.addData("Pos Y", robotManager.robot.positionManager.position.getY());
+        telemetry.addData("Pos R", robotManager.robot.positionManager.position.getRotation());
+        telemetry.update();
     }
 
     @Override

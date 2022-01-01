@@ -263,9 +263,9 @@ class AutonPipeline extends OpenCvPipeline {
     /** Detects and filters the best matches between two detected keypoint descriptor sets
      *  Either will end up using binary matching or a flann matcher.
      */
-    private static MatOfDMatch MatchAndFilter(Mat des1, Mat des2) {
-
-    }
+//    private static MatOfDMatch MatchAndFilter(Mat des1, Mat des2) {
+//
+//    }
 
 
     /** Detects a navigation target in a provided image, and determines the screen-space coordinates of the target

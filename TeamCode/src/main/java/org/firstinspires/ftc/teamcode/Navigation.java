@@ -22,7 +22,7 @@ public class Navigation
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
-    final double STRAFE_POWER = 0.75;
+    final double STRAFE_POWER = 0.1;
     final double ROTATION_POWER = 0.75;  // Power to use while rotating.
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
@@ -98,7 +98,7 @@ public class Navigation
             turn *= FINE_ROTATION_POWER;
         }
         else {
-            turn += COARSE_ROTATION_POWER;
+            turn *= COARSE_ROTATION_POWER;
         }
 
         double moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
@@ -187,9 +187,7 @@ public class Navigation
 
         double power = 0;
         double distanceTraveled;
-        double startTime = robot.elapsedTime.milliseconds();
-//        while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
-        while (robot.elapsedTime.milliseconds() - startTime <= 1000) {
+        while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
             if (distanceTraveled < totalDistance / 2) {

@@ -21,7 +21,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
         waitForStart(); // wait for the play button to be pressed
 
-        robotManager.navigation.travelLinear(new Point(0, 1, "bigflo"), robotManager.robot);
+        robotManager.navigation.travelLinear(new Point(0, 6, "bigflo"), robotManager.robot);
 
         while (opModeIsActive()) { // loop this until stop button is pressed
 
