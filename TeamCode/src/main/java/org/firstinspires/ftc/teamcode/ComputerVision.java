@@ -1,13 +1,21 @@
+/* Author: Kai Vernooy
+ */
+
 package org.firstinspires.ftc.teamcode;
 
+import com.google.gson.JsonArray;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import java.io.*;
+
 import androidx.annotation.Nullable;
 import android.os.Environment;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import java.util.*;
 
 import org.opencv.android.Utils;
 import android.graphics.BitmapFactory;
@@ -19,16 +27,18 @@ import org.opencv.features2d.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.calib3d.Calib3d;
 
-
 import org.openftc.easyopencv.*;
 
-//Imageio.read()
 
 /** Managing class for opening cameras, attaching pipelines, and beginning streaming.
  */
 public class ComputerVision {
+
     public OpenCvCamera camera;
     public OpenCvPipeline pipeline;
+
+    public static String DataDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata";
+
 
     ComputerVision(HardwareMap hardwareMap, OpenCvPipeline pipeline) {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -45,8 +55,12 @@ public class ComputerVision {
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
             }
+//            public void onOpened() {
+//                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+//            }
+
 
             // TODO: responsible error handling
             @Override
@@ -56,22 +70,25 @@ public class ComputerVision {
 }
 
 
+
+
 /** Contains all image processing done for scanning the barcode and getting position.
  * This will
  */
 class AutonPipeline extends OpenCvPipeline {
-
     final private Robot robot;
     final private Telemetry telemetry;
     final private Mat output;  // Frame to be displayed on the phone
+    final private Navigation.AllianceColor allianceColor;
 
 
-    AutonPipeline(Robot robot, Telemetry telemetry) {
+    AutonPipeline(Robot robot, Telemetry telemetry, Navigation.AllianceColor allianceColor) {
         super();
         this.robot = robot;
 
         // TODO: there might be a cleaner way to default-initialize these
         output = new Mat();
+
 
         // Initialize barcode data
         barcodeHsv = new Mat();
@@ -87,14 +104,23 @@ class AutonPipeline extends OpenCvPipeline {
         barcodeTapeRegionsRed1 = new Mat();
         barcodeTapeRegionsRed2 = new Mat();
 
+        try {
+            cameraMatrix = CalibrationPipeline.MatFromFile(ComputerVision.DataDir + "/camera-matrix.json");
+            distortionMatrix = new MatOfDouble(CalibrationPipeline.MatFromFile(ComputerVision.DataDir + "/distortion-matrix.json"));
+        } catch (FileNotFoundException e) {
+        }
+
         this.telemetry = telemetry;
+        this.allianceColor = allianceColor;
     }
 
 
-    /** The main pipeline method, called whenever a frame is received. It will execute all necessary CV tasks, such as localization and barcode scanning
-     *  @param input The current frame read from the attached camera.
-     *               NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
-     *  @return An output frame to be displayed on the phone
+    /**
+     * The main pipeline method, called whenever a frame is received. It will execute all necessary CV tasks, such as localization and barcode scanning
+     *
+     * @param input The current frame read from the attached camera.
+     *              NOTE: the camera will be mounted in landscape, so make sure to flip x/y coords
+     * @return An output frame to be displayed on the phone
      */
     @Override
     public Mat processFrame(Mat input) {
@@ -106,8 +132,8 @@ class AutonPipeline extends OpenCvPipeline {
             if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
                 robot.barcodeScanResult = result; // result may still be -1, meaning no result
                 robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
-            }
-            else return input;  // We have more iterations of barcode scanning to do, so don't waste time on positioning
+            } else
+                return input;  // We have more iterations of barcode scanning to do, so don't waste time on positioning
         }
 
         Position currentPosition = processPositioningFrame(input, output);
@@ -117,144 +143,259 @@ class AutonPipeline extends OpenCvPipeline {
     }
 
 
-
     // CV POSITIONING
     // =================
-    private static final SIFT Sift = SIFT.create();
-    private static final ORB Orb = ORB.create();
+
+    // TODO: May want to abstract this into a calibration class
+    private Mat cameraMatrix = new Mat();
+    private MatOfDouble distortionMatrix = new MatOfDouble();
+
+
+    // Represents the distance from the center of the nav images to the edge. X/Y are in the paper 2d space.
+    // TODO: determine where the template imgs start, and update these
+    private final static double templateOffsetX = 11 / 2.0;
+    private final static double templateOffsetY = 8.5 / 2.0;
+
+    // The dimensions of the field tiles in inches
+    private final static double tileSize = 24.0;
+
+    /**
+     * Represents each navigation image on the field walls, as well as necessary data about them.
+     * Contains the image, coordinates, and alliance color corresponding to each nav image.
+     */
+    static enum NavTarget {
+        BLUE_ALLIANCE_WALL(Navigation.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
+                new Point3(0, (3.5 * tileSize) + templateOffsetX, 5.75 - templateOffsetY), // br
+                new Point3(0, (3.5 * tileSize) - templateOffsetX, 5.75 - templateOffsetY), // bl
+                new Point3(0, (3.5 * tileSize) - templateOffsetX, 5.75 + templateOffsetY), // tl
+                new Point3(0, (3.5 * tileSize) + templateOffsetX, 5.75 + templateOffsetY)  // tr
+        )),
+        BLUE_STORAGE_UNIT(Navigation.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
+                new Point3((1.5 * tileSize) - templateOffsetX, 0, 5.75 - templateOffsetY), // br
+                new Point3((1.5 * tileSize) + templateOffsetX, 0, 5.75 - templateOffsetY), // bl
+                new Point3((1.5 * tileSize) + templateOffsetX, 0, 5.75 + templateOffsetY), // tl
+                new Point3((1.5 * tileSize) - templateOffsetX, 0, 5.75 + templateOffsetY)  // tr
+        )),
+        RED_ALLIANCE_WALL(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
+                new Point3(6 * tileSize, (3.5 * tileSize) - templateOffsetX, 5.75 - templateOffsetY), // br
+                new Point3(6 * tileSize, (3.5 * tileSize) + templateOffsetX, 5.75 - templateOffsetY), // bl
+                new Point3(6 * tileSize, (3.5 * tileSize) + templateOffsetX, 5.75 + templateOffsetY), // tl
+                new Point3(6 * tileSize, (3.5 * tileSize) - templateOffsetX, 5.75 + templateOffsetY)  // tr
+        )),
+        RED_STORAGE_UNIT(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
+                new Point3((4.5 * tileSize) - templateOffsetX, 0, 5.75 - templateOffsetY), // br
+                new Point3((4.5 * tileSize) + templateOffsetX, 0, 5.75 - templateOffsetY), // bl
+                new Point3((4.5 * tileSize) + templateOffsetX, 0, 5.75 + templateOffsetY), // tl
+                new Point3((4.5 * tileSize) - templateOffsetX, 0, 5.75 + templateOffsetY)  // tr
+        ));
+
+
+        public final Navigation.AllianceColor allianceColor;
+        public final MatOfPoint3f worldCoords;
+
+        public final String path;
+        public final Mat image;
+        public final MatOfPoint2f imgCoords;
+
+        public final MatOfKeyPoint keyPoints;
+        public final Mat descriptors;
+
+
+        private NavTarget(Navigation.AllianceColor allianceColor, String path, List<Point3> worldCoords) {
+            this.allianceColor = allianceColor;
+            this.path = ComputerVision.DataDir + path;
+
+            this.worldCoords = new MatOfPoint3f();
+            this.worldCoords.fromList(worldCoords);
+
+            // Read and process nav image from storage
+            this.image = new Mat();
+            Bitmap bitmap = BitmapFactory.decodeFile(this.path);
+            Utils.bitmapToMat(bitmap, image);
+            Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
+
+            // Detect and cache template keypoints/descriptors
+            this.keyPoints = new MatOfKeyPoint();
+            this.descriptors = new Mat();
+            DetectKeyPointsAndDesc(image, keyPoints, descriptors);
+
+            // Determine the corners from the dims of the loaded image
+            this.imgCoords = new MatOfPoint2f();
+            this.imgCoords.fromList(Arrays.asList(
+                    new org.opencv.core.Point(image.cols(), image.rows()),   // br
+                    new org.opencv.core.Point(0, image.rows()),           // bl
+                    new org.opencv.core.Point(0, 0),                   // tl
+                    new org.opencv.core.Point(image.cols(), 0)            // tr
+            ));
+        }
+    }
+
+    ;
+
+
+//    private static final ORB Orb = ORB.create(500, 1.2f, 8, 31, 0, 2, ORB.HARRIS_SCORE, 31, 20);
+//    private static final SIFT Sift = SIFT.create(0, 3, 0.04, 10, 1.6);
+
+
+    private static final SIFT Sift = SIFT.create(0, 5, 0.04, 10, 1.0);
+    private static final ORB Orb = ORB.create(1000, 1.2f, 8, 31, 0, 2, ORB.FAST_SCORE, 31, 10);
     private static final BFMatcher BfMatcher = BFMatcher.create(BFMatcher.BRUTEFORCE_HAMMING, false);
+    private static final FlannBasedMatcher FbMatcher = FlannBasedMatcher.create();
 
 
-    private static final MatOfKeyPoint kp1 = new MatOfKeyPoint(), kp2 = new MatOfKeyPoint();
-    private static final Mat des1 = new Mat(), des2 = new Mat();
-
-//    enum NavTargets {ALLIANCE}
-
-    static List<Point3> NavTargetsWorldSpace = new ArrayList<Point3> () {{
-        add(new Point3(0,42 + (5.5),5.75 - (8.5 / 2))); // br
-        add(new Point3(0,42 - (5.5),5.75 - (8.5 / 2))); // bl
-        add(new Point3(0,42 - (5.5),5.75 + (8.5 / 2))); // tl
-        add(new Point3(0,42 + (5.5),5.75 + (8.5 / 2))); // tr
-    }};
+    // Single-time allocations for template detection
+    private static final MatOfKeyPoint frameKeyPoints = new MatOfKeyPoint();
+    private static final Mat frameDescriptors = new Mat();
 
 
-    /** Transforms a set of points on a provided 2d template image onto the instance of the template in frame using the detected homography transformation.
-     * or maybe it will do something else like just returning the transformation.
-     * @param template A flat image to be detected in the frame
-     * @param frame The image in which the 3d-distorted {@param template} may be found
-     * param points A set of points, in the coordinate space defined by {@param template}, to be transformed into the coordinate space of {@param frame}
-     * @param output An image to draw the detected KeyPoint matches to
-     * @return The input {@param points}, transformed into the destination space
+    /**
+     * Detects and computes keypoints and descriptors in a given frame. Abstracted for template keypoint caching.
+     *
+     * @param frame the image to be analyzed
+     * @param kp    the output keypoints
+     * @param des   the output descriptors
+     */
+    private static void DetectKeyPointsAndDesc(Mat frame, MatOfKeyPoint kp, Mat des) {
+        Sift.detectAndCompute(frame, new Mat(), kp, des);
+    }
+
+
+    /** Detects and filters the best matches between two detected keypoint descriptor sets
+     *  Either will end up using binary matching or a flann matcher.
+     */
+    private static MatOfDMatch MatchAndFilter(Mat des1, Mat des2) {
+
+    }
+
+
+    /** Detects a navigation target in a provided image, and determines the screen-space coordinates of the target
+     * @param target The nav target to be detected. This enum contains the image of the template, the keypoints/descriptors,
+     *               and the points to be transformed by the detected homography to determine the template's screen-space corners
+     * @param frame The image in which the perspective-distorted template may (or may not) be found
+     * @return The corners defined by the {@param target}, transformed into screen space (or null, if no nav target is found)
      */
     @Nullable
-    private static MatOfPoint2f DetectTemplate(Mat template, Mat frame, MatOfPoint2f points, Mat output) {
-        Orb.detectAndCompute(template, new Mat(), kp1, des1);
-        Orb.detectAndCompute(frame, new Mat(), kp2, des2);
+    private static MatOfPoint2f DetectTargetScreenCorners(NavTarget target, Mat frame, Mat output) {
+        DetectKeyPointsAndDesc(frame, frameKeyPoints, frameDescriptors);
+//        Features2d.drawKeypoints(frame, frameKeyPoints, output);
+//        return null;
 
         // find a way to set knn params here
-//        FlannBasedMatcher matcher = FlannBasedMatcher.create();
-        MatOfDMatch matchesB = new MatOfDMatch();
-//        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
-        ArrayList<DMatch> goodMatches = new ArrayList<DMatch>();
+////        MatOfDMatch matchesB = new MatOfDMatch();
+        ArrayList<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
+        List<DMatch> goodMatches = new ArrayList<DMatch>(target.descriptors.rows());
+////
+////
+        if (frameDescriptors.empty() || target.descriptors.empty()) return null;
+        if (frameKeyPoints.total() < 2 && target.keyPoints.total() < 2) return null;
+//
+//        des1.convertTo(des1, CvType.CV_32F);
+//        des2.convertTo(des2, CvType.CV_32F);
+//
+        FbMatcher.knnMatch(frameDescriptors, target.descriptors, matches, 2);
+//
+////        BfMatcher.knnMatch(des1, des2, matches, 2);
+////        BfMatcher.match(des1, des2, matchesB);
+////
+////        for (int i = 0; i < des1.rows(); i++) {
+////            goodMatches.add(matchesB.toList().get(i));
+////        }
+////
+////        Collections.sort(goodMatches, new Comparator<DMatch>() {
+////            public int compare(DMatch m1, DMatch m2) {
+////                return Double.compare(m1.distance, m2.distance);
+////            }
+////        });
+//
+////        List<DMatch> matches =
+//
+////
+        for (MatOfDMatch matchSet : matches) {
+            DMatch[] matchSetArr = matchSet.toArray();
+            if (matchSetArr.length < 2)
+                continue;
 
+            DMatch m1 = matchSetArr[0];
+            DMatch m2 = matchSetArr[1];
 
-        if (des1.empty() || des2.empty()) return null;
-        if (kp1.total() < 2 && kp2.total() < 2) return null;
+            if (m1.distance < 0.7 * m2.distance)
+                goodMatches.add(m1);
 
-        des1.convertTo(des1, CvType.CV_32F);
-        des2.convertTo(des2, CvType.CV_32F);
-//        matcher.knnMatch(des1, des2, matches, 2);
-
-//        BfMatcher.knnMatch(des1, des2, matches, 2);
-        BfMatcher.match(des1, des2, matchesB);
-
-        for (int i = 0; i < des1.rows(); i++) {
-            if ((matchesB.toList().get(i)).distance < 200) goodMatches.add(matchesB.toList().get(i));
+//            if (m2.distance - m1.distance > 0.19)
+//                goodMatches.add(m1);
         }
 //
-//        for (MatOfDMatch matchSet : matches) {
-//            DMatch[] matchSetArr = matchSet.toArray();
-//            if (matchSetArr.length < 2)
-//                continue;
-//
-//            DMatch m1 = matchSetArr[0];
-//            DMatch m2 = matchSetArr[1];
-//
-//            if (m1.distance < 0.7 * m2.distance)
-//                goodMatches.add(m1);
-//
-////            if (m2.distance - m1.distance > 0.19)
-////                goodMatches.add(m1);
-//        }
-//
-
+////
         MatOfDMatch goodMatchesMat = new MatOfDMatch();
-        goodMatchesMat.fromList(goodMatches);
-        Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
-        Imgproc.resize(output, output, frame.size(), 0, 0, Imgproc.INTER_CUBIC);
-
+        goodMatchesMat.fromList(goodMatches/*.subList(0, Math.min(goodMatches.size(), 10))*/);
+//
+////        Features2d.drawMatches(template, kp1, frame, kp2, goodMatchesMat, output);
+//        Imgproc.resize(output, output, frame.size(), 0, 0, Imgproc.INTER_CUBIC);
+////        return null;
         if (goodMatches.size() < 10) return null;
-
+//
         ArrayList<org.opencv.core.Point> obj = new ArrayList<org.opencv.core.Point>();
         ArrayList<org.opencv.core.Point> scene = new ArrayList<org.opencv.core.Point>();
 
         for (DMatch match : goodMatches) {
-            obj.add(kp1.toList().get(match.queryIdx).pt);
-            scene.add(kp2.toList().get(match.trainIdx).pt);
+            obj.add(target.keyPoints.toList().get(match.queryIdx).pt);
+            scene.add(frameKeyPoints.toList().get(match.trainIdx).pt);
         }
-
+//
         MatOfPoint2f objM = new MatOfPoint2f(), sceneM = new MatOfPoint2f();
         objM.fromList(obj);
         sceneM.fromList(scene);
-
-//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
+//
+////        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
         Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
-
+//
         MatOfPoint2f result = new MatOfPoint2f();
-        Core.perspectiveTransform(points, result, homography);
-
-        // homography LMeDS
+        Core.perspectiveTransform(target.imgCoords, result, homography);
+//
+//        // homography LMeDS
         return result;
     }
 
 
-    Mat template1 = new Mat();
 
-    /** Main CV localization estimator - determines position relative to any detected navigation targets2
+    /** Main CV localization estimator - determines position relative to any detected navigation targets
      * @param input The frame to be processed (either containing nav targets or not)
-     * //@param output
-     * @return Determined pos("Stuff", frame.at(Point3.class, 0, 0).getV());
-        telemetry.update(ition of the robot, as presented in the {@param input} image.
+     * @return Determined position of the robot, as presented in the {@param input} image.
      */
     @Nullable
     Position processPositioningFrame(Mat input, Mat output) {
-        Bitmap bitmap = BitmapFactory.decodeFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navimgs/features3.png");
-        Utils.bitmapToMat(bitmap, template1);
-
         input.copyTo(output);
-
-        Imgproc.cvtColor(template1, template1, Imgproc.COLOR_BGR2GRAY);
         Imgproc.cvtColor(input, input, Imgproc.COLOR_BGR2GRAY);
+        NavTarget t = NavTarget.RED_STORAGE_UNIT;
 
-        List<org.opencv.core.Point> templateCorners = new ArrayList<org.opencv.core.Point> () {{
-            add(new org.opencv.core.Point(template1.cols(), template1.rows()));     // br
-            add(new org.opencv.core.Point(0, template1.rows()));                 // bl
-            add(new org.opencv.core.Point(0, 0));                             // tl
-            add(new org.opencv.core.Point(template1.cols(), 0));                 // tr
-        }};
+//        for (NavTarget t : NavTarget.values()) {
+//            if (t.allianceColor == allianceColor) {
+                MatOfPoint2f screenCorners = DetectTargetScreenCorners(t, input, output);
 
-        MatOfPoint2f points = new MatOfPoint2f();
-        points.fromList(templateCorners);
+//                if (screenPoints == null) continue;
+                if (screenCorners == null) return null;
 
-        MatOfPoint2f screenPoints = DetectTemplate(template1, input, points, output);
+                Imgproc.line(output, screenCorners.toArray()[0], screenCorners.toArray()[1], new Scalar(0, 255, 0), 4);
+                Imgproc.line(output, screenCorners.toArray()[1], screenCorners.toArray()[2], new Scalar(0, 0, 255), 4);
+                Imgproc.line(output, screenCorners.toArray()[2], screenCorners.toArray()[3], new Scalar(255, 0, 0), 4);
+                Imgproc.line(output, screenCorners.toArray()[3], screenCorners.toArray()[0], new Scalar(0, 255, 255), 4);
 
-        if (screenPoints == null) return null;
-        Imgproc.line(output, screenPoints.toArray()[0], screenPoints.toArray()[1], new Scalar(0, 255, 0), 4);
-        Imgproc.line(output, screenPoints.toArray()[1], screenPoints.toArray()[2], new Scalar(0, 0, 255), 4);
-        Imgproc.line(output, screenPoints.toArray()[2], screenPoints.toArray()[3], new Scalar(255, 0, 0), 4);
-        Imgproc.line(output, screenPoints.toArray()[3], screenPoints.toArray()[0], new Scalar(0, 255, 255), 4);
+                // TODO: Clean this into a real-world coord finder method
+                Mat tvec = new Mat(), rvec = new Mat();
+
+                // TODO: Determine which algorithm is most appropriate here
+                // Calib3d.solvePnPRansac(worldCoords, screenPoints, cameraMatrix, distortionMatrix, rvec, tvec);
+                Calib3d.solvePnP(t.worldCoords, screenCorners, cameraMatrix, distortionMatrix, rvec, tvec);
+
+                telemetry.addData("rvec", rvec.dump());
+                telemetry.addData("tvec", tvec.dump());
+                telemetry.update();
+
+//                break;
+//            }
+//        }
+
         return null;
-//        Calib3d.solvePnP(NavTargetsWorldSpace, screenPoints, )
     }
 
 
@@ -275,6 +416,7 @@ class AutonPipeline extends OpenCvPipeline {
     final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
+
 
     /** Isolates the sections of an image in a given HSV range and removes noise, to find large solid-color areas
      * @param hsv The input image to be isolated, in HSV color format
@@ -363,7 +505,6 @@ class AutonPipeline extends OpenCvPipeline {
 
 
 
-
 /** Pipeline to perform intrinsic camera calibration with user-defined snapshots
  *
  */
@@ -375,11 +516,13 @@ class CalibrationPipeline extends OpenCvPipeline {
     boolean doCapture;
     boolean displayCapture;
     int displayCaptureFrames = 0;
-    static final int MaxDisplayCaptureDelay = 20;
-    static final int NumTotalCaptures = 3;
+    static final int MaxDisplayCaptureDelay = 10;
+    static final int NumTotalCaptures = 30;
 
     final static Size BoardSize = new Size(10, 7);
-    final static double boardSquareSize = 1.0;  // TODO: measure this
+
+    // the dimensions of a single square on the board, in inches
+    final static double boardSquareSize = 0.845;
     static MatOfPoint3f CheckerboardWorldCoords = new MatOfPoint3f();
 
 
@@ -404,6 +547,77 @@ class CalibrationPipeline extends OpenCvPipeline {
         }
 
         CheckerboardWorldCoords.fromList(checkerboardWorldCoordsList);
+    }
+
+
+    static private class MatJsonFmt {
+        int rows;
+        int cols;
+        int type;
+        double[] data;
+    }
+
+    final static private Gson gson = new Gson();
+
+    /** Reference: https://answers.opencv.org/question/8873/best-way-to-store-a-mat-object-in-android/
+     * @param mat Opencv Mat to be written to file
+     */
+    static private String MatToJson(Mat mat) {
+        JsonObject obj = new JsonObject();
+
+        if (!mat.isContinuous()) return "{}";
+
+        double[] data = new double[(int)mat.total() * mat.channels()];
+        mat.get(0, 0, data);
+//        return "test";
+//
+//        String dataString = new String(Base64.encode(data, Base64.DEFAULT));
+        JsonArray dataArr = gson.toJsonTree(data).getAsJsonArray();
+
+        obj.addProperty("rows", mat.rows());
+        obj.addProperty("cols", mat.cols());
+        obj.addProperty("type", mat.type());
+        obj.add("data", dataArr);
+        return gson.toJson(obj);
+    }
+
+    /** Reference: https://answers.opencv.org/question/8873/best-way-to-store-a-mat-object-in-android/
+     * @param json JSON string to be parsed to an OpenCV Mat
+     */
+    static private Mat MatFromJson(String json) {
+        MatJsonFmt fmt = gson.fromJson(json, MatJsonFmt.class);
+
+        Mat mat = new Mat(fmt.rows, fmt.cols, fmt.type);
+        mat.put(0, 0, fmt.data);
+        return mat;
+    }
+
+
+    public static void MatToFile(Mat mat, String path) {
+        try (FileOutputStream stream = new FileOutputStream(path)) {
+            stream.write(MatToJson(mat).getBytes());
+        } catch (IOException e) {}
+    }
+
+
+    public static Mat MatFromFile(String path) throws FileNotFoundException {
+        File fl = new File(path);
+        FileInputStream fin = new FileInputStream(fl);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(fin));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+
+            reader.close();
+            fin.close();
+        } catch (IOException e) {}
+
+
+        return MatFromJson(sb.toString());
     }
 
 

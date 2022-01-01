@@ -53,7 +53,7 @@ public class Robot {
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime) {
         this.telemetry = telemetry;
         this.elapsedTime = elapsedTime;
-        positionManager = new PositionManager();
+        positionManager = new PositionManager(hardwareMap);
 
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;

@@ -22,13 +22,13 @@ public class CVTestOpMode extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            telemetry.addData("Frame Count", cv.camera.getFrameCount());
-            telemetry.addData("FPS", String.format("%.2f", cv.camera.getFps()));
-            telemetry.addData("Total frame time ms", cv.camera.getTotalFrameTimeMs());
-            telemetry.addData("Pipeline time ms", cv.camera.getPipelineTimeMs());
-            telemetry.addData("Overhead time ms", cv.camera.getOverheadTimeMs());
-            telemetry.addData("Theoretical max FPS", cv.camera.getCurrentPipelineMaxFps());
-            telemetry.update();
+//            telemetry.addData("Frame Count", cv.camera.getFrameCount());
+//            telemetry.addData("FPS", String.format("%.2f", cv.camera.getFps()));
+//            telemetry.addData("Total frame time ms", cv.camera.getTotalFrameTimeMs());
+//            telemetry.addData("Pipeline time ms", cv.camera.getPipelineTimeMs());
+//            telemetry.addData("Overhead time ms", cv.camera.getOverheadTimeMs());
+//            telemetry.addData("Theoretical max FPS", cv.camera.getCurrentPipelineMaxFps());
+//            telemetry.update();
         }
     }
 }
