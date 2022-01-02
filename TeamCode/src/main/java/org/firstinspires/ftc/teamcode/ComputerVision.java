@@ -286,10 +286,10 @@ class AutonPipeline extends OpenCvPipeline {
      * @return The corners defined by the {@param target}, transformed into screen space (or null, if no nav target is found)
      */
     @Nullable
-    private static MatOfPoint2f DetectTargetScreenCorners(NavTarget target, Mat frame, Mat output) {
+    private MatOfPoint2f DetectTargetScreenCorners(NavTarget target, Mat frame, Mat output) {
         DetectKeyPointsAndDesc(frame, frameKeyPoints, frameDescriptors);
 //        Features2d.drawKeypoints(frame, frameKeyPoints, output);
-//        return null;
+//        return nulrl;
 
         // find a way to set knn params here
 ////        MatOfDMatch matchesB = new MatOfDMatch();
@@ -303,7 +303,7 @@ class AutonPipeline extends OpenCvPipeline {
 //        des1.convertTo(des1, CvType.CV_32F);
 //        des2.convertTo(des2, CvType.CV_32F);
 //
-        FbMatcher.knnMatch(frameDescriptors, target.descriptors, matches, 2);
+        FbMatcher.knnMatch(target.descriptors, frameDescriptors, matches, 2);
 //
 ////        BfMatcher.knnMatch(des1, des2, matches, 2);
 ////        BfMatcher.match(des1, des2, matchesB);
@@ -357,9 +357,10 @@ class AutonPipeline extends OpenCvPipeline {
         objM.fromList(obj);
         sceneM.fromList(scene);
 //
-////        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
-        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
-//
+        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
+//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
+        if (homography.empty()) return null;
+
         MatOfPoint2f result = new MatOfPoint2f();
         Core.perspectiveTransform(target.imgCoords, result, homography);
 //
@@ -376,8 +377,11 @@ class AutonPipeline extends OpenCvPipeline {
     @Nullable
     Position processPositioningFrame(Mat input, Mat output) {
         input.copyTo(output);
+
         Imgproc.cvtColor(input, input, Imgproc.COLOR_BGR2GRAY);
         NavTarget t = NavTarget.RED_STORAGE_UNIT;
+        telemetry.addData("test", t.imgCoords.toString());
+        telemetry.update();
 
 //        for (NavTarget t : NavTarget.values()) {
 //            if (t.allianceColor == allianceColor) {
