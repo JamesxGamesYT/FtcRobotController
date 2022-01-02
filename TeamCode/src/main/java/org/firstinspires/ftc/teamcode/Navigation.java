@@ -91,10 +91,44 @@ public class Navigation
 
     /** Moves the robot straight in one of the cardinal directions or at a 45 degree angle.
      *
-     *  @return whether any of the D-Pad butons were pressed.
+     *  @return whether any of the D-Pad buttons were pressed.
      */
     public boolean moveStraight(boolean forward, boolean backward, boolean left, boolean right, Robot robot) {
-        return false;
+        double direction;
+        if (forward) {
+            if (left) {
+                direction = Math.PI * 0.75;
+            }
+            else if (right) {
+                direction = Math.PI * 0.25;
+            }
+            else {
+                direction = Math.PI * 0.5;
+            }
+        }
+        else if (backward) {
+            if (left) {
+                direction = -Math.PI * 0.75;
+            }
+            else if (right) {
+                direction = -Math.PI * 0.25;
+            }
+            else {
+                direction = -Math.PI * 0.5;
+            }
+        }
+        else if (left) {
+            direction = Math.PI;
+        }
+        else if (right) {
+            direction = 0.0;
+        }
+        else {
+            return false;
+        }
+
+        setDriveMotorPowers(direction, STRAIGHT_MOVEMENT_POWER, 0.0, robot);
+        return true;
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
