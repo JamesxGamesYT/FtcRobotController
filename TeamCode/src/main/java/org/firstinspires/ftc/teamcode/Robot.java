@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 /** Stores the Robot's hardware and position.
@@ -41,7 +42,7 @@ public class Robot {
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
 
     // Hardware
-    public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
+    public DcMotor carousel, slidesLeft, slidesRight;
     public CRServo claw;
 
     // Other
@@ -65,14 +66,14 @@ public class Robot {
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
-        claw = hardwareMap.get(Servo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
+        claw = hardwareMap.get(CRServo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
 
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
             driveMotors.put(motor, hardwareMap.get(DcMotor.class, RobotConfig.DriveMotorNames.get(motor)));
-            driveMotors.get(motor).setDirection(RobotConfig.DriveMotorsDirections.get(motor));
-            driveMotors.get(motor).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            driveMotors.get(motor).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            driveMotors.get(motor).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            Objects.requireNonNull(driveMotors.get(motor)).setDirection(RobotConfig.DriveMotorsDirections.get(motor));
+            Objects.requireNonNull(driveMotors.get(motor)).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            Objects.requireNonNull(driveMotors.get(motor)).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            Objects.requireNonNull(driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
         slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

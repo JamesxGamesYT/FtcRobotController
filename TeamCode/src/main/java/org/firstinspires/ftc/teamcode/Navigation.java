@@ -28,9 +28,9 @@ public class Navigation
     // TELEOP CONSTANTS
     // ================
     final double STRAIGHT_MOVEMENT_POWER = 0.75;
-    final double COARSE_MOVEMENT_POWER = 1.0;
+    final double COARSE_MOVEMENT_POWER = 0.1;
     final double FINE_MOVEMENT_POWER = 0.25;
-    final double COARSE_ROTATION_POWER = 0.4;
+    final double COARSE_ROTATION_POWER = 0.05;
     final double FINE_ROTATION_POWER = 0.1;
 
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
@@ -90,62 +90,11 @@ public class Navigation
     }
 
     /** Moves the robot straight in one of the cardinal directions or at a 45 degree angle.
+     *
+     *  @return whether any of the D-Pad butons were pressed.
      */
     public boolean moveStraight(boolean forward, boolean backward, boolean left, boolean right, Robot robot) {
-        double frontLeftPower = 0, frontRightPower = 0, rearLeftPower = 0, rearRightPower = 0;
-
-        if (forward) {
-            if (right) {
-                frontLeftPower = STRAIGHT_MOVEMENT_POWER;
-                rearRightPower = STRAIGHT_MOVEMENT_POWER;
-            }
-            else if (left) {
-                frontRightPower = STRAIGHT_MOVEMENT_POWER;
-                rearLeftPower = STRAIGHT_MOVEMENT_POWER;
-            }
-            else {
-                frontLeftPower = STRAIGHT_MOVEMENT_POWER;
-                frontRightPower = STRAIGHT_MOVEMENT_POWER;
-                rearLeftPower = STRAIGHT_MOVEMENT_POWER;
-                rearRightPower = STRAIGHT_MOVEMENT_POWER;
-            }
-        }
-        else if (backward) {
-            if (right) {
-                frontRightPower = -STRAIGHT_MOVEMENT_POWER;
-                rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
-            }
-            else if (left) {
-                frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
-                rearRightPower = -STRAIGHT_MOVEMENT_POWER;
-            }
-            else {
-                frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
-                frontRightPower = -STRAIGHT_MOVEMENT_POWER;
-                rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
-                rearRightPower = -STRAIGHT_MOVEMENT_POWER;
-            }
-        }
-        else if (right) {
-            frontLeftPower = STRAIGHT_MOVEMENT_POWER;
-            frontRightPower = -STRAIGHT_MOVEMENT_POWER;
-            rearLeftPower = -STRAIGHT_MOVEMENT_POWER;
-            rearRightPower = STRAIGHT_MOVEMENT_POWER;
-        }
-        else if (left) {
-            frontLeftPower = -STRAIGHT_MOVEMENT_POWER;
-            frontRightPower = STRAIGHT_MOVEMENT_POWER;
-            rearLeftPower = STRAIGHT_MOVEMENT_POWER;
-            rearRightPower = -STRAIGHT_MOVEMENT_POWER;
-        }
-        else return false;
-
-        robot.frontLeftDrive.setPower(frontLeftPower);
-        robot.frontRightDrive.setPower(frontRightPower);
-        robot.rearLeftDrive.setPower(rearLeftPower);
-        robot.rearRightDrive.setPower(rearRightPower);
-
-        return true;
+        return false;
     }
 
     /** Changes drivetrain motor inputs based off the controller inputs.
@@ -166,11 +115,11 @@ public class Navigation
             turn *= COARSE_ROTATION_POWER;
         }
 
-        double moveDirection = Math.atan2(-joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
+        double moveDirection = Math.atan2(joystickValues.gamepad1LeftStickY, joystickValues.gamepad1LeftStickX);
 
         // Determine power scale factor using constant from distance of joystick from center.
         double power = Range.clip(Math.sqrt(Math.pow(joystickValues.gamepad1LeftStickX, 2)
-                                   + Math.pow(-joystickValues.gamepad1LeftStickY, 2)), 0, 1);
+                                   + Math.pow(joystickValues.gamepad1LeftStickY, 2)), 0, 1);
         if (power <= 0.05) { // joystick dead zone
             power = 0;
         }
@@ -178,7 +127,7 @@ public class Navigation
             power *= FINE_MOVEMENT_POWER;
         }
         else {
-            turn *= COARSE_MOVEMENT_POWER;
+            power *= COARSE_MOVEMENT_POWER;
         }
 
         setDriveMotorPowers(moveDirection, power, turn, robot);

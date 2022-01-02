@@ -46,7 +46,7 @@ public class RobotManager {
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
-        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
+//        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();

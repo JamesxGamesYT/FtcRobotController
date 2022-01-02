@@ -79,10 +79,10 @@ class AutonPipeline extends OpenCvPipeline {
     final private Robot robot;
     final private Telemetry telemetry;
     final private Mat output;  // Frame to be displayed on the phone
-    final private Navigation.AllianceColor allianceColor;
+    final private RobotManager.AllianceColor allianceColor;
 
 
-    AutonPipeline(Robot robot, Telemetry telemetry, Navigation.AllianceColor allianceColor) {
+    AutonPipeline(Robot robot, Telemetry telemetry, RobotManager.AllianceColor allianceColor) {
         super();
         this.robot = robot;
 
@@ -164,25 +164,25 @@ class AutonPipeline extends OpenCvPipeline {
      * Contains the image, coordinates, and alliance color corresponding to each nav image.
      */
     static enum NavTarget {
-        BLUE_ALLIANCE_WALL(Navigation.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
+        BLUE_ALLIANCE_WALL(RobotManager.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
                 new Point3(0, (3.5 * tileSize) + templateOffsetX, 5.75 - templateOffsetY), // br
                 new Point3(0, (3.5 * tileSize) - templateOffsetX, 5.75 - templateOffsetY), // bl
                 new Point3(0, (3.5 * tileSize) - templateOffsetX, 5.75 + templateOffsetY), // tl
                 new Point3(0, (3.5 * tileSize) + templateOffsetX, 5.75 + templateOffsetY)  // tr
         )),
-        BLUE_STORAGE_UNIT(Navigation.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
+        BLUE_STORAGE_UNIT(RobotManager.AllianceColor.BLUE, "/features3.jpg", Arrays.asList(
                 new Point3((1.5 * tileSize) - templateOffsetX, 0, 5.75 - templateOffsetY), // br
                 new Point3((1.5 * tileSize) + templateOffsetX, 0, 5.75 - templateOffsetY), // bl
                 new Point3((1.5 * tileSize) + templateOffsetX, 0, 5.75 + templateOffsetY), // tl
                 new Point3((1.5 * tileSize) - templateOffsetX, 0, 5.75 + templateOffsetY)  // tr
         )),
-        RED_ALLIANCE_WALL(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
+        RED_ALLIANCE_WALL(RobotManager.AllianceColor.RED, "/features3.jpg", Arrays.asList(
                 new Point3(6 * tileSize, (3.5 * tileSize) - templateOffsetX, 5.75 - templateOffsetY), // br
                 new Point3(6 * tileSize, (3.5 * tileSize) + templateOffsetX, 5.75 - templateOffsetY), // bl
                 new Point3(6 * tileSize, (3.5 * tileSize) + templateOffsetX, 5.75 + templateOffsetY), // tl
                 new Point3(6 * tileSize, (3.5 * tileSize) - templateOffsetX, 5.75 + templateOffsetY)  // tr
         )),
-        RED_STORAGE_UNIT(Navigation.AllianceColor.RED, "/features3.jpg", Arrays.asList(
+        RED_STORAGE_UNIT(RobotManager.AllianceColor.RED, "/features3.jpg", Arrays.asList(
                 new Point3((4.5 * tileSize) - templateOffsetX, 0, 5.75 - templateOffsetY), // br
                 new Point3((4.5 * tileSize) + templateOffsetX, 0, 5.75 - templateOffsetY), // bl
                 new Point3((4.5 * tileSize) + templateOffsetX, 0, 5.75 + templateOffsetY), // tl
@@ -190,7 +190,7 @@ class AutonPipeline extends OpenCvPipeline {
         ));
 
 
-        public final Navigation.AllianceColor allianceColor;
+        public final RobotManager.AllianceColor allianceColor;
         public final MatOfPoint3f worldCoords;
 
         public final String path;
@@ -201,7 +201,7 @@ class AutonPipeline extends OpenCvPipeline {
         public final Mat descriptors;
 
 
-        private NavTarget(Navigation.AllianceColor allianceColor, String path, List<Point3> worldCoords) {
+        private NavTarget(RobotManager.AllianceColor allianceColor, String path, List<Point3> worldCoords) {
             this.allianceColor = allianceColor;
             this.path = ComputerVision.DataDir + path;
 

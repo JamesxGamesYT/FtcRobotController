@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 
 /** Incorporates estimates from multiple sources to create a single positioning estimate
@@ -98,8 +100,8 @@ class EncoderPositioning {
             int encoderCounts = robot.driveMotors.get(rollerAngle.getKey()).getCurrentPosition();
             double force = rollerAngle.getValue();
 
-            deltaPSumX += (encoderCounts * ((Math.sin(theta) * Math.sin(force)) + (Math.cos(theta) * Math.cos(force)))) / 2.0;
-            deltaPSumY += (encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force)))) / 2.0;
+            deltaPSumX += -(encoderCounts * ((Math.sin(theta) * Math.sin(force)) + (Math.cos(theta) * Math.cos(force)))) / 2.0;
+            deltaPSumY += -(encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force)))) / 2.0;
         }
 
         resetEncoders(robot);
@@ -127,7 +129,8 @@ class EncoderPositioning {
      */
     private void resetEncoders(Robot robot) {
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
-            robot.driveMotors.get(motor).setTargetPosition(0);
+//            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RESET_ENCODERS);
+            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 }

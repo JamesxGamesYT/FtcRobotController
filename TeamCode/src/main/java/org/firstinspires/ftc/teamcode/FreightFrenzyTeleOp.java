@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.logging.Logger;
+
 
 /** Autonomous OpMode for Freight Frenzy. Uses a finite state machine.
  */
@@ -17,6 +19,8 @@ public class FreightFrenzyTeleOp extends OpMode {
 
     private RobotManager robotManager;
     private ElapsedTime elapsedTime = new ElapsedTime();
+
+    private static final Logger LOGGER = Logger.getLogger(FreightFrenzyTeleOp.class.getName());
 
     @Override
     public void init() {
