@@ -16,7 +16,7 @@ public class MechanismDriving {
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
-    double slideRampDownDist=1000, maxSpeedCoefficient =0.5, reducedSpeedCoefficient =0.25;
+    double slideRampDownDist=1000, maxSpeedCoefficient =0.8, reducedSpeedCoefficient =0.7;
     public static final double CAROUSEL_SPEED = 0.5;
 
     private double carouselPower;
