@@ -19,13 +19,21 @@ public class FreightFrenzyAuton extends LinearOpMode {
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
                                         allianceColor, telemetry, elapsedTime);
 
-        waitForStart(); // wait for the play button to be pressed
+        Robot.SlidesState hubLevel = robotManager.readBarcode();
+        waitForStart(); // Wait for the play button to be pressed
 
-        robotManager.navigation.travelLinear(new Point(0, 6, "bigflo"), robotManager.robot);
-
-        while (opModeIsActive()) { // loop this until stop button is pressed
-
+        robotManager.travelToNextPOI();  // Go to alliance shipping hub.
+        robotManager.deliverToShippingHub(hubLevel);
+        if (navigationMode == RobotManager.NavigationMode.DUCK_CAROUSEL || navigationMode == RobotManager.NavigationMode.DUCK_WAREHOUSE) {
+            robotManager.travelToNextPOI();  // Go to carousel.
+            robotManager.deliverDuck();
+            robotManager.travelToNextPOI();  // Park in alliance storage unit.
         }
+        else {
+            robotManager.travelToNextPOI();  // Park in warehouse.
+        }
+
+        while (opModeIsActive()) {}
     }
 
     // ANDROID SHARED PREFERENCES

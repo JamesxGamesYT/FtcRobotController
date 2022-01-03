@@ -19,8 +19,9 @@ public class Navigation
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
-    final double STRAFE_POWER = 0.1;
-    final double ROTATION_POWER = 0.75;  // Power to use while rotating.
+    final double MAX_STRAFE_POWER = 0.75;
+     final double MIN_STRAFE_POWER = 0.1;
+    final double ROTATION_POWER = 0.375;  // Power to use while rotating.
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
@@ -233,7 +234,7 @@ public class Navigation
 
         double totalDistance = getEuclideanDistance(startLoc, target);
 
-        double power = 0;
+        double power = MIN_STRAFE_POWER;
         double distanceTraveled;
         while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
@@ -241,13 +242,13 @@ public class Navigation
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
                 if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
-                    power = (distanceTraveled / STRAFE_RAMP_DISTANCE) * STRAFE_POWER;
+                    power = (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER;
                 }
             }
             else {
                 // Ramping down.
                 if (distanceTraveled >= totalDistance - STRAFE_RAMP_DISTANCE) {
-                    power = ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * STRAFE_POWER;
+                    power = ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER;
                 }
             }
 
@@ -295,6 +296,7 @@ public class Navigation
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
+        // TODO: scale values by dividing by max instead of clipping.
         double frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
         double frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
         double rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);

@@ -46,7 +46,7 @@ public class RobotManager {
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
-//        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
+        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -144,10 +144,8 @@ public class RobotManager {
     public void travelToNextPOI() {}
 
     /** Determines the position of the capstone on the barcode.
-     *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
-     *          farthest from the hub.
      */
-    public int readBarcode() {
+    public Robot.SlidesState readBarcode() {
         robot.barcodeScanResult = -1;
         robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
         robot.numBarcodeAttempts = 0;
@@ -159,7 +157,8 @@ public class RobotManager {
             catch (InterruptedException e) {}
         }
 
-        return robot.barcodeScanResult;
+        // TODO: implement logic to get slides level from barcode scan result
+        return Robot.SlidesState.L1;
     }
 
 
