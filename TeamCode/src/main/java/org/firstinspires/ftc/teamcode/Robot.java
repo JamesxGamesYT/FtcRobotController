@@ -76,6 +76,8 @@ public class Robot {
             Objects.requireNonNull(driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
+        slidesLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
         slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
