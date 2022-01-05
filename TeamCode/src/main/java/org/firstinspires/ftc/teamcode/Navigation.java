@@ -296,21 +296,21 @@ public class Navigation
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
-        // TODO: scale values by dividing by max instead of clipping.
-        double frontLeftPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
-        double frontRightPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
-        double rearLeftPower = Range.clip(sinMoveDirection - cosMoveDirection, -1, 1);
-        double rearRightPower = Range.clip(sinMoveDirection + cosMoveDirection, -1, 1);
 
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rearLeftPower * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rearRightPower * power - turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(frontLeftPower * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(frontRightPower * power - turn);
+        double powerSet1 = sinMoveDirection + cosMoveDirection;
+        double powerSet2 = sinMoveDirection - cosMoveDirection;
+        double [] rawPowers=scaleRange(powerSet1,powerSet2);
+
+
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rawPowers[1] * power + turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rawPowers[0] * power - turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(rawPowers[0] * power + turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(rawPowers[1] * power - turn);
 
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
-                frontLeftPower * power, frontRightPower * power);
+                rawPowers[0] * power, rawPowers[1] * power);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
-                rearLeftPower * power, rearRightPower * power);
+                rawPowers[1] * power, rawPowers[0] * power);
     }
 
     /** Sets all drivetrain motor powers to zero.
@@ -319,6 +319,22 @@ public class Navigation
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
             robot.driveMotors.get(motor).setPower(0.0);
         }
+    }
+
+    /**preserves the ratio between a and b while restricting them to the range [-1, 1]
+     *
+     * @param a value to be scaled
+     * @param b value to be scaled
+     * @return an array containing the scaled versions of a and b
+     */
+    double[] scaleRange(double a,double b){
+        double max;
+        if(Math.abs(a)>Math.abs(b)){
+            max=Math.abs(a);
+        }else{
+            max=Math.abs(b);
+        }
+        return new double[]{a/max,b/max};
     }
 
     // PATHFINDING
