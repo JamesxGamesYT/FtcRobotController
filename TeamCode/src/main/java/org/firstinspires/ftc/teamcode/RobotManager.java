@@ -155,19 +155,15 @@ public class RobotManager {
             catch (InterruptedException e) {}
         }
 
-        Robot.SlidesState slidesState = Robot.SlidesState.L1;
         switch (robot.barcodeScanResult) {
             case 1:
-                slidesState = Robot.SlidesState.L1;
-                break;
+                return Robot.SlidesState.L1;
             case 2:
-                slidesState = Robot.SlidesState.L2;
-                break;
+                return Robot.SlidesState.L2;
             case 3:
-                slidesState = Robot.SlidesState.L3;
-                break;
+                return Robot.SlidesState.L3;
         }
-        return slidesState;
+        return Robot.SlidesState.L1;
     }
 
 
