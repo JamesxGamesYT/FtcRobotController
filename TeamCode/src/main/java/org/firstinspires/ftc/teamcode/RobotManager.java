@@ -1,8 +1,6 @@
 /* Authors: Arin Khare, Kai Vernooy
  */
 
-// TODO: Change "desired" to "target"
-
 package org.firstinspires.ftc.teamcode;
 
 import java.util.concurrent.TimeUnit;
@@ -157,8 +155,19 @@ public class RobotManager {
             catch (InterruptedException e) {}
         }
 
-        // TODO: implement logic to get slides level from barcode scan result
-        return Robot.SlidesState.L1;
+        Robot.SlidesState slidesState = Robot.SlidesState.L1;
+        switch (robot.barcodeScanResult) {
+            case 1:
+                slidesState = Robot.SlidesState.L1;
+                break;
+            case 2:
+                slidesState = Robot.SlidesState.L2;
+                break;
+            case 3:
+                slidesState = Robot.SlidesState.L3;
+                break;
+        }
+        return slidesState;
     }
 
 

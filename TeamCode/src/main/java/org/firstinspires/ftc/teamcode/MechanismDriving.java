@@ -7,8 +7,6 @@ public class MechanismDriving {
 
     private int desiredSlidePosition;
 
-    // TODO: get the exact values the slides will need to move to inorder to be be at the correct levels for the shipping hub.
-    //       get exact values for the claw as well when open, holding a sphere, and holding a cube
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3000, CAPPING_POS = 4000;
     public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.5; //These are not final values
     // How long the carousel motor must be spinning for in order to deliver the duck.
@@ -31,8 +29,6 @@ public class MechanismDriving {
                 break;
         }
     }
-
-    // TODO: rewrite this class to deal with a continuous rotation servo
 
     /** Sets the claw position to the robot's desired state.
      */
