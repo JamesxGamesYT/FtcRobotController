@@ -29,9 +29,9 @@ public class Navigation
     // TELEOP CONSTANTS
     // ================
     final double STRAIGHT_MOVEMENT_POWER = 0.75;
-    final double COARSE_MOVEMENT_POWER = 0.1;
+    final double COARSE_MOVEMENT_POWER = 0.75;
     final double FINE_MOVEMENT_POWER = 0.25;
-    final double COARSE_ROTATION_POWER = 0.05;
+    final double COARSE_ROTATION_POWER = 0.375;
     final double FINE_ROTATION_POWER = 0.1;
 
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
