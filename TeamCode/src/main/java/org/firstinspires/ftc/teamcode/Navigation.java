@@ -15,12 +15,17 @@ import java.util.Collections;
  */
 public class Navigation
 {
+    // GENERAL CONSTANTS
+    // =================
+    //                                   RL   RR   FL   FR
+    final double[] WHEEL_SPEED_RATIOS = {0.8, 0.8, 1.0, 1.0};
+
     // AUTON CONSTANTS
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double MAX_STRAFE_POWER = 0.75;
-     final double MIN_STRAFE_POWER = 0.1;
+    final double MIN_STRAFE_POWER = 0.1;
     final double ROTATION_POWER = 0.375;  // Power to use while rotating.
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
@@ -28,7 +33,6 @@ public class Navigation
 
     // TELEOP CONSTANTS
     // ================
-    final double STRAIGHT_MOVEMENT_POWER = 0.75;
     final double COARSE_MOVEMENT_POWER = 0.75;
     final double FINE_MOVEMENT_POWER = 0.25;
     final double COARSE_ROTATION_POWER = 0.375;
@@ -128,7 +132,12 @@ public class Navigation
             return false;
         }
 
-        setDriveMotorPowers(direction, STRAIGHT_MOVEMENT_POWER, 0.0, robot);
+        if (robot.fineMovement) {
+            setDriveMotorPowers(direction, FINE_MOVEMENT_POWER, 0.0, robot);
+        }
+        else {
+            setDriveMotorPowers(direction, COARSE_MOVEMENT_POWER, 0.0, robot);
+        }
         return true;
     }
 
@@ -296,21 +305,19 @@ public class Navigation
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
-
         double powerSet1 = sinMoveDirection + cosMoveDirection;
         double powerSet2 = sinMoveDirection - cosMoveDirection;
-        double [] rawPowers=scaleRange(powerSet1,powerSet2);
+        double [] rawPowers = scaleRange(powerSet1,powerSet2);
 
-
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rawPowers[1] * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rawPowers[0] * power - turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(rawPowers[0] * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(rawPowers[1] * power - turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rawPowers[1] * power * WHEEL_SPEED_RATIOS[0] + turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rawPowers[0] * power * WHEEL_SPEED_RATIOS[1] - turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(rawPowers[0] * power * WHEEL_SPEED_RATIOS[2] + turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(rawPowers[1] * power * WHEEL_SPEED_RATIOS[3] - turn);
 
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
-                rawPowers[0] * power, rawPowers[1] * power);
+                rawPowers[0] * power * WHEEL_SPEED_RATIOS[0] + turn, rawPowers[1] * power * WHEEL_SPEED_RATIOS[1] - turn);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
-                rawPowers[1] * power, rawPowers[0] * power);
+                rawPowers[1] * power * WHEEL_SPEED_RATIOS[2] + turn, rawPowers[0] * power * WHEEL_SPEED_RATIOS[3] - turn);
     }
 
     /** Sets all drivetrain motor powers to zero.
