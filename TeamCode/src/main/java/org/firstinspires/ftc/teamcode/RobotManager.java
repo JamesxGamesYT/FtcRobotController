@@ -116,6 +116,7 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
+
         boolean movedStraight = navigation.moveStraight(
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
