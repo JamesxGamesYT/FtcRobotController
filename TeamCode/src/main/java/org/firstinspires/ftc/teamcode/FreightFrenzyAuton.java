@@ -19,7 +19,9 @@ public class FreightFrenzyAuton extends LinearOpMode {
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
                                         allianceColor, telemetry, elapsedTime);
 
+        // Warning: the following is blocking; it can probably be made non-blocking, if necessary
         Robot.SlidesState hubLevel = robotManager.readBarcode();
+        
         waitForStart(); // Wait for the play button to be pressed
 
         robotManager.travelToNextPOI();  // Go to alliance shipping hub.

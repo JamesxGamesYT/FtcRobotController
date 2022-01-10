@@ -3,6 +3,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.os.Build;
+import androidx.annotation.RequiresApi;
 import com.google.gson.JsonArray;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -126,14 +128,23 @@ class AutonPipeline extends OpenCvPipeline {
     public Mat processFrame(Mat input) {
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
-            int result = processBarcodeFrame(input);
+            // Scan the barcode
+            Robot.BarcodeScanResult result = processBarcodeFrame(input);
+
+            // Increment the barcode result in the frequency counter and find the max value in that map
+            int freq = robot.barcodeScanResultMap.get(result);
+            robot.barcodeScanResultMap.put(result, freq + 1);
+            Map.Entry<Robot.BarcodeScanResult, Integer> max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
+
             robot.numBarcodeAttempts++;
 
-            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || result != -1) {
-                robot.barcodeScanResult = result; // result may still be -1, meaning no result
+            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || max.getValue() >= robot.MinBarcodeRepeat) {
+                robot.barcodeScanResult = max.getKey();
                 robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
-            } else
-                return input;  // We have more iterations of barcode scanning to do, so don't waste time on positioning
+            }
+            else {
+                return input;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
+            }
         }
 
         Position currentPosition = processPositioningFrame(input, output);
@@ -437,7 +448,7 @@ class AutonPipeline extends OpenCvPipeline {
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private int processBarcodeFrame(Mat input/*, Mat output*/) {
+    private Robot.BarcodeScanResult processBarcodeFrame(Mat input/*, Mat output*/) {
         // Todo: perform cropping based on region of image we expect to find barcode in
         // input = new Mat(input, BarcodeImageROI);
 
@@ -479,7 +490,7 @@ class AutonPipeline extends OpenCvPipeline {
         int tapeComponentsCount = Imgproc.connectedComponentsWithStats(barcodeTapeRegions, barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, 8);
 
         // For now, we'll make sure that we're identifying only two non-cap tapes.
-        if (tapeComponentsCount != 3) return -1;
+        if (tapeComponentsCount != 3) return Robot.BarcodeScanResult.WRONG_TAPE;
         for (int i = 1; i < tapeComponentsCount; i++) tapeCentroidsX[i - 1] = barcodeTapeCentroids.at(double.class, i, 1).getV();
 
         // Make sure the centroids are listed in ascending order of X-coordinate (left-to-right, in screen space)
@@ -487,12 +498,13 @@ class AutonPipeline extends OpenCvPipeline {
 
         // Determine the centroid of the cap region
         int capComponentsCount = Imgproc.connectedComponentsWithStats(barcodeCapRegions, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids, 8);
-        if (capComponentsCount != 2) return -2;
+        if (capComponentsCount != 2) return Robot.BarcodeScanResult.WRONG_CAPS;
         double capCentroidX = barcodeCapCentroids.at(double.class, 1, 1).getV();
 
-        if (capCentroidX < tapeCentroidsX[0]) return 1;
-        else if (capCentroidX < tapeCentroidsX[1]) return 2;
-        return 3;
+
+        if (capCentroidX < tapeCentroidsX[0]) return Robot.BarcodeScanResult.LEFT;
+        else if (capCentroidX < tapeCentroidsX[1]) return Robot.BarcodeScanResult.CENTER;
+        return Robot.BarcodeScanResult.RIGHT;
     }
 
 
@@ -525,12 +537,10 @@ class CalibrationPipeline extends OpenCvPipeline {
     final static double boardSquareSize = 0.845;
     static MatOfPoint3f CheckerboardWorldCoords = new MatOfPoint3f();
 
-
     final List<Mat> imgCorners = new ArrayList<Mat>();  // 2d coordinates of checkerboard corners for each frame
     final List<Mat> objCorners = new ArrayList<Mat>();  // 3d corners of the checkerboard (each element should be identical)
 
     final Mat lastCapture = new Mat();
-
 
 
     CalibrationPipeline() {

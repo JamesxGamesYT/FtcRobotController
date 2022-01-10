@@ -23,6 +23,9 @@ public class RobotManager {
     public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
+    AllianceColor allianceColor;
+    NavigationMode navigationMode;
+
     public Robot robot;
 
     public MechanismDriving mechanismDriving;
@@ -37,6 +40,9 @@ public class RobotManager {
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
                         NavigationMode navigationMode, AllianceColor allianceColor,
                         Telemetry telemetry, ElapsedTime elapsedTime) {
+
+        this.allianceColor = allianceColor;
+        this.navigationMode = navigationMode;
 
         elapsedTime.reset();
         navigation = new Navigation(navigationMode, allianceColor);
@@ -141,13 +147,25 @@ public class RobotManager {
      */
     public void travelToNextPOI() {}
 
+
+    private Robot.SlidesState barcodeResultToSlidesState(Robot.BarcodeScanResult result) {
+//        if (allianceColor == AllianceColor.BLUE) {
+//
+//        }
+        return null;
+    }
+
+
     /** Determines the position of the capstone on the barcode.
      */
     public Robot.SlidesState readBarcode() {
-        robot.barcodeScanResult = -1;
+        // Reset the barcode scanning counters and states
+        robot.barcodeScanResult = Robot.BarcodeScanResult.WRONG_CAPS;
+        robot.barcodeScanResultMap.clear();
         robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
         robot.numBarcodeAttempts = 0;
 
+        // Wait for CV to determine a finalized barcodeScanResult value (this is blocking!)
         while (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             try {
                 TimeUnit.MICROSECONDS.sleep(10);
@@ -155,15 +173,7 @@ public class RobotManager {
             catch (InterruptedException e) {}
         }
 
-        switch (robot.barcodeScanResult) {
-            case 1:
-                return Robot.SlidesState.L1;
-            case 2:
-                return Robot.SlidesState.L2;
-            case 3:
-                return Robot.SlidesState.L3;
-        }
-        return Robot.SlidesState.L1;
+        return barcodeResultToSlidesState(robot.barcodeScanResult);
     }
 
 
