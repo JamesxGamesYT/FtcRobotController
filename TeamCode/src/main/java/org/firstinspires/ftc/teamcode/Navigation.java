@@ -20,7 +20,7 @@ public class Navigation
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double MAX_STRAFE_POWER = 0.75;
-     final double MIN_STRAFE_POWER = 0.1;
+    final double MIN_STRAFE_POWER = 0.1;
     final double ROTATION_POWER = 0.375;  // Power to use while rotating.
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
@@ -35,6 +35,10 @@ public class Navigation
     final double FINE_ROTATION_POWER = 0.1;
 
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
+
+    // Speeds relative to one another.
+    //                              RL   RR   FL   FR
+    static double[] wheel_speeds = {1.0, 1.0, 1.0, 1.0};
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -296,21 +300,20 @@ public class Navigation
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
-
         double powerSet1 = sinMoveDirection + cosMoveDirection;
         double powerSet2 = sinMoveDirection - cosMoveDirection;
-        double [] rawPowers=scaleRange(powerSet1,powerSet2);
+        double [] rawPowers = scaleRange(powerSet1, powerSet2);
 
-
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rawPowers[1] * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rawPowers[0] * power - turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(rawPowers[0] * power + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(rawPowers[1] * power - turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower((rawPowers[1] * power + turn) * wheel_speeds[0]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower((rawPowers[0] * power - turn) * wheel_speeds[1]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower((rawPowers[0] * power + turn) * wheel_speeds[2]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower((rawPowers[1] * power - turn) * wheel_speeds[3]);
 
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
-                rawPowers[0] * power, rawPowers[1] * power);
+                (rawPowers[0] * power + turn) * wheel_speeds[2], (rawPowers[1] * power - turn) * wheel_speeds[3]);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
-                rawPowers[1] * power, rawPowers[0] * power);
+                (rawPowers[1] * power + turn) * wheel_speeds[0], (rawPowers[0] * power - turn) * wheel_speeds[1]);
+        robot.telemetry.update();
     }
 
     /** Sets all drivetrain motor powers to zero.
