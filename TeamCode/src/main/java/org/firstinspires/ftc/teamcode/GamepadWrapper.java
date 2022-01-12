@@ -62,9 +62,9 @@ public class GamepadWrapper {
             case CHANGE_ROTATION_MODE:
                 return gamepad1.right_bumper;
             case MOVE_STRAIGHT_FORWARD:
-                return gamepad1.dpad_up;
-            case MOVE_STRAIGHT_BACKWARD:
                 return gamepad1.dpad_down;
+            case MOVE_STRAIGHT_BACKWARD:
+                return gamepad1.dpad_up;
             case MOVE_STRAIGHT_LEFT:
                 return gamepad1.dpad_left;
             case MOVE_STRAIGHT_RIGHT:

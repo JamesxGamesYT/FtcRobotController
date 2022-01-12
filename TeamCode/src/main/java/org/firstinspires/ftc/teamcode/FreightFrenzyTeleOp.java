@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 @TeleOp(name="Freight Frenzy Tele-Op", group="TeleOp OpMode")
 public class FreightFrenzyTeleOp extends OpMode {
+
     private RobotManager robotManager;
     private ElapsedTime elapsedTime = new ElapsedTime();
 
@@ -32,6 +33,12 @@ public class FreightFrenzyTeleOp extends OpMode {
         robotManager.readControllerInputs();
         robotManager.driveMechanisms();
         robotManager.maneuver();
+        robotManager.robot.positionManager.updatePosition(robotManager.robot);
+
+        telemetry.addData("Pos X", robotManager.robot.positionManager.position.getX());
+        telemetry.addData("Pos Y", robotManager.robot.positionManager.position.getY());
+        telemetry.addData("Pos R", robotManager.robot.positionManager.position.getRotation());
+        telemetry.update();
     }
 
     @Override

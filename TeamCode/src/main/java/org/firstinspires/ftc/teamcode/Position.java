@@ -2,19 +2,22 @@ package org.firstinspires.ftc.teamcode;
 
 /** Represents the position of the robot.
  *  More generally, it contains an x-y point and a rotation.
- *
- *  TODO: currently there are both getter/setter method as well as public attributes. If we decide to keep the
- *        getters/setters we should make the attributes private, and vice versa.
  */
 public class Position {
+
+    private Point location;
+
+    // A rotation, in radians, in the interval (-pi, pi]
+    private double rotation;
+
     Position() {
-        location = new Point(0.0,0.0, "");
+        location = new Point(0.0, 0.0, "");
         setRotation(0.0);
     }
 
-    Position(double x, double y, double r) {
+    Position(double x, double y, double theta) {
         location = new Point(x, y, "");
-        setRotation(r);
+        setRotation(theta);
     }
     Position(Point p, double r) {
         location = p;
@@ -46,14 +49,15 @@ public class Position {
         return rotation;
     }
 
+    public Point getLocation() {return location;}
 
-    /** Stores an x/y coordinate.
-     *  @see Point for more information
-     */
-    public Point location;
-    public double rotation;
+    public void reset() {
+        setX(0.0);
+        setY(0.0);
+        setRotation(0.0);
+    }
 
-    public boolean equals(Position a) {
-        return a.location.x == this.location.x && a.location.y == this.location.y;
+    public static Position add(Position a, Position b) {
+        return new Position(a.getX() + b.getX(), a.getY() + b.getY(), (a.getRotation() + b.getRotation()) % (2 * Math.PI));
     }
 }

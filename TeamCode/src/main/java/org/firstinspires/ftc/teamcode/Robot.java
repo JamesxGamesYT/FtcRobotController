@@ -1,6 +1,4 @@
 /* Authors: Arin Khare, Kai Vernooy
-this is an unofficial version of this call meant for testing purposes only
-disregard all changes in this version of this class when merging
  */
 
 package org.firstinspires.ftc.teamcode;
@@ -15,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 /** Stores the Robot's hardware and position.
@@ -31,17 +30,23 @@ public class Robot {
     public ClawState desiredClawState;
 
     enum BarcodeScanState {CHECK_SCAN, SCAN}
+    enum BarcodeScanResult {LEFT, CENTER, RIGHT, WRONG_CAPS, WRONG_TAPE};
+
     public BarcodeScanState barcodeScanState;
 
-    static final int MaxBarcodeAttempts = 100;  // How many times to try scanning the barcode before giving up
-    int numBarcodeAttempts = 0;
-    int barcodeScanResult = -1;
+    static final int MinBarcodeRepeat = 20;
+    static final int MaxBarcodeAttempts = 30;                                   // How many times to try scanning the barcode before giving up
+    int numBarcodeAttempts = 0;                                                 // Amount of current attempts to scan the barcode
+    Map<BarcodeScanResult, Integer> barcodeScanResultMap = new HashMap<>();     // An array representing a histogram of the scan results.
+    BarcodeScanResult barcodeScanResult;                                        // Represents the final decided barcode state
 
     boolean fineMovement = false;
     boolean fineRotation = false;
 
+    HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
+
     // Hardware
-    public DcMotor carousel, slidesLeft, slidesRight, frontRightDrive, rearRightDrive, frontLeftDrive, rearLeftDrive;
+    public DcMotor carousel, slidesLeft, slidesRight;
     public CRServo claw;
 
     // Other
@@ -54,7 +59,7 @@ public class Robot {
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, ElapsedTime elapsedTime) {
         this.telemetry = telemetry;
         this.elapsedTime = elapsedTime;
-        positionManager = new PositionManager();
+        positionManager = new PositionManager(hardwareMap);
 
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
@@ -65,38 +70,22 @@ public class Robot {
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
-        frontRightDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.FRONT_RIGHT_DRIVE));
-        rearRightDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_RIGHT_DRIVE));
-        frontLeftDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.FRONT_LEFT_DRIVE));
-        rearLeftDrive = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.REAR_LEFT_DRIVE));
         claw = hardwareMap.get(CRServo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
 
-        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rearLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        rearRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        slidesLeft.setDirection(DcMotor.Direction.FORWARD);
-        slidesRight.setDirection(DcMotor.Direction.REVERSE);
-        carousel.setDirection(DcMotor.Direction.REVERSE);
+        for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
+            driveMotors.put(motor, hardwareMap.get(DcMotor.class, RobotConfig.DriveMotorNames.get(motor)));
+            Objects.requireNonNull(driveMotors.get(motor)).setDirection(RobotConfig.DriveMotorsDirections.get(motor));
+            Objects.requireNonNull(driveMotors.get(motor)).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            Objects.requireNonNull(driveMotors.get(motor)).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            Objects.requireNonNull(driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
 
-        frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rearLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rearRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slidesLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
         slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rearLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rearRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rearRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
@@ -113,19 +102,28 @@ public class Robot {
  *  pertaining to the robot's state.
  */
 class RobotConfig {
-    enum Motors {CAROUSEL, SLIDES_LEFT, SLIDES_RIGHT, REAR_LEFT_DRIVE,
-                 REAR_RIGHT_DRIVE, FRONT_LEFT_DRIVE, FRONT_RIGHT_DRIVE}
-
+    enum Motors {CAROUSEL, SLIDES_LEFT, SLIDES_RIGHT}
+    public enum DriveMotors {REAR_LEFT, REAR_RIGHT, FRONT_LEFT, FRONT_RIGHT};
     enum Servos {CLAW}
 
     public static final Map<Motors, String> MotorNames = new HashMap<Motors, String>() {{
         put(Motors.CAROUSEL, "carousel");
         put(Motors.SLIDES_LEFT, "slides_left");
         put(Motors.SLIDES_RIGHT, "slides_right");
-        put(Motors.REAR_LEFT_DRIVE, "rear_left");
-        put(Motors.REAR_RIGHT_DRIVE, "rear_right");
-        put(Motors.FRONT_LEFT_DRIVE, "front_left");
-        put(Motors.FRONT_RIGHT_DRIVE, "front_right");
+    }};
+
+    public static final Map<DriveMotors, String> DriveMotorNames = new HashMap<DriveMotors, String>() {{
+        put(DriveMotors.REAR_LEFT, "rear_left");
+        put(DriveMotors.REAR_RIGHT, "rear_right");
+        put(DriveMotors.FRONT_LEFT, "front_left");
+        put(DriveMotors.FRONT_RIGHT, "front_right");
+    }};
+
+    public static final Map<DriveMotors, DcMotor.Direction> DriveMotorsDirections = new HashMap<DriveMotors, DcMotor.Direction>() {{
+        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.REAR_LEFT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.REVERSE);
     }};
 
     public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{ put(Servos.CLAW, "claw"); }};

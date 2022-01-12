@@ -5,26 +5,37 @@ import android.preference.PreferenceManager;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 
 @Autonomous(name="FreightFrenzyAuton", group="Linear OpMode")
 public class FreightFrenzyAuton extends LinearOpMode {
 
     private RobotManager robotManager;
-    private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime elapsedTime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode, allianceColor, telemetry,runtime);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
+                                        allianceColor, telemetry, elapsedTime);
 
-        waitForStart(); // wait for the play button to be pressed
+        // Warning: the following is blocking; it can probably be made non-blocking, if necessary
+        Robot.SlidesState hubLevel = robotManager.readBarcode();
+        
+        waitForStart(); // Wait for the play button to be pressed
 
-        while (opModeIsActive()) { // loop this until stop button is pressed
-
+        robotManager.travelToNextPOI();  // Go to alliance shipping hub.
+        robotManager.deliverToShippingHub(hubLevel);
+        if (navigationMode == RobotManager.NavigationMode.DUCK_CAROUSEL || navigationMode == RobotManager.NavigationMode.DUCK_WAREHOUSE) {
+            robotManager.travelToNextPOI();  // Go to carousel.
+            robotManager.deliverDuck();
+            robotManager.travelToNextPOI();  // Park in alliance storage unit.
         }
+        else {
+            robotManager.travelToNextPOI();  // Park in warehouse.
+        }
+
+        while (opModeIsActive()) {}
     }
 
     // ANDROID SHARED PREFERENCES
@@ -44,10 +55,10 @@ public class FreightFrenzyAuton extends LinearOpMode {
         String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
 
         if (allianceColor.equals("BLUE")) {
-            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
+            this.allianceColor = RobotManager.AllianceColor.BLUE;
         }
         else if (allianceColor.equals("RED")) {
-            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.RED;
+            this.allianceColor = RobotManager.AllianceColor.RED;
         }
 
         switch (autonMode) {

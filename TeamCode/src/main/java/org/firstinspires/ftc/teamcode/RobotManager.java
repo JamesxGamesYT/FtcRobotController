@@ -1,13 +1,13 @@
 /* Authors: Arin Khare, Kai Vernooy
  */
 
-// TODO: Change "desired" to "target"
-
 package org.firstinspires.ftc.teamcode;
 
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -23,10 +23,14 @@ public class RobotManager {
     public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
+    AllianceColor allianceColor;
+    NavigationMode navigationMode;
+
     public Robot robot;
 
     public MechanismDriving mechanismDriving;
     public Navigation navigation;
+    public ComputerVision computerVision;
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
@@ -37,11 +41,16 @@ public class RobotManager {
                         NavigationMode navigationMode, AllianceColor allianceColor,
                         Telemetry telemetry, ElapsedTime elapsedTime) {
 
+        this.allianceColor = allianceColor;
+        this.navigationMode = navigationMode;
+
         elapsedTime.reset();
         navigation = new Navigation(navigationMode, allianceColor);
         mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
+
+        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -113,6 +122,7 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
+
         boolean movedStraight = navigation.moveStraight(
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
@@ -138,24 +148,33 @@ public class RobotManager {
      */
     public void travelToNextPOI() {}
 
+
+    private Robot.SlidesState barcodeResultToSlidesState(Robot.BarcodeScanResult result) {
+//        if (allianceColor == AllianceColor.BLUE) {
+//
+//        }
+        return null;
+    }
+
+
     /** Determines the position of the capstone on the barcode.
-     *  @return 0 indicates the position closest to the hub, 1 indicates the middle position, 2 indicates the position
-     *          farthest from the hub.
      */
-    public int readBarcode() {
-        robot.barcodeScanResult = -1;
+    public Robot.SlidesState readBarcode() {
+        // Reset the barcode scanning counters and states
+        robot.barcodeScanResult = Robot.BarcodeScanResult.WRONG_CAPS;
+        robot.barcodeScanResultMap.clear();
         robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
         robot.numBarcodeAttempts = 0;
 
+        // Wait for CV to determine a finalized barcodeScanResult value (this is blocking!)
         while (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             try {
-                // Wait for execution on the CV thread to finish
                 TimeUnit.MICROSECONDS.sleep(10);
             }
             catch (InterruptedException e) {}
         }
 
-        return robot.barcodeScanResult;
+        return barcodeResultToSlidesState(robot.barcodeScanResult);
     }
 
 
