@@ -21,7 +21,8 @@ public class Navigation
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double MAX_STRAFE_POWER = 0.75;
     final double MIN_STRAFE_POWER = 0.1;
-    final double ROTATION_POWER = 0.375;  // Power to use while rotating.
+    final double MAX_ROTATION_POWER = 0.375;
+    final double MIN_ROTATION_POWER = 0.05;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
@@ -202,7 +203,7 @@ public class Navigation
             rotationSize = 2 * Math.PI - rotationSize;
         }
 
-        double power = 0;
+        double power = MIN_ROTATION_POWER;
         double rotationProgress = Math.abs(currentRotation - startingRotation);
         while (Math.abs(targetRotation - currentRotation) > EPSILON_ANGLE) {
             robot.positionManager.updatePosition(robot);
@@ -211,17 +212,28 @@ public class Navigation
             if (rotationProgress < rotationSize / 2) {
                 // Ramping up.
                 if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
-                    power = (rotationProgress / ROTATION_RAMP_DISTANCE) * ROTATION_POWER;
+                    power = Range.clip(
+                            (rotationProgress / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
+                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
                 }
             }
             else {
                 // Ramping down.
                 if (rotationProgress >= rotationSize - ROTATION_RAMP_DISTANCE) {
-                    power = ((rotationSize - rotationProgress) / ROTATION_RAMP_DISTANCE) * ROTATION_POWER;
+                    power = Range.clip(
+                            ((rotationSize - rotationProgress) / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
+                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
                 }
             }
 
-            setDriveMotorPowers(0.0, 0.0, power, robot);
+            switch (direction) {
+                case CLOCKWISE:
+                    setDriveMotorPowers(0.0, 0.0, power, robot);
+                    break;
+                case COUNTERCLOCKWISE:
+                    setDriveMotorPowers(0.0, 0.0, -power, robot);
+                    break;
+            }
         }
 
         stopMovement(robot);
@@ -246,13 +258,17 @@ public class Navigation
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
                 if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
-                    power = (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER;
+                    power = Range.clip(
+                            (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
             }
             else {
                 // Ramping down.
                 if (distanceTraveled >= totalDistance - STRAFE_RAMP_DISTANCE) {
-                    power = ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER;
+                    power = Range.clip(
+                            ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
             }
 
