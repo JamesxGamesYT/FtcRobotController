@@ -109,41 +109,46 @@ public class RobotManager {
         }
 
         // Adjust relative wheel speeds.
+        //TODO FIX THIS
 
         // Left stick Y for adjusting rear left.
-        if (gamepads.getJoystickValues().gamepad2LeftStickY > 0.1) {
+        /*if (gamepads.getJoystickValues().gamepad2LeftStickY > 0.5) {
             Navigation.wheel_speeds[0] += 0.01;
         }
-        else if (gamepads.getJoystickValues().gamepad2LeftStickY < 0.1) {
+        if (gamepads.getJoystickValues().gamepad2LeftStickY < 0.5) {
             Navigation.wheel_speeds[0] -= 0.01;
         }
         // Left stick X for adjusting rear right.
-        if (gamepads.getJoystickValues().gamepad2LeftStickX > 0.1) {
+        if (gamepads.getJoystickValues().gamepad2LeftStickX > 0.5) {
             Navigation.wheel_speeds[1] += 0.01;
         }
-        else if (gamepads.getJoystickValues().gamepad2LeftStickX < 0.1) {
+        if (gamepads.getJoystickValues().gamepad2LeftStickX < 0.5) {
             Navigation.wheel_speeds[1] -= 0.01;
         }
         // Right stick Y for adjusting front left.
-        if (gamepads.getJoystickValues().gamepad2RightStickY > 0.1) {
+        if (gamepads.getJoystickValues().gamepad2RightStickY > 0.5) {
             Navigation.wheel_speeds[2] += 0.01;
         }
-        else if (gamepads.getJoystickValues().gamepad2RightStickY < 0.1) {
+        if (gamepads.getJoystickValues().gamepad2RightStickY < 0.5) {
             Navigation.wheel_speeds[2] -= 0.01;
         }
         // Right stick X for adjusting front right.
-        if (gamepads.getJoystickValues().gamepad2RightStickX > 0.1) {
+        if (gamepads.getJoystickValues().gamepad2RightStickX > 0.5) {
             Navigation.wheel_speeds[3] += 0.01;
         }
-        else if (gamepads.getJoystickValues().gamepad2RightStickX < 0.1) {
+        if (gamepads.getJoystickValues().gamepad2RightStickX < 0.5) {
             Navigation.wheel_speeds[3] -= 0.01;
         }
+
+*/
 
         robot.telemetry.addData("Front Motor Relative Speeds", "left (%.2f), right (%.2f)",
                 Navigation.wheel_speeds[2], Navigation.wheel_speeds[3]);
         robot.telemetry.addData("Rear Motor Relative Speeds", "left (%.2f), right (%.2f)",
                 Navigation.wheel_speeds[0], Navigation.wheel_speeds[1]);
-        robot.telemetry.update();
+        robot.telemetry.addData("Fine movement", "" + robot.fineMovement);
+        robot.telemetry.addData("Fine rotation", "" + robot.fineRotation);
+
 
         previousStateGamepads.copyGamepads(gamepads);
     }

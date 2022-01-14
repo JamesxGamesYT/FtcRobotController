@@ -29,10 +29,10 @@ public class Navigation
 
     // TELEOP CONSTANTS
     // ================
-    final double COARSE_MOVEMENT_POWER = 0.75;
-    final double FINE_MOVEMENT_POWER = 0.25;
-    final double COARSE_ROTATION_POWER = 0.375;
-    final double FINE_ROTATION_POWER = 0.1;
+    final double COARSE_MOVEMENT_POWER = 0.5;
+        final double FINE_MOVEMENT_POWER = 0.25;
+        final double COARSE_ROTATION_POWER = 0.375;
+        final double FINE_ROTATION_POWER = 0.1;
 
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
 
@@ -317,6 +317,7 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot) {
+        strafeDirection *= -1;
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
@@ -333,7 +334,6 @@ public class Navigation
                 (rawPowers[0] * power + turn) * wheel_speeds[2], (rawPowers[1] * power - turn) * wheel_speeds[3]);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
                 (rawPowers[1] * power + turn) * wheel_speeds[0], (rawPowers[0] * power - turn) * wheel_speeds[1]);
-        robot.telemetry.update();
     }
 
     /** Sets all drivetrain motor powers to zero.
