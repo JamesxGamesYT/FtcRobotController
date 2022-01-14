@@ -15,18 +15,14 @@ import java.util.Collections;
  */
 public class Navigation
 {
-    // GENERAL CONSTANTS
-    // =================
-    //                                   RL   RR   FL   FR
-    final double[] WHEEL_SPEED_RATIOS = {0.8, 0.8, 1.0, 1.0};
-
     // AUTON CONSTANTS
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double MAX_STRAFE_POWER = 0.75;
     final double MIN_STRAFE_POWER = 0.1;
-    final double ROTATION_POWER = 0.375;  // Power to use while rotating.
+    final double MAX_ROTATION_POWER = 0.375;
+    final double MIN_ROTATION_POWER = 0.05;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 0.1;
     final double EPSILON_ANGLE = 0.1;
@@ -39,6 +35,10 @@ public class Navigation
     final double FINE_ROTATION_POWER = 0.1;
 
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
+
+    // Speeds relative to one another.
+    //                              RL   RR   FL   FR
+    static double[] wheel_speeds = {1.0, 1.0, 1.0, 1.0};
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -207,7 +207,7 @@ public class Navigation
             rotationSize = 2 * Math.PI - rotationSize;
         }
 
-        double power = 0;
+        double power = MIN_ROTATION_POWER;
         double rotationProgress = Math.abs(currentRotation - startingRotation);
         while (Math.abs(targetRotation - currentRotation) > EPSILON_ANGLE) {
             robot.positionManager.updatePosition(robot);
@@ -216,17 +216,28 @@ public class Navigation
             if (rotationProgress < rotationSize / 2) {
                 // Ramping up.
                 if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
-                    power = (rotationProgress / ROTATION_RAMP_DISTANCE) * ROTATION_POWER;
+                    power = Range.clip(
+                            (rotationProgress / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
+                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
                 }
             }
             else {
                 // Ramping down.
                 if (rotationProgress >= rotationSize - ROTATION_RAMP_DISTANCE) {
-                    power = ((rotationSize - rotationProgress) / ROTATION_RAMP_DISTANCE) * ROTATION_POWER;
+                    power = Range.clip(
+                            ((rotationSize - rotationProgress) / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
+                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
                 }
             }
 
-            setDriveMotorPowers(0.0, 0.0, power, robot);
+            switch (direction) {
+                case CLOCKWISE:
+                    setDriveMotorPowers(0.0, 0.0, power, robot);
+                    break;
+                case COUNTERCLOCKWISE:
+                    setDriveMotorPowers(0.0, 0.0, -power, robot);
+                    break;
+            }
         }
 
         stopMovement(robot);
@@ -251,13 +262,17 @@ public class Navigation
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
                 if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
-                    power = (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER;
+                    power = Range.clip(
+                            (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
             }
             else {
                 // Ramping down.
                 if (distanceTraveled >= totalDistance - STRAFE_RAMP_DISTANCE) {
-                    power = ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER;
+                    power = Range.clip(
+                            ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
             }
 
@@ -307,17 +322,18 @@ public class Navigation
 
         double powerSet1 = sinMoveDirection + cosMoveDirection;
         double powerSet2 = sinMoveDirection - cosMoveDirection;
-        double [] rawPowers = scaleRange(powerSet1,powerSet2);
+        double [] rawPowers = scaleRange(powerSet1, powerSet2);
 
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower(rawPowers[1] * power * WHEEL_SPEED_RATIOS[0] + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower(rawPowers[0] * power * WHEEL_SPEED_RATIOS[1] - turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower(rawPowers[0] * power * WHEEL_SPEED_RATIOS[2] + turn);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower(rawPowers[1] * power * WHEEL_SPEED_RATIOS[3] - turn);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower((rawPowers[1] * power + turn) * wheel_speeds[0]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower((rawPowers[0] * power - turn) * wheel_speeds[1]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower((rawPowers[0] * power + turn) * wheel_speeds[2]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower((rawPowers[1] * power - turn) * wheel_speeds[3]);
 
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
-                rawPowers[0] * power * WHEEL_SPEED_RATIOS[0] + turn, rawPowers[1] * power * WHEEL_SPEED_RATIOS[1] - turn);
+                (rawPowers[0] * power + turn) * wheel_speeds[2], (rawPowers[1] * power - turn) * wheel_speeds[3]);
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
-                rawPowers[1] * power * WHEEL_SPEED_RATIOS[2] + turn, rawPowers[0] * power * WHEEL_SPEED_RATIOS[3] - turn);
+                (rawPowers[1] * power + turn) * wheel_speeds[0], (rawPowers[0] * power - turn) * wheel_speeds[1]);
+        robot.telemetry.update();
     }
 
     /** Sets all drivetrain motor powers to zero.
