@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 /** A completely encompassing class of all functionality of the robot. An OpMode should interface through an instance of
@@ -111,43 +109,40 @@ public class RobotManager {
         // Adjust relative wheel speeds.
 
         // Left stick Y for adjusting rear left.
-        if (gamepads.getJoystickValues().gamepad2LeftStickY > 0.5) {
-            Navigation.wheel_speeds[0] += 0.01;
+        if (gamepads.getAnalogValues().gamepad2LeftStickY > 0.5) {
+            navigation.wheel_speeds[0] += 0.01;
         }
-        if (gamepads.getJoystickValues().gamepad2LeftStickY < -0.5) {
-            Navigation.wheel_speeds[0] -= 0.01;
+        if (gamepads.getAnalogValues().gamepad2LeftStickY < -0.5) {
+            navigation.wheel_speeds[0] -= 0.01;
         }
         // Left stick X for adjusting rear right.
-        if (gamepads.getJoystickValues().gamepad2LeftStickX > 0.5) {
-            Navigation.wheel_speeds[1] += 0.01;
+        if (gamepads.getAnalogValues().gamepad2LeftStickX > 0.5) {
+            navigation.wheel_speeds[1] += 0.01;
         }
-        if (gamepads.getJoystickValues().gamepad2LeftStickX < -0.5) {
-            Navigation.wheel_speeds[1] -= 0.01;
+        if (gamepads.getAnalogValues().gamepad2LeftStickX < -0.5) {
+            navigation.wheel_speeds[1] -= 0.01;
         }
         // Right stick Y for adjusting front left.
-        if (gamepads.getJoystickValues().gamepad2RightStickY > 0.5) {
-            Navigation.wheel_speeds[2] += 0.01;
+        if (gamepads.getAnalogValues().gamepad2RightStickY > 0.5) {
+            navigation.wheel_speeds[2] += 0.01;
         }
-        if (gamepads.getJoystickValues().gamepad2RightStickY < -0.5) {
-            Navigation.wheel_speeds[2] -= 0.01;
+        if (gamepads.getAnalogValues().gamepad2RightStickY < -0.5) {
+            navigation.wheel_speeds[2] -= 0.01;
         }
         // Right stick X for adjusting front right.
-        if (gamepads.getJoystickValues().gamepad2RightStickX > 0.5) {
-            Navigation.wheel_speeds[3] += 0.01;
+        if (gamepads.getAnalogValues().gamepad2RightStickX > 0.5) {
+            navigation.wheel_speeds[3] += 0.01;
         }
-        if (gamepads.getJoystickValues().gamepad2RightStickX < -0.5) {
-            Navigation.wheel_speeds[3] -= 0.01;
+        if (gamepads.getAnalogValues().gamepad2RightStickX < -0.5) {
+            navigation.wheel_speeds[3] -= 0.01;
         }
-
-
 
         robot.telemetry.addData("Front Motor Relative Speeds", "left (%.2f), right (%.2f)",
-                Navigation.wheel_speeds[2], Navigation.wheel_speeds[3]);
+                navigation.wheel_speeds[2], navigation.wheel_speeds[3]);
         robot.telemetry.addData("Rear Motor Relative Speeds", "left (%.2f), right (%.2f)",
-                Navigation.wheel_speeds[0], Navigation.wheel_speeds[1]);
+                navigation.wheel_speeds[0], navigation.wheel_speeds[1]);
         robot.telemetry.addData("Fine movement", "" + robot.fineMovement);
         robot.telemetry.addData("Fine rotation", "" + robot.fineRotation);
-
 
         previousStateGamepads.copyGamepads(gamepads);
     }
@@ -163,7 +158,9 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-
+        if (!navigation.updateStrafePower(gamepads.getAnalogValues(), robot)) {
+            return;
+        }
         boolean movedStraight = navigation.moveStraight(
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
@@ -172,7 +169,7 @@ public class RobotManager {
                 robot
         );
         if (!movedStraight) {
-            navigation.maneuver(gamepads.getJoystickValues(), robot);
+            navigation.maneuver(gamepads.getAnalogValues(), robot);
         }
     }
 

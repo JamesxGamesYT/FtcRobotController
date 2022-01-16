@@ -5,7 +5,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.Range;
 
 /** Wraps a gamepad so that button mappings are stored in one place.
  */
@@ -13,7 +12,7 @@ public class GamepadWrapper {
     public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
                               SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, CHANGE_MOVEMENT_MODE,
                               CHANGE_ROTATION_MODE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
-                              MOVE_STRAIGHT_RIGHT}
+                              MOVE_STRAIGHT_RIGHT, SET_STRAFE_POWER}
 
     Gamepad gamepad1, gamepad2;
 
@@ -74,21 +73,24 @@ public class GamepadWrapper {
         return false;
     }
 
-    /** Returns the x and y coordinates of each of the 4 joysticks.
+    /** Returns the x and y coordinates of each of the 4 joysticks as well as the values of each trigger.
      */
-    public JoystickValues getJoystickValues() {
-        return new JoystickValues(gamepad1, gamepad2);
+    public AnalogValues getAnalogValues() {
+        return new AnalogValues(gamepad1, gamepad2);
     }
 }
 
 
-/** Stores 8 joystick values (an x and y coordinate for each of 4 sticks across 2 gamepads).
+/** Stores 8 analog values on the gamepad:
+ *   - An x and y coordinate for each of 4 sticks across 2 gamepads
+ *   - Each of the 4 triggers
  */
-class JoystickValues {
+class AnalogValues {
     public double gamepad1RightStickX, gamepad1RightStickY, gamepad1LeftStickX, gamepad1LeftStickY,
-                  gamepad2RightStickX, gamepad2RightStickY, gamepad2LeftStickX, gamepad2LeftStickY;
+                  gamepad2RightStickX, gamepad2RightStickY, gamepad2LeftStickX, gamepad2LeftStickY,
+                  gamepad1LeftTrigger, gamepad1RightTrigger, gamepad2LeftTrigger, gamepad2RightTrigger;
 
-    public JoystickValues(Gamepad gamepad1, Gamepad gamepad2) {
+    public AnalogValues(Gamepad gamepad1, Gamepad gamepad2) {
         this.gamepad1RightStickX = gamepad1.right_stick_x;
         this.gamepad1RightStickY = gamepad1.right_stick_y;
         this.gamepad1LeftStickX = gamepad1.left_stick_x;
@@ -97,5 +99,10 @@ class JoystickValues {
         this.gamepad2RightStickY = gamepad2.right_stick_y;
         this.gamepad2LeftStickX = gamepad2.left_stick_x;
         this.gamepad2LeftStickY = gamepad2.left_stick_y;
+
+        this.gamepad1LeftTrigger = gamepad1.left_trigger;
+        this.gamepad1RightTrigger = gamepad1.right_trigger;
+        this.gamepad2LeftTrigger = gamepad2.left_trigger;
+        this.gamepad2RightTrigger = gamepad2.left_trigger;
     }
 }
