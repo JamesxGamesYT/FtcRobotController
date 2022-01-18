@@ -31,18 +31,18 @@ public class Navigation
 
     // TELEOP CONSTANTS
     // ================
-    final double COARSE_MOVEMENT_MAX_POWER = 0.5;
-    final double FINE_MOVEMENT_MAX_POWER = 0.25;
-    final double COARSE_ROTATION_POWER = 0.375;
-    final double FINE_ROTATION_POWER = 0.1;
+    final double COARSE_MOVEMENT_MAX_POWER = 1.0;
+    final double FINE_MOVEMENT_MAX_POWER = 0.5;
+    final double COARSE_ROTATION_POWER = 0.8;
+    final double FINE_ROTATION_POWER = 0.4;
 
     // INSTANCE ATTRIBUTES
     // ===================
 
     // Speeds relative to one another.
     //                              RL   RR   FL   FR
-    public double[] wheel_speeds = {1.0, 1.0, 1.0, 1.0};
-    private double strafePower;  // Tele-Op only
+    public double[] wheel_speeds = {0.67, 0.67, 1.0, 1.0};
+    public double strafePower;  // Tele-Op only
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -102,11 +102,11 @@ public class Navigation
      *
      *  @return Whether the strafe power is greater than zero.
      */
-    public boolean updateStrafePower(AnalogValues analogValues, Robot robot) {
+    public void updateStrafePower(AnalogValues analogValues, Robot robot) {
         double throttle = analogValues.gamepad1LeftTrigger;
         if (throttle < 0.05) {  // Throttle dead zone.
             strafePower = 0.0;
-            return false;
+            return;
         }
         if (robot.fineMovement) {
             strafePower = throttle * FINE_MOVEMENT_MAX_POWER;
@@ -114,7 +114,6 @@ public class Navigation
         else {
             strafePower = throttle * COARSE_MOVEMENT_MAX_POWER;
         }
-        return true;
     }
 
     /** Moves the robot straight in one of the cardinal directions or at a 45 degree angle.
@@ -319,7 +318,7 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot) {
-        strafeDirection *= -1;
+//        strafeDirection *= -1;
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 

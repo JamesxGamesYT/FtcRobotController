@@ -74,7 +74,7 @@ class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
 //    static double MAGICAL_FACTOR = 2.0 * Math.sqrt(2) * Math.PI;
 
-    static double MAGICAL_FACTOR = 4 * Math.PI;
+    static double MAGICAL_FACTOR = 12.566 * .449;
 
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 
@@ -129,7 +129,8 @@ class EncoderPositioning {
      */
     private void resetEncoders(Robot robot) {
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
-//            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RESET_ENCODERS);
+//            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RESET_ENCODERS);
             Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
