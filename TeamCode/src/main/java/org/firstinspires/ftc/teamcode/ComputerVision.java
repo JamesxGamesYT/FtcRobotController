@@ -139,6 +139,16 @@ class AutonPipeline extends OpenCvPipeline {
             robot.numBarcodeAttempts++;
 
             if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || max.getValue() >= robot.MinBarcodeRepeat) {
+                Map<Robot.BarcodeScanResult, Integer> fullResultMap = robot.barcodeScanResultMap;
+                telemetry.addData("Barcode frequencies", fullResultMap.toString());
+                telemetry.update();
+
+                // Ensure that we don't end up with an invalid state as the most frequent. This will modify the map, so save a copy first.
+                while (max.getKey() == Robot.BarcodeScanResult.WRONG_CAPS || max.getKey() == Robot.BarcodeScanResult.WRONG_TAPE) {
+                    robot.barcodeScanResultMap.remove(max.getKey());
+                    max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
+                }
+
                 robot.barcodeScanResult = max.getKey();
                 robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
             }
