@@ -153,6 +153,7 @@ class IMUPositioning {
 
 
     IMUPositioning(HardwareMap hardwareMap) {
+        parameters = new BNO055IMU.Parameters();
         parameters.mode = BNO055IMU.SensorMode.IMU;
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;

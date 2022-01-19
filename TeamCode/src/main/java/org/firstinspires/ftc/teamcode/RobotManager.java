@@ -216,7 +216,8 @@ public class RobotManager {
     public Robot.SlidesState readBarcode() {
         // Reset the barcode scanning counters and states
         robot.barcodeScanResult = Robot.BarcodeScanResult.WRONG_CAPS;
-        robot.barcodeScanResultMap.clear();
+        robot.resetBarcodeScanMap();
+
         robot.barcodeScanState = Robot.BarcodeScanState.SCAN;
         robot.numBarcodeAttempts = 0;
 
@@ -228,7 +229,6 @@ public class RobotManager {
             catch (InterruptedException e) {}
         }
 
-        telemetry.addData("barcode scan result", robot.barcodeScanResult);
         return barcodeResultToSlidesState(robot.barcodeScanResult);
     }
 

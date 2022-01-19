@@ -126,6 +126,10 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Override
     public Mat processFrame(Mat input) {
+
+//        processBarcodeFrame(input, output);
+        input.copyTo(output);
+
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
@@ -134,14 +138,12 @@ class AutonPipeline extends OpenCvPipeline {
             // Increment the barcode result in the frequency counter and find the max value in that map
             int freq = robot.barcodeScanResultMap.get(result);
             robot.barcodeScanResultMap.put(result, freq + 1);
-            Map.Entry<Robot.BarcodeScanResult, Integer> max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
 
+            Map.Entry<Robot.BarcodeScanResult, Integer> max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
             robot.numBarcodeAttempts++;
 
             if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || max.getValue() >= Robot.MinBarcodeRepeat) {
                 Map<Robot.BarcodeScanResult, Integer> fullResultMap = robot.barcodeScanResultMap;
-                telemetry.addData("Barcode frequencies", fullResultMap.toString());
-                telemetry.update();
 
                 // Ensure that we don't end up with an invalid state as the most frequent. This will modify the map, so save a copy first.
                 while (max.getKey() == Robot.BarcodeScanResult.WRONG_CAPS || max.getKey() == Robot.BarcodeScanResult.WRONG_TAPE) {
@@ -151,9 +153,11 @@ class AutonPipeline extends OpenCvPipeline {
 
                 robot.barcodeScanResult = max.getKey();
                 robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
+                robot.barcodeScanResultMap = fullResultMap;
             }
             else {
-                return input;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
+                telemetry.update();
+                return output;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
             }
         }
 
@@ -250,8 +254,6 @@ class AutonPipeline extends OpenCvPipeline {
             ));
         }
     }
-
-    ;
 
 
 //    private static final ORB Orb = ORB.create(500, 1.2f, 8, 31, 0, 2, ORB.HARRIS_SCORE, 31, 20);
@@ -450,11 +452,12 @@ class AutonPipeline extends OpenCvPipeline {
      * @param b HSV color in Scalar format that represents the upper bound of the area to be isolated
      * NOTE: OpenCV represents hue from 0-180
      */
-    private static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b)
-    {
+    private static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b) {
         Core.inRange(hsv, a, b, out);
-        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
-        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(15, 15), CvType.CV_32F));
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(15, 15), CvType.CV_32F));
+//        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
+//        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
     }
 
 
@@ -471,7 +474,7 @@ class AutonPipeline extends OpenCvPipeline {
         Imgproc.GaussianBlur(barcodeHsv, barcodeHsv, new Size(7, 7), 5);
 
         // Do HSV thresholding to identify the barcode tape as well as the shipping element
-        IsolateBarcodeRange(barcodeHsv, barcodeCapRegions, BarcodeCapRange[0], BarcodeCapRange[0]);
+        IsolateBarcodeRange(barcodeHsv, barcodeCapRegions, BarcodeCapRange[0], BarcodeCapRange[1]);
 
         // HSV thresholding for barcode tape isolation
         IsolateBarcodeRange(barcodeHsv, barcodeTapeRegionsRed1, BarcodeTapeRangeRed1[0], BarcodeTapeRangeRed1[1]);

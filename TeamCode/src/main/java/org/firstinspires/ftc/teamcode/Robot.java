@@ -34,11 +34,21 @@ public class Robot {
 
     public BarcodeScanState barcodeScanState;
 
-    static final int MinBarcodeRepeat = 20;
-    static final int MaxBarcodeAttempts = 30;                                   // How many times to try scanning the barcode before giving up
-    int numBarcodeAttempts = 0;                                                 // Amount of current attempts to scan the barcode
-    Map<BarcodeScanResult, Integer> barcodeScanResultMap = new HashMap<>();     // An array representing a histogram of the scan results.
-    BarcodeScanResult barcodeScanResult;                                        // Represents the final decided barcode state
+    static final int MinBarcodeRepeat = 40;
+    static final int MaxBarcodeAttempts = 80;                      // How many times to try scanning the barcode before giving up
+    int numBarcodeAttempts;                                        // Amount of current attempts to scan the barcode
+    Map<BarcodeScanResult, Integer> barcodeScanResultMap;          // An array representing a histogram of the scan results.
+    BarcodeScanResult barcodeScanResult;                           // Represents the final decided barcode state
+
+    public void resetBarcodeScanMap() {
+        barcodeScanResultMap = new HashMap<BarcodeScanResult, Integer>() {{
+            put(BarcodeScanResult.LEFT, 0);
+            put(BarcodeScanResult.CENTER, 0);
+            put(BarcodeScanResult.RIGHT, 0);
+            put(BarcodeScanResult.WRONG_CAPS, 0);
+            put(BarcodeScanResult.WRONG_TAPE, 0);
+        }};
+    }
 
     boolean fineMovement = false;
     boolean fineRotation = false;
@@ -60,6 +70,9 @@ public class Robot {
         this.telemetry = telemetry;
         this.elapsedTime = elapsedTime;
         positionManager = new PositionManager(hardwareMap);
+
+        numBarcodeAttempts = 0;
+        resetBarcodeScanMap();
 
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
