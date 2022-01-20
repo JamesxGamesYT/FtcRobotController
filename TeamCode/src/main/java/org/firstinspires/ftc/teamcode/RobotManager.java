@@ -41,6 +41,7 @@ public class RobotManager {
 
         this.allianceColor = allianceColor;
         this.navigationMode = navigationMode;
+        this.telemetry = telemetry;
 
         elapsedTime.reset();
         navigation = new Navigation(navigationMode, allianceColor);
@@ -158,9 +159,7 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-        if (!navigation.updateStrafePower(gamepads.getAnalogValues(), robot)) {
-            return;
-        }
+        navigation.updateStrafePower(gamepads.getAnalogValues(), robot);
         boolean movedStraight = navigation.moveStraight(
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
                 gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
@@ -184,7 +183,12 @@ public class RobotManager {
 
     /** Moves the robot to the next point of interest.
      */
-    public void travelToNextPOI() {}
+    public void travelToNextPOI() {
+        robot.telemetry.addData("travelLinear called", "" + true);
+        telemetry.update();
+
+        navigation.travelToNextPOI(robot);
+    }
 
 
     private Robot.SlidesState barcodeResultToSlidesState(Robot.BarcodeScanResult result) {

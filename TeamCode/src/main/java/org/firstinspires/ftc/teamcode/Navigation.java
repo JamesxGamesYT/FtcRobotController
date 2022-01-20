@@ -21,8 +21,8 @@ public class Navigation
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
-    final double MAX_STRAFE_POWER = 0.75;
-    final double MIN_STRAFE_POWER = 0.1;
+    final double MAX_STRAFE_POWER = 1.0;
+    final double MIN_STRAFE_POWER = 0.4;
     final double MAX_ROTATION_POWER = 0.375;
     final double MIN_ROTATION_POWER = 0.05;
     // Accepted amounts of deviation between the robot's desired position and actual position.
@@ -89,10 +89,12 @@ public class Navigation
     /** Makes the robot travel along the path until it reaches a POI.
      */
     public void travelToNextPOI(Robot robot) {
+        robot.telemetry.addData("travelLinear called", "" + true);
+
         while (true) {
             Position target = path.get(0);
-            rotate(target.getRotation(), robot);
             travelLinear(target.getLocation(), robot);
+            rotate(target.getRotation(), robot);
             path.remove(0);
             if (target.getLocation().name.substring(0, 3).equals("POI")) break;
         }
@@ -258,6 +260,11 @@ public class Navigation
         double power = MIN_STRAFE_POWER;
         double distanceTraveled;
         while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
+            robot.telemetry.addData("Pos X", robot.positionManager.position.getX());
+            robot.telemetry.addData("Pos Y", robot.positionManager.position.getY());
+            robot.telemetry.addData("Pos R", robot.positionManager.position.getRotation());
+            robot.telemetry.update();
+
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
             if (distanceTraveled < totalDistance / 2) {
@@ -636,7 +643,7 @@ public class Navigation
  */
 class AutonomousPaths {
     public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList(
-            // Construct Position objects
+            new Position(new Point(0, -24, "POI Shipping Hub"), 0)
     ));
     public static final ArrayList<Position> DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
     public static final ArrayList<Position> NO_DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());

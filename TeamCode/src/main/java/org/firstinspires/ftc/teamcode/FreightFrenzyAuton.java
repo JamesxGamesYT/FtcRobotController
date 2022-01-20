@@ -15,25 +15,33 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        initSharedPreferences();
+//        initSharedPreferences();
+        FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_CAROUSEL;
+        FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
                                         allianceColor, telemetry, elapsedTime);
 
+
         // Warning: the following is blocking; it can probably be made non-blocking, if necessary
-        Robot.SlidesState hubLevel = robotManager.readBarcode();
-        
+//        Robot.SlidesState hubLevel = robotManager.readBarcode();
+        telemetry.addData("start", "Waiting for start");
+        telemetry.update();
+
         waitForStart(); // Wait for the play button to be pressed
 
+        telemetry.addData("GOT HERE", "" + true);
+        telemetry.update();
+
         robotManager.travelToNextPOI();  // Go to alliance shipping hub.
-        robotManager.deliverToShippingHub(hubLevel);
-        if (navigationMode == RobotManager.NavigationMode.DUCK_CAROUSEL || navigationMode == RobotManager.NavigationMode.DUCK_WAREHOUSE) {
-            robotManager.travelToNextPOI();  // Go to carousel.
-            robotManager.deliverDuck();
-            robotManager.travelToNextPOI();  // Park in alliance storage unit.
-        }
-        else {
-            robotManager.travelToNextPOI();  // Park in warehouse.
-        }
+//        robotManager.deliverToShippingHub(hubLevel);
+//        if (navigationMode == RobotManager.NavigationMode.DUCK_CAROUSEL || navigationMode == RobotManager.NavigationMode.DUCK_WAREHOUSE) {
+//            robotManager.travelToNextPOI();  // Go to carousel.
+//            robotManager.deliverDuck();
+//            robotManager.travelToNextPOI();  // Park in alliance storage unit.
+//        }
+//        else {
+//            robotManager.travelToNextPOI();  // Park in warehouse.
+//        }
 
         while (opModeIsActive()) {}
     }
@@ -55,10 +63,10 @@ public class FreightFrenzyAuton extends LinearOpMode {
         String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
 
         if (allianceColor.equals("BLUE")) {
-            this.allianceColor = RobotManager.AllianceColor.BLUE;
+            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
         }
         else if (allianceColor.equals("RED")) {
-            this.allianceColor = RobotManager.AllianceColor.RED;
+            FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.RED;
         }
 
         switch (autonMode) {
