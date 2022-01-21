@@ -3,6 +3,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -40,6 +43,7 @@ public class PositionManager {
      * @param robot Robot object whose estimate should be updated
      */
     public void updatePosition(Robot robot) {
+        IMUPositioning.UpdateRobotOrientation(robot);
         updateEncoderPosition(encoderPositioning.getDeltaEstimate(robot));
     }
 
@@ -129,25 +133,36 @@ class EncoderPositioning {
      */
     private void resetEncoders(Robot robot) {
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
-            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RESET_ENCODERS);
+            // We need to figure out which one of these is actually resetting (if both; we want only RESET)
+            // Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RESET_ENCODERS);
             Objects.requireNonNull(robot.driveMotors.get(motor)).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 }
 
 
-//class IMUPositioning {
-//    private BNO055IMU imu;
-//
-//    IMUPositioning(HardwareMap hardwareMap) {
-//        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-//        parameters.mode = BNO055IMU.SensorMode.IMU;
-//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-//        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-//        parameters.loggingEnabled = false;
-//
-//        imu = hardwareMap.get(BNO055IMU.class, "imu");
-//        imu.initialize(parameters);
-//    }
-//}
+class IMUPositioning {
+    static private BNO055IMU imu;
+
+
+    IMUPositioning(HardwareMap hardwareMap) {
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = false;
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+    }
+
+
+    static public double GetAngle() {
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
+    }
+
+    static void UpdateRobotOrientation(Robot robot) {
+        robot.positionManager.position.setRotation(GetAngle());
+    }
+}
