@@ -1,4 +1,7 @@
 package org.firstinspires.ftc.teamcode;
+import android.os.Environment;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -16,11 +19,14 @@ import java.util.Objects;
 public class PositionManager {
     // Stores the best guess of the robot's position (location + orientation) at any given time. To be accessed by nav methods
     public Position position;
+    private Position encoderDelta = new Position(0, 0, 0);
 
     public EncoderPositioning encoderPositioning;
-//    public IMUPositioning imuPositioning;
+    public IMUPositioning imuPositioning;
 
-    private Position encoderDelta = new Position(0, 0, 0);
+    private static final String LogFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/logs/positioning.txt";
+
+
 
     PositionManager(HardwareMap hardwareMap) {
         position = new Position();
@@ -32,10 +38,9 @@ public class PositionManager {
         initSensors(hardwareMap);
     }
 
-
     private void initSensors(HardwareMap hardwareMap) {
         encoderPositioning = new EncoderPositioning();
-//        imuPositioning = new IMUPositioning(hardwareMap);
+        imuPositioning = new IMUPositioning(hardwareMap);
     }
 
 
@@ -43,7 +48,7 @@ public class PositionManager {
      * @param robot Robot object whose estimate should be updated
      */
     public void updatePosition(Robot robot) {
-        IMUPositioning.UpdateRobotOrientation(robot);
+        imuPositioning.updateRobotOrientation(robot);
         updateEncoderPosition(encoderPositioning.getDeltaEstimate(robot));
     }
 
@@ -144,25 +149,33 @@ class EncoderPositioning {
 
 class IMUPositioning {
     static private BNO055IMU imu;
+    static private BNO055IMU.Parameters parameters;
 
 
     IMUPositioning(HardwareMap hardwareMap) {
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.mode = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
     }
 
 
-    static public double GetAngle() {
+    public static void Initialize(LinearOpMode opMode) {
+        imu.initialize(parameters);
+
+        while (!opMode.isStopRequested() && !imu.isGyroCalibrated()) {
+            opMode.sleep(50);
+            opMode.idle();
+        }
+    }
+
+    public double getAngle() {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
     }
 
-    static void UpdateRobotOrientation(Robot robot) {
-        robot.positionManager.position.setRotation(GetAngle());
+    void updateRobotOrientation(Robot robot) {
+        robot.positionManager.position.setRotation(getAngle());
     }
 }
