@@ -15,10 +15,10 @@ public class CVTestOpMode extends LinearOpMode {
         RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.DUCK_WAREHOUSE,
                                                      RobotManager.AllianceColor.BLUE, telemetry, elapsedTime);
         ComputerVision cv = robotManager.computerVision;
-        cv.startStreaming();
 
         waitForStart();
 
+        cv.startStreaming();
         Robot.SlidesState result = robotManager.readBarcode();
 
 

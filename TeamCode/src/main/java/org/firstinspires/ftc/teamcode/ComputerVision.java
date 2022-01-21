@@ -83,6 +83,8 @@ class AutonPipeline extends OpenCvPipeline {
     final private Mat output;  // Frame to be displayed on the phone
     final private RobotManager.AllianceColor allianceColor;
 
+    boolean first = true;
+
 
     AutonPipeline(Robot robot, Telemetry telemetry, RobotManager.AllianceColor allianceColor) {
         super();
@@ -126,7 +128,17 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Override
     public Mat processFrame(Mat input) {
+        if (first) {
+            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+            Bitmap bm = Bitmap.createBitmap(input.cols(), input.rows(), conf);
+            Utils.matToBitmap(input, bm);
 
+            try {
+                FileOutputStream fo = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata/firstimage.png");
+                bm.compress(Bitmap.CompressFormat.PNG, 100, fo);
+            }
+            catch (FileNotFoundException e) {}
+        }
 //        processBarcodeFrame(input, output);
         input.copyTo(output);
 
@@ -439,11 +451,13 @@ class AutonPipeline extends OpenCvPipeline {
     final static Rect BarcodeImageROI = new Rect(220, 120, 500, 230);
 
     // Define HSV scalars that represent ranges of color to be selected from the barcode image
-    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(45, 255, 255)};
+    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(80, 255, 255)};
     final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
 
+
+    static final Size NoiseSize = new Size(5, 5);
 
     /** Isolates the sections of an image in a given HSV range and removes noise, to find large solid-color areas
      * @param hsv The input image to be isolated, in HSV color format
@@ -454,8 +468,10 @@ class AutonPipeline extends OpenCvPipeline {
      */
     private static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b) {
         Core.inRange(hsv, a, b, out);
-        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(15, 15), CvType.CV_32F));
-        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(15, 15), CvType.CV_32F));
+
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(NoiseSize, CvType.CV_32F));
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(NoiseSize, CvType.CV_32F));
+
 //        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
 //        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
     }
