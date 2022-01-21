@@ -21,6 +21,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
                                         allianceColor, telemetry, elapsedTime);
 
+        IMUPositioning.Initialize(this);
+
 
         // Warning: the following is blocking; it can probably be made non-blocking, if necessary
 //        Robot.SlidesState hubLevel = robotManager.readBarcode();

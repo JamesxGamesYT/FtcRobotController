@@ -191,11 +191,23 @@ public class RobotManager {
     }
 
 
+    /** Converts a result from the barcode scanner into a level on which to place the preload box
+     * @param result The result of the barcode scanning. This will NEVER be WRONG_CAPS or WRONG_TAPE, it will always be a valid barcode state
+     * @return A SlidesState that represents the scoring level to deposit to
+     */
     private Robot.SlidesState barcodeResultToSlidesState(Robot.BarcodeScanResult result) {
-//        if (allianceColor == AllianceColor.BLUE) {
-//
-//        }
-        return null;
+
+        // TODO: Based on appendix D, I know this is right for the barcodes on the *Storage* side, but not necessarily the warehouse side
+        // For now, this can be alliance-color agnostic because of the mapping
+
+        switch (result) {
+            case LEFT: return Robot.SlidesState.L1;
+            case CENTER: return Robot.SlidesState.L2;
+            case RIGHT: return Robot.SlidesState.L3;
+        }
+
+        // TODO: what is the most (points or time) efficient level to pick here?
+        return Robot.SlidesState.L3;
     }
 
 
@@ -216,6 +228,7 @@ public class RobotManager {
             catch (InterruptedException e) {}
         }
 
+        telemetry.addData("barcode scan result", robot.barcodeScanResult);
         return barcodeResultToSlidesState(robot.barcodeScanResult);
     }
 
