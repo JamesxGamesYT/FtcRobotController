@@ -22,10 +22,10 @@ public class MechanismDriving {
     MechanismDriving(RobotManager.AllianceColor allianceColor) {
         switch (allianceColor) {
             case BLUE:
-                carouselPower = CAROUSEL_SPEED;
+                carouselPower = -CAROUSEL_SPEED;
                 break;
             case RED:
-                carouselPower = -CAROUSEL_SPEED;
+                carouselPower = CAROUSEL_SPEED;
                 break;
         }
     }

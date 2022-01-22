@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,6 +24,7 @@ public class FreightFrenzyTeleOp extends OpMode {
         initSharedPreferences();
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.TELEOP,
                                         allianceColor, telemetry, elapsedTime);
+        IMUPositioning.Initialize(this);
     }
 
     @Override

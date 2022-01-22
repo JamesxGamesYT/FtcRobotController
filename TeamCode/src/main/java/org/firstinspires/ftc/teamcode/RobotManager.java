@@ -184,9 +184,6 @@ public class RobotManager {
     /** Moves the robot to the next point of interest.
      */
     public void travelToNextPOI() {
-        robot.telemetry.addData("travelLinear called", "" + true);
-        telemetry.update();
-
         navigation.travelToNextPOI(robot);
     }
 

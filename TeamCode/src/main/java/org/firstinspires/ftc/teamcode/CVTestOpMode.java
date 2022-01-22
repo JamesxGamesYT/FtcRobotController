@@ -19,11 +19,12 @@ public class CVTestOpMode extends LinearOpMode {
         waitForStart();
 
         cv.startStreaming();
-        Robot.SlidesState result = robotManager.readBarcode();
+//        Robot.SlidesState result = robotManager.readBarcode();
 
+        IMUPositioning.Initialize(this);
 
         while (opModeIsActive()) {
-            telemetry.addData("result", result.name());
+//            telemetry.addData("result", result.name());
             telemetry.addData("Barcode frequencies", robotManager.robot.barcodeScanResultMap.toString());
 
 //            telemetry.addData("Frame Count", cv.camera.getFrameCount());

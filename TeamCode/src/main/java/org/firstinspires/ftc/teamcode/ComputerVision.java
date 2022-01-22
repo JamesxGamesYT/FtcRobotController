@@ -3,8 +3,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.os.Build;
-import androidx.annotation.RequiresApi;
 import com.google.gson.JsonArray;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -154,7 +152,7 @@ class AutonPipeline extends OpenCvPipeline {
             Map.Entry<Robot.BarcodeScanResult, Integer> max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
             robot.numBarcodeAttempts++;
 
-            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || max.getValue() >= Robot.MinBarcodeRepeat) {
+            if (robot.numBarcodeAttempts >= Robot.MAX_BARCODE_ATTEMPTS || max.getValue() >= Robot.MIN_BARCODE_REPEAT) {
                 Map<Robot.BarcodeScanResult, Integer> fullResultMap = robot.barcodeScanResultMap;
 
                 // Ensure that we don't end up with an invalid state as the most frequent. This will modify the map, so save a copy first.

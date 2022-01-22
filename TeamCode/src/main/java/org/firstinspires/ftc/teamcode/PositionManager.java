@@ -26,15 +26,17 @@ public class PositionManager {
 
     private static final String LogFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/logs/positioning.txt";
 
+    private Telemetry telemetry;
 
-
-    PositionManager(HardwareMap hardwareMap) {
+    PositionManager(HardwareMap hardwareMap, Telemetry telemetry) {
         position = new Position();
+        this.telemetry = telemetry;
         initSensors(hardwareMap);
     }
 
-    PositionManager(HardwareMap hardwareMap, double x, double y, double theta){
+    PositionManager(HardwareMap hardwareMap, Telemetry telemetry, double x, double y, double theta){
         position = new Position(x, y, theta);
+        this.telemetry = telemetry;
         initSensors(hardwareMap);
     }
 
@@ -49,6 +51,7 @@ public class PositionManager {
      */
     public void updatePosition(Robot robot) {
         imuPositioning.updateRobotOrientation(robot);
+        telemetry.addData("theta", robot.positionManager.position.getRotation());
         updateEncoderPosition(encoderPositioning.getDeltaEstimate(robot));
     }
 
@@ -159,16 +162,19 @@ class IMUPositioning {
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu = hardwareMap.get(BNO055IMU.class, "imu 1");
     }
 
 
-    public static void Initialize(LinearOpMode opMode) {
+    public static void Initialize(OpMode opMode) {
         imu.initialize(parameters);
 
-        while (!opMode.isStopRequested() && !imu.isGyroCalibrated()) {
-            opMode.sleep(50);
-            opMode.idle();
+//        while (!opMode.isStopRequested() && !imu.isGyroCalibrated()) {
+//            opMode.sleep(50);
+//            opMode.idle();
+//        }
+
+        while (!imu.isGyroCalibrated()) {
         }
     }
 
