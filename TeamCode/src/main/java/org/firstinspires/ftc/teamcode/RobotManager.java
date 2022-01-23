@@ -3,6 +3,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -21,9 +22,6 @@ public class RobotManager {
     public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
-    AllianceColor allianceColor;
-    NavigationMode navigationMode;
-
     public Robot robot;
 
     public MechanismDriving mechanismDriving;
@@ -39,12 +37,29 @@ public class RobotManager {
                         NavigationMode navigationMode, AllianceColor allianceColor,
                         Telemetry telemetry, ElapsedTime elapsedTime) {
 
-        this.allianceColor = allianceColor;
-        this.navigationMode = navigationMode;
         this.telemetry = telemetry;
 
         elapsedTime.reset();
         navigation = new Navigation(navigationMode, allianceColor);
+        mechanismDriving = new MechanismDriving(allianceColor);
+
+        robot = new Robot(hardwareMap, telemetry, elapsedTime);
+
+        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
+
+        gamepads = new GamepadWrapper(gamepad1, gamepad2);
+        previousStateGamepads = new GamepadWrapper();
+        previousStateGamepads.copyGamepads(gamepads);
+    }
+
+    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
+                        ArrayList<Position> path, AllianceColor allianceColor,
+                        Telemetry telemetry, ElapsedTime elapsedTime) {
+
+        this.telemetry = telemetry;
+
+        elapsedTime.reset();
+        navigation = new Navigation(path, allianceColor);
         mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);

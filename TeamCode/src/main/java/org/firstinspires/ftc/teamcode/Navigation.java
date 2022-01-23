@@ -78,6 +78,14 @@ public class Navigation
         }
     }
 
+    public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor) {
+        this.path = path;
+
+        if (allianceColor == RobotManager.AllianceColor.RED) {
+            reflectPath();
+        }
+    }
+
     /** Adds a desired position to the path.
      */
     public void addPosition(Position pos) {
@@ -736,11 +744,37 @@ public class Navigation
 /** Hardcoded paths through the playing field during the Autonomous period.
  */
 class AutonomousPaths {
-    public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList(
-            new Position(new Point(15, 0, "1"), 0),
-            new Position(new Point(15, 20, "POI Shipping Hub"), 1)
-    ));
+    public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
     public static final ArrayList<Position> DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
     public static final ArrayList<Position> NO_DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
     public static final ArrayList<Position> NO_DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
+
+    // TESTING PATHS
+    // =============
+
+    // NOTE:
+    // - These currently only incorporate strafing at intervals of pi/2, moving forward/backward whenever possible.
+    // - These assume both orientation and location to be relative to the robot's starting position.
+    public static final ArrayList<Position> PRELOAD_BOX_ONLY = new ArrayList<>(Arrays.asList(
+            new Position(new Point(10, 0, "Out from wall"), 0),
+            new Position(new Point(10, 10, "In line with shipping hub"), 0),
+            new Position(new Point(10, 10, "Facing shipping hub"), -Math.PI / 2),
+            new Position(new Point(20, 10, "POI Shipping hub"), -Math.PI / 2)
+    ));
+    public static final ArrayList<Position> PRELOAD_BOX_AND_PARK = new ArrayList<>(Arrays.asList(
+            new Position(new Point(10, 0, "Out from wall"), 0),
+            new Position(new Point(10, 10, "In line with shipping hub"), 0),
+            new Position(new Point(10, 10, "Facing shipping hub"), -Math.PI / 2),
+            new Position(new Point(20, 10, "POI Shipping hub"), -Math.PI / 2),
+            new Position(new Point(15, 10, "Backed up from shipping hub"), -Math.PI / 2),
+            new Position(new Point(15, 10, "Facing storage unit"), Math.PI),
+            new Position(new Point(15, -20, "Partially in storage unit"), Math.PI),
+            new Position(new Point(25, -20, "POI Parked"), Math.PI)
+    ));
+    public static final ArrayList<Position> MOVE_STRAIGHT = new ArrayList<>(Arrays.asList(
+            new Position(new Point(0, 20, "P1"), 0)
+    ));
+    public static final ArrayList<Position> ROTATE_180 = new ArrayList<>(Arrays.asList(
+            new Position(new Point(0, 0, "P1"), Math.PI)
+    ));
 }
