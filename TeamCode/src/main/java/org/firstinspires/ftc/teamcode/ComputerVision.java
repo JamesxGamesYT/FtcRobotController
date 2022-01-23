@@ -3,8 +3,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.os.Build;
-import androidx.annotation.RequiresApi;
 import com.google.gson.JsonArray;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -83,6 +81,8 @@ class AutonPipeline extends OpenCvPipeline {
     final private Mat output;  // Frame to be displayed on the phone
     final private RobotManager.AllianceColor allianceColor;
 
+    boolean first = true;
+
 
     AutonPipeline(Robot robot, Telemetry telemetry, RobotManager.AllianceColor allianceColor) {
         super();
@@ -126,29 +126,55 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Override
     public Mat processFrame(Mat input) {
+        if (first) {
+            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+            Bitmap bm = Bitmap.createBitmap(input.cols(), input.rows(), conf);
+            Utils.matToBitmap(input, bm);
+
+            try {
+                FileOutputStream fo = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata/firstimage.png");
+                bm.compress(Bitmap.CompressFormat.PNG, 100, fo);
+            }
+            catch (FileNotFoundException e) {}
+
+            first = false;
+        }
+//        processBarcodeFrame(input, output);
+        input.copyTo(output);
+
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
-            Robot.BarcodeScanResult result = processBarcodeFrame(input);
+            Robot.BarcodeScanResult result = processBarcodeFrame(input, output);
 
             // Increment the barcode result in the frequency counter and find the max value in that map
             int freq = robot.barcodeScanResultMap.get(result);
             robot.barcodeScanResultMap.put(result, freq + 1);
-            Map.Entry<Robot.BarcodeScanResult, Integer> max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
 
+            Map.Entry<Robot.BarcodeScanResult, Integer> max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
             robot.numBarcodeAttempts++;
 
-            if (robot.numBarcodeAttempts >= Robot.MaxBarcodeAttempts || max.getValue() >= robot.MinBarcodeRepeat) {
+            if (robot.numBarcodeAttempts >= Robot.MAX_BARCODE_ATTEMPTS || max.getValue() >= Robot.MIN_BARCODE_REPEAT) {
+                Map<Robot.BarcodeScanResult, Integer> fullResultMap = robot.barcodeScanResultMap;
+
+                // Ensure that we don't end up with an invalid state as the most frequent. This will modify the map, so save a copy first.
+                while (max.getKey() == Robot.BarcodeScanResult.WRONG_CAPS || max.getKey() == Robot.BarcodeScanResult.WRONG_TAPE) {
+                    robot.barcodeScanResultMap.remove(max.getKey());
+                    max = Collections.max(robot.barcodeScanResultMap.entrySet(), Comparator.comparingInt(Map.Entry::getValue));
+                }
+
                 robot.barcodeScanResult = max.getKey();
                 robot.barcodeScanState = Robot.BarcodeScanState.CHECK_SCAN;
+                robot.barcodeScanResultMap = fullResultMap;
             }
             else {
-                return input;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
+                telemetry.update();
+                return output;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
             }
         }
 
-        Position currentPosition = processPositioningFrame(input, output);
-        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
+//        Position currentPosition = processPositioningFrame(input, output);
+//        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
 
         return output;
     }
@@ -241,8 +267,6 @@ class AutonPipeline extends OpenCvPipeline {
         }
     }
 
-    ;
-
 
 //    private static final ORB Orb = ORB.create(500, 1.2f, 8, 31, 0, 2, ORB.HARRIS_SCORE, 31, 20);
 //    private static final SIFT Sift = SIFT.create(0, 3, 0.04, 10, 1.6);
@@ -286,10 +310,10 @@ class AutonPipeline extends OpenCvPipeline {
      * @return The corners defined by the {@param target}, transformed into screen space (or null, if no nav target is found)
      */
     @Nullable
-    private static MatOfPoint2f DetectTargetScreenCorners(NavTarget target, Mat frame, Mat output) {
+    private MatOfPoint2f DetectTargetScreenCorners(NavTarget target, Mat frame, Mat output) {
         DetectKeyPointsAndDesc(frame, frameKeyPoints, frameDescriptors);
 //        Features2d.drawKeypoints(frame, frameKeyPoints, output);
-//        return null;
+//        return nulrl;
 
         // find a way to set knn params here
 ////        MatOfDMatch matchesB = new MatOfDMatch();
@@ -303,7 +327,7 @@ class AutonPipeline extends OpenCvPipeline {
 //        des1.convertTo(des1, CvType.CV_32F);
 //        des2.convertTo(des2, CvType.CV_32F);
 //
-        FbMatcher.knnMatch(frameDescriptors, target.descriptors, matches, 2);
+        FbMatcher.knnMatch(target.descriptors, frameDescriptors, matches, 2);
 //
 ////        BfMatcher.knnMatch(des1, des2, matches, 2);
 ////        BfMatcher.match(des1, des2, matchesB);
@@ -357,9 +381,10 @@ class AutonPipeline extends OpenCvPipeline {
         objM.fromList(obj);
         sceneM.fromList(scene);
 //
-////        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
-        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
-//
+        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.RANSAC, 5.0, new Mat());
+//        Mat homography = Calib3d.findHomography(objM, sceneM, Calib3d.LMEDS);
+        if (homography.empty()) return null;
+
         MatOfPoint2f result = new MatOfPoint2f();
         Core.perspectiveTransform(target.imgCoords, result, homography);
 //
@@ -376,8 +401,11 @@ class AutonPipeline extends OpenCvPipeline {
     @Nullable
     Position processPositioningFrame(Mat input, Mat output) {
         input.copyTo(output);
+
         Imgproc.cvtColor(input, input, Imgproc.COLOR_BGR2GRAY);
         NavTarget t = NavTarget.RED_STORAGE_UNIT;
+        telemetry.addData("test", t.imgCoords.toString());
+        telemetry.update();
 
 //        for (NavTarget t : NavTarget.values()) {
 //            if (t.allianceColor == allianceColor) {
@@ -423,11 +451,13 @@ class AutonPipeline extends OpenCvPipeline {
     final static Rect BarcodeImageROI = new Rect(220, 120, 500, 230);
 
     // Define HSV scalars that represent ranges of color to be selected from the barcode image
-    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(45, 255, 255)};
+    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(80, 255, 255)};
     final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
 
+
+    static final Size NoiseSize = new Size(5, 5);
 
     /** Isolates the sections of an image in a given HSV range and removes noise, to find large solid-color areas
      * @param hsv The input image to be isolated, in HSV color format
@@ -436,11 +466,14 @@ class AutonPipeline extends OpenCvPipeline {
      * @param b HSV color in Scalar format that represents the upper bound of the area to be isolated
      * NOTE: OpenCV represents hue from 0-180
      */
-    private static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b)
-    {
+    private static void IsolateBarcodeRange(Mat hsv, Mat out, Scalar a, Scalar b) {
         Core.inRange(hsv, a, b, out);
-        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
-        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
+
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(NoiseSize, CvType.CV_32F));
+        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(NoiseSize, CvType.CV_32F));
+
+//        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
+//        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
     }
 
 
@@ -448,7 +481,7 @@ class AutonPipeline extends OpenCvPipeline {
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private Robot.BarcodeScanResult processBarcodeFrame(Mat input/*, Mat output*/) {
+    private Robot.BarcodeScanResult processBarcodeFrame(Mat input, Mat output) {
         // Todo: perform cropping based on region of image we expect to find barcode in
         // input = new Mat(input, BarcodeImageROI);
 
@@ -457,7 +490,7 @@ class AutonPipeline extends OpenCvPipeline {
         Imgproc.GaussianBlur(barcodeHsv, barcodeHsv, new Size(7, 7), 5);
 
         // Do HSV thresholding to identify the barcode tape as well as the shipping element
-        IsolateBarcodeRange(barcodeHsv, barcodeCapRegions, BarcodeCapRange[0], BarcodeCapRange[0]);
+        IsolateBarcodeRange(barcodeHsv, barcodeCapRegions, BarcodeCapRange[0], BarcodeCapRange[1]);
 
         // HSV thresholding for barcode tape isolation
         IsolateBarcodeRange(barcodeHsv, barcodeTapeRegionsRed1, BarcodeTapeRangeRed1[0], BarcodeTapeRangeRed1[1]);
@@ -471,19 +504,19 @@ class AutonPipeline extends OpenCvPipeline {
         ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
 
-        // Draw the detected areas to the output for visualization
-//        input.copyTo(output);
-//
-//        for (int idx = 0; idx < contours.size(); idx++) {
-//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
-//        }
-//
-//        contours.clear();
-//        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-//
-//        for (int idx = 0; idx < contours.size(); idx++) {
-//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
-//        }
+//        Draw the detected areas to the output for visualization
+        input.copyTo(output);
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
+        }
+
+        contours.clear();
+        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
+        }
 
         // Determine the centroids of the tape regions
         double[] tapeCentroidsX = new double[2];

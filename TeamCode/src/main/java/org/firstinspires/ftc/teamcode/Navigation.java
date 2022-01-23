@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 
 
 /** Keeps track of the robot's desired path and makes it follow it accurately.
@@ -22,7 +23,7 @@ public class Navigation
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.4;
+    final double MIN_STRAFE_POWER = 0.75;
     final double MAX_ROTATION_POWER = 0.375;
     final double MIN_ROTATION_POWER = 0.05;
     // Accepted amounts of deviation between the robot's desired position and actual position.
@@ -89,14 +90,15 @@ public class Navigation
     /** Makes the robot travel along the path until it reaches a POI.
      */
     public void travelToNextPOI(Robot robot) {
-        robot.telemetry.addData("travelLinear called", "" + true);
-
         while (true) {
             Position target = path.get(0);
             travelLinear(target.getLocation(), robot);
             rotate(target.getRotation(), robot);
             path.remove(0);
-            if (target.getLocation().name.substring(0, 3).equals("POI")) break;
+            if (target.getLocation().name.length() >= 3 && target.getLocation().name.substring(0, 3).equals("POI")) break;
+
+            robot.telemetry.addData("Got to", target.getLocation().name);
+            robot.telemetry.update();
         }
     }
 
@@ -252,20 +254,18 @@ public class Navigation
      */
     public void travelLinear(Point target, Robot robot) {
         robot.positionManager.updatePosition(robot);
-        Point startLoc = robot.getPosition().getLocation();
-        Point currentLoc = startLoc;
+        final Point startLoc = robot.getPosition().getLocation();
+        Point currentLoc = new Point(startLoc.x, startLoc.y, "current");
 
         double totalDistance = getEuclideanDistance(startLoc, target);
 
         double power = MIN_STRAFE_POWER;
         double distanceTraveled;
-        while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
-            robot.telemetry.addData("Pos X", robot.positionManager.position.getX());
-            robot.telemetry.addData("Pos Y", robot.positionManager.position.getY());
-            robot.telemetry.addData("Pos R", robot.positionManager.position.getRotation());
-            robot.telemetry.update();
+        double distanceToTarget;
 
+        while (getEuclideanDistance(currentLoc, target) > EPSILON_LOC) {
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+            distanceToTarget = getEuclideanDistance(currentLoc, target);
 
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
@@ -277,9 +277,9 @@ public class Navigation
             }
             else {
                 // Ramping down.
-                if (distanceTraveled >= totalDistance - STRAFE_RAMP_DISTANCE) {
+                if (distanceToTarget <= STRAFE_RAMP_DISTANCE) {
                     power = Range.clip(
-                            ((totalDistance - distanceTraveled) / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                            (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
                             MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
             }
@@ -288,14 +288,28 @@ public class Navigation
 
             robot.positionManager.updatePosition(robot);
             currentLoc = robot.getPosition().getLocation();
+
+//            robot.telemetry.addData("X", currentLoc.x);
+//            robot.telemetry.addData("Y", currentLoc.y);
+//            robot.telemetry.addData("dX", target.x);
+//            robot.telemetry.addData("dY", target.y);
+//            robot.telemetry.update();
         }
+
 
         stopMovement(robot);
     }
 
+    /** Makes the robot travel in a straight line for a certain distance.
+     *
+     *  @param target The desired position of the robot considering the starting location (before this method is
+     *                invoked) to be the origin. Units are encoder ticks.
+     */
+    public void travelLinearWithoutCorrection(Point target, Robot robot) {}
+
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
      */
-    private double getAngleBetween(Point a, Point b) { return Math.atan2((b.y - a.y), (b.x - a.x)); }
+    private double getAngleBetween(Point a, Point b) { return -Math.atan2((b.y - a.y), (b.x - a.x)); }
 
     /** Calculates the euclidean distance between two points.
      *
@@ -348,7 +362,7 @@ public class Navigation
      */
     private void stopMovement(Robot robot) {
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
-            robot.driveMotors.get(motor).setPower(0.0);
+            Objects.requireNonNull(robot.driveMotors.get(motor)).setPower(0.0);
         }
     }
 
@@ -643,7 +657,8 @@ public class Navigation
  */
 class AutonomousPaths {
     public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList(
-            new Position(new Point(0, -24, "POI Shipping Hub"), 0)
+            new Position(new Point(15, 0, "1"), 0),
+            new Position(new Point(15, 20, "POI Shipping Hub"), 1)
     ));
     public static final ArrayList<Position> DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
     public static final ArrayList<Position> NO_DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
