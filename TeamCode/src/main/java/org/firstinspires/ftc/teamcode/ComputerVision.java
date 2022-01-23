@@ -136,6 +136,8 @@ class AutonPipeline extends OpenCvPipeline {
                 bm.compress(Bitmap.CompressFormat.PNG, 100, fo);
             }
             catch (FileNotFoundException e) {}
+
+            first = false;
         }
 //        processBarcodeFrame(input, output);
         input.copyTo(output);
