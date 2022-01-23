@@ -33,6 +33,9 @@ public class Navigation
     final double EPSILON_ANGLE = 0.1;
     final int EPSILON_ENCODERS = 30;
 
+    // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
+    final double CLAW_SIZE = 3.0;
+
     // TELEOP CONSTANTS
     // ================
     final double COARSE_MOVEMENT_MAX_POWER = 1.0;

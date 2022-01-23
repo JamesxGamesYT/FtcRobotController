@@ -260,29 +260,56 @@ public class RobotManager {
         mechanismDriving.updateCarousel(robot);
     }
 
-    /** Grabs a cube piece of freight using the claw.
+    /** Opens the claw.
      */
     public void openClaw() {
         robot.desiredClawState = Robot.ClawState.OPEN;
+        double startingTime = robot.elapsedTime.milliseconds();
         mechanismDriving.updateClaw(robot);
-        try {
-            Thread.sleep(MechanismDriving.CLAW_SERVO_TIME);
-        } catch (InterruptedException e) {}
+        // Wait for claw to open.
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CLAW_SERVO_TIME) {}
     }
 
+    /** Closes the claw.
+     */
+    public void closeClaw() {
+        robot.desiredClawState = Robot.ClawState.CLOSED;
+        double startingTime = robot.elapsedTime.milliseconds();
+        mechanismDriving.updateClaw(robot);
+        // Wait for claw to close.
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CLAW_SERVO_TIME) {}
+    }
 
     /** Delivers a piece of freight to a particular level of the alliance shipping hub.
      *
      *  @param level the level to which the cargo needs to be delivered.
      */
     public void deliverToShippingHub(Robot.SlidesState level) {
+        // Extend slides.
         robot.desiredSlidesState = level;
         boolean extended = mechanismDriving.updateSlides(robot);
         while (!extended) {
             extended = mechanismDriving.updateSlides(robot);
         }
-        robot.desiredClawState = Robot.ClawState.OPEN;
-        double startingTime = robot.elapsedTime.milliseconds();
-        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CLAW_SERVO_TIME) {}
+
+        // Move into drop-off position.
+        robot.positionManager.updatePosition(robot);
+        Position startPos = robot.getPosition();
+        navigation.travelLinear(
+                new Point(startPos.getX(), startPos.getY() + navigation.CLAW_SIZE, "Dropoff"), robot);
+
+        openClaw();
+
+        // Move back to starting position.
+        navigation.travelLinear(startPos.getLocation(), robot);
+
+        // Retract slides.
+        robot.desiredSlidesState = Robot.SlidesState.RETRACTED;
+        boolean retracted = mechanismDriving.updateSlides(robot);
+        while (!retracted) {
+            retracted = mechanismDriving.updateSlides(robot);
+        }
+
+        closeClaw();
     }
 }
