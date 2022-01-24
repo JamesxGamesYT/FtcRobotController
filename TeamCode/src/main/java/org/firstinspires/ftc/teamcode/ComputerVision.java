@@ -127,19 +127,11 @@ class AutonPipeline extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input) {
         if (first) {
-            Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-            Bitmap bm = Bitmap.createBitmap(input.cols(), input.rows(), conf);
-            Utils.matToBitmap(input, bm);
-
-            try {
-                FileOutputStream fo = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/cvdata/firstimage.png");
-                bm.compress(Bitmap.CompressFormat.PNG, 100, fo);
-            }
-            catch (FileNotFoundException e) {}
-
+            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
             first = false;
         }
-//        processBarcodeFrame(input, output);
+
+        // TODO: remove copying for actual comp
         input.copyTo(output);
 
         // Check if a barcode scan has been requested
