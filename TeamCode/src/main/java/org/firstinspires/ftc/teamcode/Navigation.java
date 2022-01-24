@@ -289,11 +289,11 @@ public class Navigation
             robot.positionManager.updatePosition(robot);
             currentLoc = robot.getPosition().getLocation();
 
-//            robot.telemetry.addData("X", currentLoc.x);
-//            robot.telemetry.addData("Y", currentLoc.y);
-//            robot.telemetry.addData("dX", target.x);
-//            robot.telemetry.addData("dY", target.y);
-//            robot.telemetry.update();
+            robot.telemetry.addData("X", currentLoc.x);
+            robot.telemetry.addData("Y", currentLoc.y);
+            robot.telemetry.addData("dX", target.x);
+            robot.telemetry.addData("dY", target.y);
+            robot.telemetry.update();
         }
 
 

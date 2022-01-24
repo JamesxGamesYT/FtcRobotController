@@ -26,17 +26,17 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
 //        while (!started) {
 //         Warning: the following is blocking; it can probably be made non-blocking, if necessary
-        Robot.SlidesState hubLevel = robotManager.readBarcode();
+//        Robot.SlidesState hubLevel = robotManager.readBarcode();
 //       }
 
-        telemetry.addData("level", hubLevel.name());
+//        telemetry.addData("level", hubLevel.name());
         telemetry.addLine("Waiting for start");
         telemetry.update();
 
         waitForStart(); // Wait for the play button to be pressed
 
         robotManager.travelToNextPOI();  // Go to alliance shipping hub.
-        robotManager.deliverToShippingHub(hubLevel);
+//        robotManager.deliverToShippingHub(hubLevel);
 //        if (navigationMode == RobotManager.NavigationMode.DUCK_CAROUSEL || navigationMode == RobotManager.NavigationMode.DUCK_WAREHOUSE) {
 //            robotManager.travelToNextPOI();  // Go to carousel.
 //            robotManager.deliverDuck();
