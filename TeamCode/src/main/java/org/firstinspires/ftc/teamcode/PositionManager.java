@@ -162,7 +162,7 @@ class IMUPositioning {
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu 1");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
     }
 
 

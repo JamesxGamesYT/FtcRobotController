@@ -54,12 +54,12 @@ public class ComputerVision {
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
-            public void onOpened() {
-                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-            }
 //            public void onOpened() {
-//                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+//                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
 //            }
+            public void onOpened() {
+                camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+            }
 
 
             // TODO: responsible error handling
@@ -126,10 +126,10 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Override
     public Mat processFrame(Mat input) {
-        if (first) {
-            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
-            first = false;
-        }
+//        if (first) {
+//            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
+//            first = false;
+//        }
 
         // TODO: remove copying for actual comp
         input.copyTo(output);
@@ -138,6 +138,10 @@ class AutonPipeline extends OpenCvPipeline {
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
             Robot.BarcodeScanResult result = processBarcodeFrame(input, output);
+
+//            if (robot.numBarcodeAttempts % 5 == 0) {
+//                saveMatToDiskFullPath(output, ComputerVision.DataDir + "/barcodeImage" + robot.numBarcodeAttempts + ".png");
+//            }
 
             // Increment the barcode result in the frequency counter and find the max value in that map
             int freq = robot.barcodeScanResultMap.get(result);
@@ -160,7 +164,6 @@ class AutonPipeline extends OpenCvPipeline {
                 robot.barcodeScanResultMap = fullResultMap;
             }
             else {
-                telemetry.update();
                 return output;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
             }
         }
@@ -440,10 +443,11 @@ class AutonPipeline extends OpenCvPipeline {
     final private Mat barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids;
 
     // The Region of Interest that contains all the barcode elements and the least non-floor background possible
-    final static Rect BarcodeImageROI = new Rect(220, 120, 500, 230);
+    final static int BarcodeCropLeft = 150;
+    final static int BarcodeCropTop = 180;
 
     // Define HSV scalars that represent ranges of color to be selected from the barcode image
-    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 100, 50), new Scalar(80, 255, 255)};
+    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 70, 50), new Scalar(80, 255, 255)};
     final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
@@ -463,9 +467,6 @@ class AutonPipeline extends OpenCvPipeline {
 
         Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(NoiseSize, CvType.CV_32F));
         Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(NoiseSize, CvType.CV_32F));
-
-//        Imgproc.morphologyEx(out, out, Imgproc.MORPH_CLOSE, Mat.ones(new Size(25, 25), CvType.CV_32F));
-//        Imgproc.morphologyEx(out, out, Imgproc.MORPH_OPEN, Mat.ones(new Size(25, 25), CvType.CV_32F));
     }
 
 
@@ -474,11 +475,10 @@ class AutonPipeline extends OpenCvPipeline {
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
     private Robot.BarcodeScanResult processBarcodeFrame(Mat input, Mat output) {
-        // Todo: perform cropping based on region of image we expect to find barcode in
-        // input = new Mat(input, BarcodeImageROI);
+        Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft));
 
         // Convert input image to HSV space and perform basic blur
-        Imgproc.cvtColor(input, barcodeHsv, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(frame, barcodeHsv, Imgproc.COLOR_RGB2HSV);
         Imgproc.GaussianBlur(barcodeHsv, barcodeHsv, new Size(7, 7), 5);
 
         // Do HSV thresholding to identify the barcode tape as well as the shipping element
@@ -496,7 +496,8 @@ class AutonPipeline extends OpenCvPipeline {
         ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
 
-//        Draw the detected areas to the output for visualization
+        // Draw the detected areas to the output for visualization
+        // TODO: Get rid of this for competition
         input.copyTo(output);
 
         for (int idx = 0; idx < contours.size(); idx++) {

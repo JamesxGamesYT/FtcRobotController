@@ -18,16 +18,16 @@ public class FreightFrenzyAuton extends LinearOpMode {
 //        initSharedPreferences();
         FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_CAROUSEL;
         FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, navigationMode,
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, AutonomousPaths.PRELOAD_BOX_ONLY,
                                         allianceColor, telemetry, elapsedTime);
 
-        IMUPositioning.Initialize(this);
+//        IMUPositioning.Initialize(this);
         robotManager.computerVision.startStreaming();
 
-//        while (!started) {
+        while (!isStarted()) {
 //         Warning: the following is blocking; it can probably be made non-blocking, if necessary
-//        Robot.SlidesState hubLevel = robotManager.readBarcode();
-//       }
+        Robot.SlidesState hubLevel = robotManager.readBarcode();
+       }
 
 //        telemetry.addData("level", hubLevel.name());
         telemetry.addLine("Waiting for start");
@@ -37,6 +37,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
         robotManager.travelToNextPOI();  // Go to alliance shipping hub.
 //        robotManager.deliverToShippingHub(hubLevel);
+
 //        if (navigationMode == RobotManager.NavigationMode.DUCK_CAROUSEL || navigationMode == RobotManager.NavigationMode.DUCK_WAREHOUSE) {
 //            robotManager.travelToNextPOI();  // Go to carousel.
 //            robotManager.deliverDuck();

@@ -24,10 +24,10 @@ public class Navigation
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final int ENCODER_RAMP_DISTANCE = 1000;
     final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.75;
+    final double MIN_STRAFE_POWER = 0.8;
     final double MAX_ROTATION_POWER = 0.75;
     final double MIN_ROTATION_POWER = 0.5;
-    final boolean ROTATIONAL_RAMPING = false;
+    final boolean ROTATIONAL_RAMPING = true;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 1.0;
     final double EPSILON_ANGLE = 0.1;
@@ -109,10 +109,11 @@ public class Navigation
             travelLinear(target.getLocation(), robot);
             rotate(target.getRotation(), ROTATIONAL_RAMPING, robot);
             path.remove(0);
-            if (target.getLocation().name.length() >= 3 && target.getLocation().name.substring(0, 3).equals("POI")) break;
 
             robot.telemetry.addData("Got to", target.getLocation().name);
             robot.telemetry.update();
+
+            if (target.getLocation().name.length() >= 3 && target.getLocation().name.substring(0, 3).equals("POI")) break;
         }
     }
 
@@ -218,6 +219,10 @@ public class Navigation
         double rotationProgress = getRotationSize(startOrientation, currentOrientation);
 
         while (rotationRemaining > EPSILON_ANGLE) {
+            robot.telemetry.addData("rot left", rotationRemaining);
+            robot.telemetry.addData("current orientation", currentOrientation);
+            robot.telemetry.addData("target", target);
+            robot.telemetry.update();
 
             if (ramping) {
                 if (rotationProgress < rotationSize / 2) {
@@ -438,10 +443,10 @@ public class Navigation
         double powerSet2 = sinMoveDirection - cosMoveDirection;
         double [] rawPowers = scaleRange(powerSet1, powerSet2);
 
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower((rawPowers[1] * power + turn) * wheel_speeds[0]);
-        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower((rawPowers[0] * power - turn) * wheel_speeds[1]);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower((rawPowers[0] * power + turn) * wheel_speeds[2]);
-        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower((rawPowers[1] * power - turn) * wheel_speeds[3]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower((rawPowers[1] * power - turn) * wheel_speeds[0]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower((rawPowers[0] * power + turn) * wheel_speeds[1]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower((rawPowers[0] * power - turn) * wheel_speeds[2]);
+        robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower((rawPowers[1] * power + turn) * wheel_speeds[3]);
 
         robot.telemetry.addData("Front Motors", "left (%.2f), right (%.2f)",
                 (rawPowers[0] * power + turn) * wheel_speeds[2], (rawPowers[1] * power - turn) * wheel_speeds[3]);
@@ -759,10 +764,10 @@ class AutonomousPaths {
     // - These currently only incorporate strafing at intervals of pi/2, moving forward/backward whenever possible.
     // - These assume both orientation and location to be relative to the robot's starting position.
     public static final ArrayList<Position> PRELOAD_BOX_ONLY = new ArrayList<>(Arrays.asList(
-            new Position(new Point(10, 0, "Out from wall"), 0),
-            new Position(new Point(10, 10, "In line with shipping hub"), 0),
-            new Position(new Point(10, 10, "Facing shipping hub"), -Math.PI / 2),
-            new Position(new Point(20, 10, "POI Shipping hub"), -Math.PI / 2)
+            new Position(new Point(3, 0, "Out from wall"), 0),
+            new Position(new Point(3, 10, "In line with shipping hub"), 0),
+            new Position(new Point(3, 10, "Facing shipping hub"), -Math.PI / 2),
+            new Position(new Point(3, 20, "POI Shipping hub"), -Math.PI / 2)
     ));
     public static final ArrayList<Position> PRELOAD_BOX_AND_PARK = new ArrayList<>(Arrays.asList(
             new Position(new Point(10, 0, "Out from wall"), 0),
@@ -773,6 +778,10 @@ class AutonomousPaths {
             new Position(new Point(15, 10, "Facing storage unit"), Math.PI),
             new Position(new Point(15, -20, "Partially in storage unit"), Math.PI),
             new Position(new Point(25, -20, "POI Parked"), Math.PI)
+    ));
+    public static final ArrayList<Position> PARK = new ArrayList<>(Arrays.asList(
+            new Position(new Point(0, 7, "Out from wall"), 0),
+            new Position(new Point(7, 7, "POI"), 0)
     ));
     public static final ArrayList<Position> MOVE_STRAIGHT = new ArrayList<>(Arrays.asList(
             new Position(new Point(0, 20, "P1"), 0)
