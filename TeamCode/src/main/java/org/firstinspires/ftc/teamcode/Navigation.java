@@ -24,13 +24,13 @@ public class Navigation
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final int ENCODER_RAMP_DISTANCE = 1000;
     final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.2;
-    final double MAX_ROTATION_POWER = 0.5;
-    final double MIN_ROTATION_POWER = 0.1;
+    final double MIN_STRAFE_POWER = 0.5;
+    final double MAX_ROTATION_POWER = 0.4;
+    final double MIN_ROTATION_POWER = 0.15;
     final boolean ROTATIONAL_RAMPING = true;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 1.0;
-    final double EPSILON_ANGLE = 0.08;
+    final double EPSILON_ANGLE = 0.05;
     final int EPSILON_ENCODERS = 30;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
@@ -369,16 +369,13 @@ public class Navigation
             distanceToTarget = getEuclideanDistance(currentLoc, target);
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
-            robot.telemetry.addData("X", currentLoc.x);
-            robot.telemetry.addData("Y", currentLoc.y);
-            robot.telemetry.addData("dX", target.x);
-            robot.telemetry.addData("dY", target.y);
-            robot.telemetry.update();
+//            robot.telemetry.addData("X", currentLoc.x);
+//            robot.telemetry.addData("Y", currentLoc.y);
+//            robot.telemetry.addData("dX", target.x);
+//            robot.telemetry.addData("dY", target.y);
+//            robot.telemetry.update();
         }
 
-
-        robot.telemetry.addLine("traveled linear");
-        robot.telemetry.update();
         stopMovement(robot);
     }
 
@@ -427,7 +424,11 @@ public class Navigation
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
                 (rawPowers[1] * power + turn) * wheel_speeds[0], (rawPowers[0] * power - turn) * wheel_speeds[1]);
 
-        if (debug) return;
+        if (debug) {
+            double start = robot.elapsedTime.milliseconds();
+            while (robot.elapsedTime.milliseconds() - start > 100) {}
+            return;
+        };
 
         robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower((rawPowers[1] * power - turn) * wheel_speeds[0]);
         robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower((rawPowers[0] * power + turn) * wheel_speeds[1]);
@@ -747,8 +748,8 @@ class AutonomousPaths {
     public static final ArrayList<Position> PRELOAD_BOX_ONLY = new ArrayList<>(Arrays.asList(
             new Position(new Point(6, 0, "Out from wall"), 0),
             new Position(new Point(6, 23, "In line with shipping hub"), 0),
-            new Position(new Point(18, 23, "Location Shipping hub"), 0),
-            new Position(new Point(18, 23, "POI shipping hub"), -Math.PI / 2)
+            new Position(new Point(13, 23, "Location Shipping hub"), 0),
+            new Position(new Point(13, 23, "POI shipping hub"), -Math.PI / 2)
     ));
     public static final ArrayList<Position> PRELOAD_BOX_AND_PARK = new ArrayList<>(Arrays.asList(
             new Position(new Point(10, 0, "Out from wall"), 0),

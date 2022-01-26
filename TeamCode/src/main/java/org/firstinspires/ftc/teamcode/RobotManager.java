@@ -35,6 +35,7 @@ public class RobotManager {
                         Telemetry telemetry, ElapsedTime elapsedTime) {
 
         this.telemetry = telemetry;
+        this.elapsedTime = elapsedTime;
 
         elapsedTime.reset();
         navigation = new Navigation(path, allianceColor);
@@ -282,15 +283,15 @@ public class RobotManager {
         }
 
         // Move into drop-off position.
-//        robot.positionManager.updatePosition(robot);
-//        Position startPos = robot.getPosition();
-//        navigation.travelLinear(
-//                new Point(startPos.getX() + navigation.CLAW_SIZE, startPos.getY(), "Dropoff"), robot);
+        robot.positionManager.updatePosition(robot);
+        Position startPos = robot.getPosition();
+        navigation.travelLinear(
+                new Point(startPos.getX() + navigation.CLAW_SIZE, startPos.getY(), "Dropoff"), robot);
 
         openClaw();
 
 //         Move back to starting position.
-//        navigation.travelLinear(startPos.getLocation(), robot);
+        navigation.travelLinear(startPos.getLocation(), robot);
 
         // Retract slides.
         robot.desiredSlidesState = Robot.SlidesState.RETRACTED;

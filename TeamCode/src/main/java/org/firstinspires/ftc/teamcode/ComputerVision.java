@@ -67,6 +67,13 @@ public class ComputerVision {
             public void onError(int errorCode) {}
         });
     }
+
+    public void stopStreaming() {
+        camera.closeCameraDeviceAsync(new OpenCvCamera.AsyncCameraCloseListener() {
+            @Override
+            public void onClose() {}
+        });
+    }
 }
 
 
