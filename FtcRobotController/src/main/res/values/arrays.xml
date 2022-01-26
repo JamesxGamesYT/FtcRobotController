@@ -20,6 +20,11 @@
         <item>Duck (warehouse side)</item>
         <item>No Duck (carousel side)</item>
         <item>No Duck (warehouse side)</item>
+        <item>Preload box only</item>
+        <item>Preload box and park</item>
+        <item>Park</item>
+        <item>Move straight</item>
+        <item>Rotate 180</item>
     </string-array>
 
     <string-array name="autonTypeAlias">
@@ -27,6 +32,11 @@
         <item>"DUCK_WAREHOUSE"</item>
         <item>"NO_DUCK_CAROUSEL"</item>
         <item>"NO_DUCK_WAREHOUSE"</item>
+        <item>"PRELOAD_BOX_ONLY"</item>
+        <item>"PRELOAD_BOX_AND_PARK"</item>
+        <item>"PARK"</item>
+        <item>"MOVE_STRAIGHT"</item>
+        <item>"ROTATE 180"</item>
     </string-array>
 
 </resources>

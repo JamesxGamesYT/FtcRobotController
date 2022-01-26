@@ -9,8 +9,6 @@ public class MechanismDriving {
 
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3500, CAPPING_POS = 4000;
     public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.4; //These are not final values
-    // How long the carousel motor must be spinning for in order to deliver the duck.
-    public static final long DUCK_SPIN_TIME = 1000;  // Milliseconds
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances

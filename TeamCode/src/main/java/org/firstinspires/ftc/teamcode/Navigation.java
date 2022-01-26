@@ -24,9 +24,9 @@ public class Navigation
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final int ENCODER_RAMP_DISTANCE = 1000;
     final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.8;
+    final double MIN_STRAFE_POWER = 0.2;
     final double MAX_ROTATION_POWER = 0.5;
-    final double MIN_ROTATION_POWER = 0.25;
+    final double MIN_ROTATION_POWER = 0.1;
     final boolean ROTATIONAL_RAMPING = true;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 1.0;
@@ -56,30 +56,6 @@ public class Navigation
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     private ArrayList<Position> path;
-
-    public Navigation(RobotManager.NavigationMode navMode, RobotManager.AllianceColor allianceColor) {
-        switch (navMode) {
-            case TELEOP:
-                path = new ArrayList<>(Collections.emptyList());
-                break;
-            case DUCK_CAROUSEL:
-                path = (ArrayList<Position>) AutonomousPaths.DUCK_CAROUSEL_PATH.clone();
-                break;
-            case DUCK_WAREHOUSE:
-                path = (ArrayList<Position>) AutonomousPaths.DUCK_WAREHOUSE_PATH.clone();
-                break;
-            case NO_DUCK_CAROUSEL:
-                path = (ArrayList<Position>) AutonomousPaths.NO_DUCK_CAROUSEL_PATH.clone();
-                break;
-            case NO_DUCK_WAREHOUSE:
-                path = (ArrayList<Position>) AutonomousPaths.NO_DUCK_WAREHOUSE_PATH.clone();
-                break;
-        }
-
-        if (allianceColor == RobotManager.AllianceColor.RED) {
-            reflectPath();
-        }
-    }
 
     public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor) {
         this.path = path;

@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.ArrayList;
+
 @Autonomous(name="FreightFrenzyAuton", group="Linear OpMode")
 public class FreightFrenzyAuton extends LinearOpMode {
 
@@ -16,8 +18,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, AutonomousPaths.PARK,
-                                        allianceColor, telemetry, elapsedTime);
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, FreightFrenzyAuton.navigationPath,
+                                        FreightFrenzyAuton.allianceColor, telemetry, elapsedTime);
 
         IMUPositioning.Initialize(this);
 //        robotManager.computerVision.startStreaming();
@@ -52,12 +54,12 @@ public class FreightFrenzyAuton extends LinearOpMode {
     // ANDROID SHARED PREFERENCES
     // ==========================
 
-    // I have no idea if this works. Adapted from https://github.com/ver09934/twentytwenty/blob/ian-dev/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SkystoneAuton.java
+    // Adapted from https://github.com/ver09934/twentytwenty/blob/ian-dev/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SkystoneAuton.java
 
     private static SharedPreferences sharedPrefs;
 
     private static RobotManager.AllianceColor allianceColor;
-    private static RobotManager.NavigationMode navigationMode;
+    private static ArrayList<Position> navigationPath;
 
     public void initSharedPreferences() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.hardwareMap.appContext);
@@ -74,16 +76,31 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
         switch (autonMode) {
             case "DUCK_CAROUSEL":
-                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_CAROUSEL;
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.DUCK_CAROUSEL_PATH.clone();
                 break;
             case "DUCK_WAREHOUSE":
-                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_WAREHOUSE;
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.DUCK_WAREHOUSE_PATH.clone();
                 break;
             case "NO_DUCK_CAROUSEL":
-                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK_CAROUSEL;
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.NO_DUCK_CAROUSEL_PATH.clone();
                 break;
             case "NO_DUCK_WAREHOUSE":
-                FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.NO_DUCK_WAREHOUSE;
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.NO_DUCK_WAREHOUSE_PATH.clone();
+                break;
+            case "PRELOAD_BOX_ONLY":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_ONLY.clone();
+                break;
+            case "PRELOAD_BOX_AND_PARK":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK.clone();
+                break;
+            case "PARK":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK.clone();
+                break;
+            case "MOVE_STRAIGHT":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.MOVE_STRAIGHT.clone();
+                break;
+            case "ROTATE_180":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.ROTATE_180.clone();
                 break;
         }
     }

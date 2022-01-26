@@ -10,8 +10,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.ArrayList;
+import java.util.Collections;
 
-/** Autonomous OpMode for Freight Frenzy. Uses a finite state machine.
+
+/** Autonomous OpMode for Freight Frenzy.
  */
 @TeleOp(name="Freight Frenzy Tele-Op", group="TeleOp OpMode")
 public class FreightFrenzyTeleOp extends OpMode {
@@ -22,7 +25,7 @@ public class FreightFrenzyTeleOp extends OpMode {
     @Override
     public void init() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.TELEOP,
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, new ArrayList<>(Collections.emptyList()),
                                         allianceColor, telemetry, elapsedTime);
         IMUPositioning.Initialize(this);
     }
@@ -49,7 +52,7 @@ public class FreightFrenzyTeleOp extends OpMode {
     // ANDROID SHARED PREFERENCES
     // ==========================
 
-    // I have no idea if this works. Adapted from https://github.com/ver09934/twentytwenty/blob/ian-dev/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SkystoneAuton.java
+    // Adapted from https://github.com/ver09934/twentytwenty/blob/ian-dev/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SkystoneAuton.java
 
     private static SharedPreferences sharedPrefs;
 

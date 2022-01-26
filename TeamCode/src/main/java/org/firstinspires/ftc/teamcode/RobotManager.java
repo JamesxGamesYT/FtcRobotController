@@ -17,9 +17,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class RobotManager {
 
-    // These indicate both the tasks and the starting position. For example, DUCK_CAROUSEL has the robot start close to
-    // the carousel and deliver the duck.
-    public enum NavigationMode {DUCK_CAROUSEL, DUCK_WAREHOUSE, NO_DUCK_CAROUSEL, NO_DUCK_WAREHOUSE, TELEOP}
     public enum AllianceColor {BLUE, RED}
 
     public Robot robot;
@@ -32,25 +29,6 @@ public class RobotManager {
 
     private Telemetry telemetry;
     private ElapsedTime elapsedTime;
-
-    public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
-                        NavigationMode navigationMode, AllianceColor allianceColor,
-                        Telemetry telemetry, ElapsedTime elapsedTime) {
-
-        this.telemetry = telemetry;
-
-        elapsedTime.reset();
-        navigation = new Navigation(navigationMode, allianceColor);
-        mechanismDriving = new MechanismDriving(allianceColor);
-
-        robot = new Robot(hardwareMap, telemetry, elapsedTime);
-
-        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
-
-        gamepads = new GamepadWrapper(gamepad1, gamepad2);
-        previousStateGamepads = new GamepadWrapper();
-        previousStateGamepads.copyGamepads(gamepads);
-    }
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
                         ArrayList<Position> path, AllianceColor allianceColor,
@@ -259,8 +237,8 @@ public class RobotManager {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
         double startingTime = robot.elapsedTime.milliseconds();
-        // Sleep for MechanismDriving.DUCK_SPIN_TIME milliseconds.
-        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.DUCK_SPIN_TIME) {}
+        // Sleep for MechanismDriving.CAROUSEL_SPIN_TIME milliseconds.
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
         mechanismDriving.updateCarousel(robot);
     }
