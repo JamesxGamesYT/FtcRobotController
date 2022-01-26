@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 
 
@@ -16,18 +15,22 @@ import java.util.Objects;
  */
 public class Navigation
 {
+    // TODO: enable multiple auton runs without relaunching app
+    // TODO: check frames after ramping for movement
+    // TODO: make ramping acceleration linear
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
 
     // AUTON CONSTANTS
     // ===============
-    final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
-    final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
-    final int ENCODER_RAMP_DISTANCE = 1000;
+    final double STRAFE_ACCELERATION = 0.00015;  // Power unit per millisecond
+    final double ROTATE_ACCELERATION = 0.0002;  // Power unit per millisecond
     final double MAX_STRAFE_POWER = 1.0;
     final double MIN_STRAFE_POWER = 0.2;
-    final double MAX_ROTATION_POWER = 0.5;
-    final double MIN_ROTATION_POWER = 0.1;
-    final boolean ROTATIONAL_RAMPING = true;
+    final double STRAFE_RAMP_DISTANCE =
+            (MAX_STRAFE_POWER + MIN_STRAFE_POWER) / 2 + (MAX_STRAFE_POWER - MIN_STRAFE_POWER) / STRAFE_ACCELERATION;
+    final double MAX_ROTATE_POWER = 0.5;
+    final double MIN_ROTATE_POWER = 0.1;
+    final boolean ROTATIONAL_RAMPING = false;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 1.0;
     final double EPSILON_ANGLE = 0.08;
@@ -190,7 +193,7 @@ public class Navigation
 
         double rotationSize = getRotationSize(startOrientation, target);
 
-        double power = MIN_ROTATION_POWER;  // If ramping is false, power will stay at this value.
+        double power = MIN_ROTATE_POWER;  // If ramping is false, power will stay at this value.
         double rotationRemaining = getRotationSize(currentOrientation, target);
         double rotationProgress = getRotationSize(startOrientation, currentOrientation);
 
@@ -201,22 +204,23 @@ public class Navigation
             robot.telemetry.update();
 
             if (ramping) {
-                if (rotationProgress < rotationSize / 2) {
-                    // Ramping up.
-                    if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
-                        power = Range.clip(
-                                (rotationProgress / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
-                                MIN_ROTATION_POWER, MAX_ROTATION_POWER);
-                    }
-                }
-                else {
-                    // Ramping down.
-                    if (rotationRemaining <= ROTATION_RAMP_DISTANCE) {
-                        power = Range.clip(
-                                (rotationRemaining / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
-                                MIN_ROTATION_POWER, MAX_ROTATION_POWER);
-                    }
-                }
+                // TODO: reimplement this
+//                if (rotationProgress < rotationSize / 2) {
+//                    // Ramping up.
+//                    if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
+//                        power = Range.clip(
+//                                (rotationProgress / ROTATION_RAMP_DISTANCE) * MAX_ROTATE_POWER,
+//                                MIN_ROTATE_POWER, MAX_ROTATE_POWER);
+//                    }
+//                }
+//                else {
+//                    // Ramping down.
+//                    if (rotationRemaining <= ROTATION_RAMP_DISTANCE) {
+//                        power = Range.clip(
+//                                (rotationRemaining / ROTATION_RAMP_DISTANCE) * MAX_ROTATE_POWER,
+//                                MIN_ROTATE_POWER, MAX_ROTATE_POWER);
+//                    }
+//                }
             }
 
             switch (getRotationDirection(currentOrientation, target)) {
@@ -236,75 +240,6 @@ public class Navigation
         }
 
         stopMovement(robot);
-    }
-
-    /** Rotates the robot a specified amount.
-     *
-     *  @param targetEncoderCounts The number of average encoder counts that the drivetrain motors must travel before exiting
-     *                             the method.
-     *  @param direction The direction in which the robot is to rotate.
-     *
-     *  Note that this function keeps track of the difference in means, not the mean of the differences. It turns out
-     *  those are the same thing, and the former is easier to use.
-     */
-    public void rotateRelative(int targetEncoderCounts, RotationDirection direction, boolean ramping, Robot robot) {
-        int[] startEncoderCounts = getDriveEncoderCounts(robot);
-        int[] currentEncoderCounts = getDriveEncoderCounts(robot);
-
-        double power = MIN_ROTATION_POWER;
-        double distanceToTarget = targetEncoderCounts;
-        double distanceTraveled = 0;
-
-        while (distanceToTarget > EPSILON_ENCODERS) {
-            if (ramping) {
-                // Ramping up.
-                if (distanceTraveled <= ENCODER_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceTraveled / ENCODER_RAMP_DISTANCE) * MAX_ROTATION_POWER,
-                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
-                }
-                // Ramping down.
-                if (distanceToTarget <= ENCODER_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceToTarget / ENCODER_RAMP_DISTANCE) * MAX_ROTATION_POWER,
-                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
-                }
-            }
-
-            switch (direction) {
-                case CLOCKWISE:
-                    setDriveMotorPowers(0, 0, power, robot, false);
-                case COUNTERCLOCKWISE:
-                    setDriveMotorPowers(0, 0, -power, robot, false);
-            }
-
-            currentEncoderCounts = getDriveEncoderCounts(robot);
-            distanceTraveled = getMeanAbsDiff(currentEncoderCounts, startEncoderCounts);
-            distanceToTarget = targetEncoderCounts - distanceTraveled;
-        }
-
-        stopMovement(robot);
-    }
-
-    /** Returns an array containing the encoder counts of the drivetrain motors.
-     */
-    private int[] getDriveEncoderCounts(Robot robot) {
-        int[] encoderCounts = new int[4];
-        int i = 0;
-        for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
-            encoderCounts[i] = Math.abs(robot.driveMotors.get(motor).getCurrentPosition());
-        }
-        return encoderCounts;
-    }
-
-    /** Calculates the mean of the element-wise absolute differences between two arrays of equal length.
-     */
-    private double getMeanAbsDiff(int[] arr1, int[] arr2) {
-        double sumAbsDiff = 0;
-        for (int i = 0; i < arr1.length; i++) {
-            sumAbsDiff += Math.abs(arr1[i] - arr2[i]);
-        }
-        return sumAbsDiff / arr1.length;
     }
 
     /** Determines whether the robot has to turn clockwise or counterclockwise to get from theta to target.
@@ -346,19 +281,15 @@ public class Navigation
 
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
-                if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-                }
+                power = Range.clip(
+                        (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
             }
             else {
                 // Ramping down.
-                if (distanceToTarget <= STRAFE_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-                }
+                power = Range.clip(
+                        (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
             }
 
             setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot, false);
@@ -375,11 +306,23 @@ public class Navigation
             robot.telemetry.addData("dY", target.y);
             robot.telemetry.update();
         }
-
-
-        robot.telemetry.addLine("traveled linear");
-        robot.telemetry.update();
         stopMovement(robot);
+    }
+
+    /** Calculates half the amount of time it is estimated for a linear strafe to take.
+     *
+     *  @param distance the distance of the strafe
+     */
+    private double getHalfStrafeTime(double distance) {
+        if (distance / 2 >= STRAFE_RAMP_DISTANCE) {  // We never get to MAX_STRAFE_POWER
+            return (
+                (distance / 2 - STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER
+              + (MAX_STRAFE_POWER - MIN_STRAFE_POWER) / STRAFE_ACCELERATION) * 2;
+        }
+        else {
+            return (-MIN_STRAFE_POWER + Math.sqrt(Math.pow(MIN_STRAFE_POWER, 2) + distance * STRAFE_ACCELERATION))
+                 / 0.5 * STRAFE_ACCELERATION;
+        }
     }
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
@@ -412,8 +355,10 @@ public class Navigation
      *               you only want the robot to rotate.
      *  @param turn the speed at which the robot should rotate (clockwise). Must be in the interval [-1, 1]. Set this to
      *              zero if you only want the robot to strafe.
+     *  TODO: take empirical measurements required for this
+     *  @return the speed (inches/second) that the robot will be moving at after the motor powers are set by this method.
      */
-    private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
+    private double setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
 //        strafeDirection *= -1;
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
@@ -427,12 +372,14 @@ public class Navigation
         robot.telemetry.addData("Rear Motors", "left (%.2f), right (%.2f)",
                 (rawPowers[1] * power + turn) * wheel_speeds[0], (rawPowers[0] * power - turn) * wheel_speeds[1]);
 
-        if (debug) return;
+        if (debug) return 0.0;
 
         robot.driveMotors.get(RobotConfig.DriveMotors.REAR_LEFT).setPower((rawPowers[1] * power - turn) * wheel_speeds[0]);
         robot.driveMotors.get(RobotConfig.DriveMotors.REAR_RIGHT).setPower((rawPowers[0] * power + turn) * wheel_speeds[1]);
         robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_LEFT).setPower((rawPowers[0] * power - turn) * wheel_speeds[2]);
         robot.driveMotors.get(RobotConfig.DriveMotors.FRONT_RIGHT).setPower((rawPowers[1] * power + turn) * wheel_speeds[3]);
+
+        return 0.0;
     }
 
     /** Sets all drivetrain motor powers to zero.

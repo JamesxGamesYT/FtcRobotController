@@ -27,7 +27,7 @@ public class RobotManager {
 
     private GamepadWrapper gamepads, previousStateGamepads;
 
-    private Telemetry telemetry;
+    private Telemetry telemetry;  // TODO: Create wrapper object so update doesn't clear.
     private ElapsedTime elapsedTime;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
