@@ -17,9 +17,9 @@ public class MechanismDriving {
     double slideRampDownDist=1000, maxSpeedCoefficient =0.8, reducedSpeedCoefficient =0.7;
     public static final double CAROUSEL_SPEED = 0.5;
 
-    public int numFramesSinceCarouselStarted = 0;
-    public static final int CAROUSEL_PAUSED_FRAMES = 100;
-    public static final int CAROUSEL_SPIN_FRAMES = 100;
+    public double carouselStartTime = 0.0;
+    public static final double CAROUSEL_PAUSED_TIME = 500;
+    public static final double CAROUSEL_SPIN_TIME = 2000;
 
     private double carouselPower;
 
@@ -58,12 +58,11 @@ public class MechanismDriving {
                 robot.carousel.setPower(carouselPower);
                 break;
             case AUTO_SPIN:
-                if (numFramesSinceCarouselStarted % (CAROUSEL_PAUSED_FRAMES + CAROUSEL_SPIN_FRAMES) < CAROUSEL_SPIN_FRAMES)
+                double carouselTime = robot.elapsedTime.milliseconds() - carouselStartTime;
+                if (carouselTime % (CAROUSEL_PAUSED_TIME + CAROUSEL_SPIN_TIME) < CAROUSEL_SPIN_TIME)
                     robot.carousel.setPower(carouselPower);
                 else
                     robot.carousel.setPower(0);
-
-                numFramesSinceCarouselStarted++;
         }
     }
 

@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 @TeleOp(name="Freight Frenzy Tele-Op", group="TeleOp OpMode")
 public class FreightFrenzyTeleOp extends OpMode {
-CAROUSEL
+
     private RobotManager robotManager;
     private ElapsedTime elapsedTime = new ElapsedTime();
 

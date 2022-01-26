@@ -91,7 +91,7 @@ public class RobotManager {
         if (getButtonRelease(GamepadWrapper.DriverAction.TOGGLE_AUTO_SPIN)) {
             if (robot.desiredCarouselState != Robot.CarouselState.AUTO_SPIN) {
                 robot.desiredCarouselState = Robot.CarouselState.AUTO_SPIN;
-                mechanismDriving.numFramesSinceCarouselStarted = 0;
+                mechanismDriving.carouselStartTime = elapsedTime.milliseconds();
             }
             else {
                 robot.desiredCarouselState = Robot.CarouselState.STOPPED;
