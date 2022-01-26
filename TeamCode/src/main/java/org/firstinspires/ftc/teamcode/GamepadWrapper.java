@@ -12,7 +12,7 @@ public class GamepadWrapper {
     public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
                               SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, CHANGE_MOVEMENT_MODE,
                               CHANGE_ROTATION_MODE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
-                              MOVE_STRAIGHT_RIGHT, SET_STRAFE_POWER}
+                              MOVE_STRAIGHT_RIGHT, TOGGLE_AUTO_SPIN}
 
     Gamepad gamepad1, gamepad2;
 
@@ -68,6 +68,8 @@ public class GamepadWrapper {
                 return gamepad1.dpad_left;
             case MOVE_STRAIGHT_RIGHT:
                 return gamepad1.dpad_right;
+            case TOGGLE_AUTO_SPIN:
+                return gamepad2.x;
         }
         assert false;
         return false;

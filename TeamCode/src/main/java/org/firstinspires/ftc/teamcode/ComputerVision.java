@@ -131,13 +131,13 @@ class AutonPipeline extends OpenCvPipeline {
 //            first = false;
 //        }
 
-        // TODO: remove copying for actual comp
-        input.copyTo(output);
+
+        // input.copyTo(output);
 
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
-            Robot.BarcodeScanResult result = processBarcodeFrame(input, output);
+            Robot.BarcodeScanResult result = processBarcodeFrame(input);
 
 //            if (robot.numBarcodeAttempts % 5 == 0) {
 //                saveMatToDiskFullPath(output, ComputerVision.DataDir + "/barcodeImage" + robot.numBarcodeAttempts + ".png");
@@ -164,14 +164,14 @@ class AutonPipeline extends OpenCvPipeline {
                 robot.barcodeScanResultMap = fullResultMap;
             }
             else {
-                return output;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
+                return input;  // We have more iterations of barcode scanning to do, so we needn't spend time on positioning
             }
         }
 
 //        Position currentPosition = processPositioningFrame(input, output);
 //        if (currentPosition != null) robot.positionManager.updateCvPosition(currentPosition);
 
-        return output;
+        return input;
     }
 
 
@@ -474,7 +474,7 @@ class AutonPipeline extends OpenCvPipeline {
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private Robot.BarcodeScanResult processBarcodeFrame(Mat input, Mat output) {
+    private Robot.BarcodeScanResult processBarcodeFrame(Mat input/*, Mat output*/) {
         Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft));
 
         // Convert input image to HSV space and perform basic blur
@@ -495,21 +495,21 @@ class AutonPipeline extends OpenCvPipeline {
         // Visualize the detected areas with appropriately colored outlines
         ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-
-        // Draw the detected areas to the output for visualization
-        // TODO: Get rid of this for competition
-        input.copyTo(output);
-
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
-        }
-
-        contours.clear();
-        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
-        }
+//
+//        // Draw the detected areas to the output for visualization
+//        // TODO: Get rid of this for competition
+//        input.copyTo(output);
+//
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
+//        }
+//
+//        contours.clear();
+//        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+//
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
+//        }
 
         // Determine the centroids of the tape regions
         double[] tapeCentroidsX = new double[2];

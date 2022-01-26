@@ -86,7 +86,7 @@ class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
 //    static double MAGICAL_FACTOR = 2.0 * Math.sqrt(2) * Math.PI;
 
-    static double MAGICAL_FACTOR = 12.566 * .449;
+    static double MAGICAL_FACTOR = (12.566 / 2) * .449;
 
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 

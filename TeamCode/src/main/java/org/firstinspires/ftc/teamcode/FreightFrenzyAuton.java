@@ -15,19 +15,17 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-//        initSharedPreferences();
-        FreightFrenzyAuton.navigationMode = RobotManager.NavigationMode.DUCK_CAROUSEL;
-        FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, AutonomousPaths.PRELOAD_BOX_ONLY,
+        initSharedPreferences();
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, AutonomousPaths.PARK,
                                         allianceColor, telemetry, elapsedTime);
 
-//        IMUPositioning.Initialize(this);
-        robotManager.computerVision.startStreaming();
+        IMUPositioning.Initialize(this);
+//        robotManager.computerVision.startStreaming();
 
-        while (!isStarted()) {
+//        while (!isStarted()) {
 //         Warning: the following is blocking; it can probably be made non-blocking, if necessary
-        Robot.SlidesState hubLevel = robotManager.readBarcode();
-       }
+//        Robot.SlidesState hubLevel = robotManager.readBarcode();
+//       }
 
 //        telemetry.addData("level", hubLevel.name());
         telemetry.addLine("Waiting for start");
@@ -35,6 +33,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
         waitForStart(); // Wait for the play button to be pressed
 
+        robotManager.closeClaw();
         robotManager.travelToNextPOI();  // Go to alliance shipping hub.
 //        robotManager.deliverToShippingHub(hubLevel);
 

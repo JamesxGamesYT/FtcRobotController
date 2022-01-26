@@ -88,6 +88,15 @@ public class RobotManager {
                     break;
             }
         }
+        if (getButtonRelease(GamepadWrapper.DriverAction.TOGGLE_AUTO_SPIN)) {
+            if (robot.desiredCarouselState != Robot.CarouselState.AUTO_SPIN) {
+                robot.desiredCarouselState = Robot.CarouselState.AUTO_SPIN;
+                mechanismDriving.numFramesSinceCarouselStarted = 0;
+            }
+            else {
+                robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+            }
+        }
 
         // Claw
         if (getButtonRelease(GamepadWrapper.DriverAction.OPEN_CLAW)) {
@@ -209,17 +218,13 @@ public class RobotManager {
      */
     private Robot.SlidesState barcodeResultToSlidesState(Robot.BarcodeScanResult result) {
 
-        // TODO: Based on appendix D, I know this is right for the barcodes on the *Storage* side, but not necessarily the warehouse side
-        // For now, this can be alliance-color agnostic because of the mapping
-
         switch (result) {
             case LEFT: return Robot.SlidesState.L1;
             case CENTER: return Robot.SlidesState.L2;
             case RIGHT: return Robot.SlidesState.L3;
         }
 
-        // TODO: what is the most (points or time) efficient level to pick here?
-        return Robot.SlidesState.L3;
+        return Robot.SlidesState.L1;
     }
 
 
@@ -293,15 +298,15 @@ public class RobotManager {
         }
 
         // Move into drop-off position.
-        robot.positionManager.updatePosition(robot);
-        Position startPos = robot.getPosition();
-        navigation.travelLinear(
-                new Point(startPos.getX(), startPos.getY() + navigation.CLAW_SIZE, "Dropoff"), robot);
+//        robot.positionManager.updatePosition(robot);
+//        Position startPos = robot.getPosition();
+//        navigation.travelLinear(
+//                new Point(startPos.getX() + navigation.CLAW_SIZE, startPos.getY(), "Dropoff"), robot);
 
         openClaw();
 
-        // Move back to starting position.
-        navigation.travelLinear(startPos.getLocation(), robot);
+//         Move back to starting position.
+//        navigation.travelLinear(startPos.getLocation(), robot);
 
         // Retract slides.
         robot.desiredSlidesState = Robot.SlidesState.RETRACTED;
