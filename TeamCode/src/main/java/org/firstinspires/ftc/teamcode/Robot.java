@@ -53,6 +53,7 @@ public class Robot {
 
     boolean fineMovement = false;
     boolean fineRotation = false;
+    boolean wheelSpeedAdjustment = false;
 
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
 

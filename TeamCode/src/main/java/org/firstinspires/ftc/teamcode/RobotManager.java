@@ -109,35 +109,41 @@ public class RobotManager {
             robot.fineRotation = !robot.fineRotation;
         }
 
+        if (getButtonRelease(GamepadWrapper.DriverAction.TOGGLE_WHEEL_SPEED_ADJUSTMENT)) {
+            robot.wheelSpeedAdjustment = !robot.wheelSpeedAdjustment;
+        }
+
         // Adjust relative wheel speeds.
 
-        // Left stick Y for adjusting rear left.
-        if (gamepads.getAnalogValues().gamepad2LeftStickY > 0.5) {
-            navigation.wheel_speeds[0] += 0.01;
-        }
-        if (gamepads.getAnalogValues().gamepad2LeftStickY < -0.5) {
-            navigation.wheel_speeds[0] -= 0.01;
-        }
-        // Left stick X for adjusting rear right.
-        if (gamepads.getAnalogValues().gamepad2LeftStickX > 0.5) {
-            navigation.wheel_speeds[1] += 0.01;
-        }
-        if (gamepads.getAnalogValues().gamepad2LeftStickX < -0.5) {
-            navigation.wheel_speeds[1] -= 0.01;
-        }
-        // Right stick Y for adjusting front left.
-        if (gamepads.getAnalogValues().gamepad2RightStickY > 0.5) {
-            navigation.wheel_speeds[2] += 0.01;
-        }
-        if (gamepads.getAnalogValues().gamepad2RightStickY < -0.5) {
-            navigation.wheel_speeds[2] -= 0.01;
-        }
-        // Right stick X for adjusting front right.
-        if (gamepads.getAnalogValues().gamepad2RightStickX > 0.5) {
-            navigation.wheel_speeds[3] += 0.01;
-        }
-        if (gamepads.getAnalogValues().gamepad2RightStickX < -0.5) {
-            navigation.wheel_speeds[3] -= 0.01;
+        if (robot.wheelSpeedAdjustment) {
+            // Left stick Y for adjusting rear left.
+            if (gamepads.getAnalogValues().gamepad2LeftStickY > 0.5) {
+                navigation.wheel_speeds[0] += 0.01;
+            }
+            if (gamepads.getAnalogValues().gamepad2LeftStickY < -0.5) {
+                navigation.wheel_speeds[0] -= 0.01;
+            }
+            // Left stick X for adjusting rear right.
+            if (gamepads.getAnalogValues().gamepad2LeftStickX > 0.5) {
+                navigation.wheel_speeds[1] += 0.01;
+            }
+            if (gamepads.getAnalogValues().gamepad2LeftStickX < -0.5) {
+                navigation.wheel_speeds[1] -= 0.01;
+            }
+            // Right stick Y for adjusting front left.
+            if (gamepads.getAnalogValues().gamepad2RightStickY > 0.5) {
+                navigation.wheel_speeds[2] += 0.01;
+            }
+            if (gamepads.getAnalogValues().gamepad2RightStickY < -0.5) {
+                navigation.wheel_speeds[2] -= 0.01;
+            }
+            // Right stick X for adjusting front right.
+            if (gamepads.getAnalogValues().gamepad2RightStickX > 0.5) {
+                navigation.wheel_speeds[3] += 0.01;
+            }
+            if (gamepads.getAnalogValues().gamepad2RightStickX < -0.5) {
+                navigation.wheel_speeds[3] -= 0.01;
+            }
         }
 
         robot.telemetry.addData("Front Motor Relative Speeds", "left (%.2f), right (%.2f)",

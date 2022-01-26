@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 
 @TeleOp
 public class CVTestOpMode extends LinearOpMode {
@@ -12,7 +15,7 @@ public class CVTestOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, RobotManager.NavigationMode.DUCK_WAREHOUSE,
+        RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, new ArrayList<>(Collections.emptyList()),
                                                      RobotManager.AllianceColor.BLUE, telemetry, elapsedTime);
         ComputerVision cv = robotManager.computerVision;
 
