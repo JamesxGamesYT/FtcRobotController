@@ -32,6 +32,8 @@ public class Navigation
     final double EPSILON_LOC = 1.0;
     final double EPSILON_ANGLE = 0.05;
     final int EPSILON_ENCODERS = 30;
+    // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
+    final int NUM_CHECK_FRAMES = 20;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
     final double CLAW_SIZE = 2.0;
@@ -193,8 +195,10 @@ public class Navigation
         double power = MIN_ROTATION_POWER;  // If ramping is false, power will stay at this value.
         double rotationRemaining = getRotationSize(currentOrientation, target);
         double rotationProgress = getRotationSize(startOrientation, currentOrientation);
+        boolean finishedRotation = false;
+        int numFramesSinceLastFailure = 0;
 
-        while (rotationRemaining > EPSILON_ANGLE) {
+        while (!finishedRotation) {
             robot.telemetry.addData("rot left", rotationRemaining);
             robot.telemetry.addData("current orientation", currentOrientation);
             robot.telemetry.addData("target", target);
@@ -233,78 +237,19 @@ public class Navigation
 
             rotationRemaining = getRotationSize(currentOrientation, target);
             rotationProgress = getRotationSize(startOrientation, currentOrientation);
+
+            if (rotationRemaining > EPSILON_ANGLE) {
+                numFramesSinceLastFailure = 0;
+            }
+            else {
+                numFramesSinceLastFailure++;
+                if (numFramesSinceLastFailure >= 20) {
+                    finishedRotation = true;
+                }
+            }
         }
 
         stopMovement(robot);
-    }
-
-    /** Rotates the robot a specified amount.
-     *
-     *  @param targetEncoderCounts The number of average encoder counts that the drivetrain motors must travel before exiting
-     *                             the method.
-     *  @param direction The direction in which the robot is to rotate.
-     *
-     *  Note that this function keeps track of the difference in means, not the mean of the differences. It turns out
-     *  those are the same thing, and the former is easier to use.
-     */
-    public void rotateRelative(int targetEncoderCounts, RotationDirection direction, boolean ramping, Robot robot) {
-        int[] startEncoderCounts = getDriveEncoderCounts(robot);
-        int[] currentEncoderCounts = getDriveEncoderCounts(robot);
-
-        double power = MIN_ROTATION_POWER;
-        double distanceToTarget = targetEncoderCounts;
-        double distanceTraveled = 0;
-
-        while (distanceToTarget > EPSILON_ENCODERS) {
-            if (ramping) {
-                // Ramping up.
-                if (distanceTraveled <= ENCODER_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceTraveled / ENCODER_RAMP_DISTANCE) * MAX_ROTATION_POWER,
-                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
-                }
-                // Ramping down.
-                if (distanceToTarget <= ENCODER_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceToTarget / ENCODER_RAMP_DISTANCE) * MAX_ROTATION_POWER,
-                            MIN_ROTATION_POWER, MAX_ROTATION_POWER);
-                }
-            }
-
-            switch (direction) {
-                case CLOCKWISE:
-                    setDriveMotorPowers(0, 0, power, robot, false);
-                case COUNTERCLOCKWISE:
-                    setDriveMotorPowers(0, 0, -power, robot, false);
-            }
-
-            currentEncoderCounts = getDriveEncoderCounts(robot);
-            distanceTraveled = getMeanAbsDiff(currentEncoderCounts, startEncoderCounts);
-            distanceToTarget = targetEncoderCounts - distanceTraveled;
-        }
-
-        stopMovement(robot);
-    }
-
-    /** Returns an array containing the encoder counts of the drivetrain motors.
-     */
-    private int[] getDriveEncoderCounts(Robot robot) {
-        int[] encoderCounts = new int[4];
-        int i = 0;
-        for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
-            encoderCounts[i] = Math.abs(robot.driveMotors.get(motor).getCurrentPosition());
-        }
-        return encoderCounts;
-    }
-
-    /** Calculates the mean of the element-wise absolute differences between two arrays of equal length.
-     */
-    private double getMeanAbsDiff(int[] arr1, int[] arr2) {
-        double sumAbsDiff = 0;
-        for (int i = 0; i < arr1.length; i++) {
-            sumAbsDiff += Math.abs(arr1[i] - arr2[i]);
-        }
-        return sumAbsDiff / arr1.length;
     }
 
     /** Determines whether the robot has to turn clockwise or counterclockwise to get from theta to target.
@@ -341,8 +286,10 @@ public class Navigation
         double power = MIN_STRAFE_POWER;
         double distanceToTarget = getEuclideanDistance(currentLoc, target);
         double distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+        boolean finishedTravel = false;
+        double numFramesSinceLastFailure = 0;
 
-        while (distanceToTarget > EPSILON_LOC) {
+        while (!finishedTravel) {
 
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
@@ -368,6 +315,16 @@ public class Navigation
 
             distanceToTarget = getEuclideanDistance(currentLoc, target);
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+
+            if (distanceToTarget > EPSILON_LOC) {
+                numFramesSinceLastFailure = 0;
+            }
+            else {
+                numFramesSinceLastFailure++;
+                if (numFramesSinceLastFailure >= 20) {
+                    finishedTravel = true;
+                }
+            }
 
 //            robot.telemetry.addData("X", currentLoc.x);
 //            robot.telemetry.addData("Y", currentLoc.y);
