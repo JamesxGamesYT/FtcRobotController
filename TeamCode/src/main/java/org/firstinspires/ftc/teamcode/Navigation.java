@@ -58,9 +58,11 @@ public class Navigation
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
     private ArrayList<Position> path;
+    private int pathIndex;
 
     public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor) {
         this.path = path;
+        pathIndex = 0;
 
         if (allianceColor == RobotManager.AllianceColor.RED) {
             reflectPath();
@@ -83,10 +85,10 @@ public class Navigation
      */
     public void travelToNextPOI(Robot robot) {
         while (true) {
-            Position target = path.get(0);
+            Position target = path.get(pathIndex);
             travelLinear(target.getLocation(), robot);
             rotate(target.getRotation(), ROTATIONAL_RAMPING, robot);
-            path.remove(0);
+            pathIndex++;
 
             robot.telemetry.addData("Got to", target.getLocation().name);
             robot.telemetry.update();
