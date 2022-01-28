@@ -4,8 +4,11 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import android.os.Environment;
 import com.qualcomm.robotcore.util.Range;
 
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,19 +27,19 @@ public class Navigation
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final int ENCODER_RAMP_DISTANCE = 1000;
     final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.5;
-    final double MAX_ROTATION_POWER = 0.4;
+    final double MIN_STRAFE_POWER = 0.3;
+    final double MAX_ROTATION_POWER = 0.5;
     final double MIN_ROTATION_POWER = 0.15;
     final boolean ROTATIONAL_RAMPING = true;
     // Accepted amounts of deviation between the robot's desired position and actual position.
-    final double EPSILON_LOC = 1.0;
-    final double EPSILON_ANGLE = 0.05;
+    final double EPSILON_LOC = 2.0;
+    final double EPSILON_ANGLE = 0.15;
     final int EPSILON_ENCODERS = 30;
     // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
-    final int NUM_CHECK_FRAMES = 20;
+    final int NUM_CHECK_FRAMES = 0;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    final double CLAW_SIZE = 2.0;
+    final double CLAW_SIZE = 5.0;
 
     // TELEOP CONSTANTS
     // ================
@@ -57,8 +60,8 @@ public class Navigation
     // This condition must be maintained (positions should be deleted as the robot travels)
     // NOTE: a position is both a location and a rotation.
     // NOTE: this can be changed to a stack later if appropriate (not necessary for speed, just correctness).
-    private ArrayList<Position> path;
-    private int pathIndex;
+    public ArrayList<Position> path;
+    public int pathIndex;
 
     public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor) {
         this.path = path;
@@ -214,8 +217,7 @@ public class Navigation
                                 (rotationProgress / ROTATION_RAMP_DISTANCE) * MAX_ROTATION_POWER,
                                 MIN_ROTATION_POWER, MAX_ROTATION_POWER);
                     }
-                }
-                else {
+                } else {
                     // Ramping down.
                     if (rotationRemaining <= ROTATION_RAMP_DISTANCE) {
                         power = Range.clip(
@@ -242,10 +244,9 @@ public class Navigation
 
             if (rotationRemaining > EPSILON_ANGLE) {
                 numFramesSinceLastFailure = 0;
-            }
-            else {
+            } else {
                 numFramesSinceLastFailure++;
-                if (numFramesSinceLastFailure >= 20) {
+                if (numFramesSinceLastFailure >= NUM_CHECK_FRAMES) {
                     finishedRotation = true;
                 }
             }
@@ -310,7 +311,28 @@ public class Navigation
                 }
             }
 
-            setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot, false);
+            setDriveMotorPowers(robot.getPosition().getRotation() - getAngleBetween(currentLoc, target), power, 0.0, robot, false);
+
+//            robot.telemetry.addData("X", startLoc.x);
+//            robot.telemetry.addData("Y", startLoc.y);
+//            robot.telemetry.addData("X", currentLoc.x);
+//            robot.telemetry.addData("Y", currentLoc.y);
+//
+//            try {
+//                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
+//                fout.write(("start at:" + startLoc.x + " " + startLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.write(("current at:" + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.write(("target at:" + target.x + " " + target.y + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.write(("strafe angle: " + getAngleBetween(currentLoc, target)).getBytes(StandardCharsets.UTF_8));
+//                fout.close();
+//            }
+//            catch (Exception e) {}
+//
+//
+//            robot.telemetry.addData("tX", target.x);
+//            robot.telemetry.addData("tY", target.y);
+//            robot.telemetry.addData("Strafe angle", getAngleBetween(currentLoc, target));
+//            robot.telemetry.update();
 
             robot.positionManager.updatePosition(robot);
             currentLoc = robot.getPosition().getLocation();
@@ -323,16 +345,10 @@ public class Navigation
             }
             else {
                 numFramesSinceLastFailure++;
-                if (numFramesSinceLastFailure >= 20) {
+                if (numFramesSinceLastFailure >= NUM_CHECK_FRAMES) {
                     finishedTravel = true;
                 }
             }
-
-//            robot.telemetry.addData("X", currentLoc.x);
-//            robot.telemetry.addData("Y", currentLoc.y);
-//            robot.telemetry.addData("dX", target.x);
-//            robot.telemetry.addData("dY", target.y);
-//            robot.telemetry.update();
         }
 
         stopMovement(robot);
@@ -340,7 +356,7 @@ public class Navigation
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
      */
-    private double getAngleBetween(Point a, Point b) { return -Math.atan2((b.y - a.y), (b.x - a.x)); }
+    private double getAngleBetween(Point a, Point b) { return Math.atan2((b.y - a.y), (b.x - a.x)); }
 
     /** Calculates the euclidean distance between two points.
      *
@@ -370,7 +386,7 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
-//        strafeDirection *= -1;
+        strafeDirection *= -1;
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
@@ -706,9 +722,12 @@ class AutonomousPaths {
     // - These assume both orientation and location to be relative to the robot's starting position.
     public static final ArrayList<Position> PRELOAD_BOX_ONLY = new ArrayList<>(Arrays.asList(
             new Position(new Point(6, 0, "Out from wall"), 0),
-            new Position(new Point(6, 23, "In line with shipping hub"), 0),
-            new Position(new Point(13, 23, "Location Shipping hub"), 0),
-            new Position(new Point(13, 23, "POI shipping hub"), -Math.PI / 2)
+            new Position(new Point(6, 25, "In line with shipping hub"), 0),
+            new Position(new Point(13, 25, "Location Shipping hub"), 0),
+            new Position(new Point(13, 25, "POI shipping hub"), -Math.PI / 2)
+    ));
+    public static final ArrayList<Position> STRAFING_PRELOAD_BOX_ONLY = new ArrayList<>(Arrays.asList(
+            new Position(new Point(13, 25, "POI shipping hub"), -Math.PI / 2)
     ));
     public static final ArrayList<Position> PRELOAD_BOX_AND_PARK = new ArrayList<>(Arrays.asList(
             new Position(new Point(10, 0, "Out from wall"), 0),
@@ -718,12 +737,24 @@ class AutonomousPaths {
             new Position(new Point(15, 10, "Backed up from shipping hub"), -Math.PI / 2),
             new Position(new Point(15, 10, "Facing storage unit"), Math.PI),
             new Position(new Point(15, -20, "Partially in storage unit"), Math.PI),
-            new Position(new Point(25, -20, "POI Parked"), Math.PI)
+            new Position(new Point(25, -20, "POI storage unit"), Math.PI)
     ));
-    public static final ArrayList<Position> PARK = new ArrayList<>(Arrays.asList(
+    public static final ArrayList<Position> PARK_STORAGE_UNIT = new ArrayList<>(Arrays.asList(
             new Position(new Point(0, 10, "Out from wall1"), 0),
-            new Position(new Point(26, 10, "Out from wall2"), 0),
-            new Position(new Point(26, 25, "POI"), 0)
+            new Position(new Point(29, 10, "Out from wall2"), 0),
+            new Position(new Point(29, 25, "POI storage unit"), 0)
+    ));
+    public static final ArrayList<Position> STRAFING_PARK_STORAGE_UNIT = new ArrayList<>(Arrays.asList(
+            new Position(new Point(26, 25, "POI storage unit"), 0)
+    ));
+    public static final ArrayList<Position> CAROUSEL_PARK_STORAGE_UNIT = new ArrayList<>(Arrays.asList(
+            new Position(new Point(26, 25, "POI storage unit"), 0)
+    ));
+    public static final ArrayList<Position> CAROUSEL_PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
+            new Position(new Point(26, 25, "POI storage unit"), 0)
+    ));
+    public static final ArrayList<Position> PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
+            new Position(new Point(26, 25, "POI storage unit"), 0)
     ));
     public static final ArrayList<Position> MOVE_STRAIGHT = new ArrayList<>(Arrays.asList(
             new Position(new Point(0, 20, "P1"), 0)

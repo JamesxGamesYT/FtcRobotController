@@ -95,7 +95,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK.clone();
                 break;
             case "PARK":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK.clone();
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK_STORAGE_UNIT.clone();
                 break;
             case "MOVE_STRAIGHT":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.MOVE_STRAIGHT.clone();

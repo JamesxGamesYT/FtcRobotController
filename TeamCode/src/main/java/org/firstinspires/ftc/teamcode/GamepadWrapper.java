@@ -96,13 +96,13 @@ class AnalogValues {
 
     public AnalogValues(Gamepad gamepad1, Gamepad gamepad2) {
         this.gamepad1RightStickX = gamepad1.right_stick_x;
-        this.gamepad1RightStickY = gamepad1.right_stick_y;
+        this.gamepad1RightStickY = -gamepad1.right_stick_y;
         this.gamepad1LeftStickX = gamepad1.left_stick_x;
-        this.gamepad1LeftStickY = gamepad1.left_stick_y;
+        this.gamepad1LeftStickY = -gamepad1.left_stick_y;
         this.gamepad2RightStickX = gamepad2.right_stick_x;
-        this.gamepad2RightStickY = gamepad2.right_stick_y;
+        this.gamepad2RightStickY = -gamepad2.right_stick_y;
         this.gamepad2LeftStickX = gamepad2.left_stick_x;
-        this.gamepad2LeftStickY = gamepad2.left_stick_y;
+        this.gamepad2LeftStickY = -gamepad2.left_stick_y;
 
         this.gamepad1LeftTrigger = gamepad1.left_trigger;
         this.gamepad1RightTrigger = gamepad1.right_trigger;

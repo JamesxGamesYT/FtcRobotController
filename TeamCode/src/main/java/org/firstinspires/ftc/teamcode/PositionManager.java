@@ -91,10 +91,14 @@ class EncoderPositioning {
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 
     static HashMap<RobotConfig.DriveMotors, Double> RollerAngles = new HashMap<RobotConfig.DriveMotors, Double>() {{
-        put(RobotConfig.DriveMotors.FRONT_RIGHT, Math.PI / 4.d);
-        put(RobotConfig.DriveMotors.FRONT_LEFT, 3 * Math.PI / 4.d);
-        put(RobotConfig.DriveMotors.REAR_LEFT, Math.PI / 4.d);
-        put(RobotConfig.DriveMotors.REAR_RIGHT, 3 * Math.PI / 4.d);
+//        put(RobotConfig.DriveMotors.FRONT_RIGHT, Math.PI / 4.d);
+//        put(RobotConfig.DriveMotors.FRONT_LEFT, 3 * Math.PI / 4.d);
+//        put(RobotConfig.DriveMotors.REAR_LEFT, Math.PI / 4.d);
+//        put(RobotConfig.DriveMotors.REAR_RIGHT, 3 * Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.FRONT_RIGHT, -Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.FRONT_LEFT, Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.REAR_LEFT, -Math.PI / 4.d);
+        put(RobotConfig.DriveMotors.REAR_RIGHT, Math.PI / 4.d);
     }};
 
 
@@ -112,12 +116,12 @@ class EncoderPositioning {
             int encoderCounts = robot.driveMotors.get(rollerAngle.getKey()).getCurrentPosition();
             double force = rollerAngle.getValue();
 
-            deltaPSumX += -(encoderCounts * ((Math.sin(theta) * Math.sin(force)) + (Math.cos(theta) * Math.cos(force)))) / 2.0;
-            deltaPSumY += -(encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force)))) / 2.0;
+            deltaPSumY += -(encoderCounts * ((Math.sin(theta) * Math.sin(force)) + (Math.cos(theta) * Math.cos(force)))) / 2.0;
+            deltaPSumX += -(encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force)))) / 2.0;
         }
 
         resetEncoders(robot);
-        return new Position(MAGICAL_RATIO * (deltaPSumX), MAGICAL_RATIO * (deltaPSumY), 0.0);
+        return new Position(-MAGICAL_RATIO * (deltaPSumX), MAGICAL_RATIO * (deltaPSumY), 0.0);
 
 
 //        double ADEncCount = robot.frontLeftDrive.getCurrentPosition() + robot.rearRightDrive.getCurrentPosition();

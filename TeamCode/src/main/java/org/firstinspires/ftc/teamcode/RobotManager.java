@@ -285,12 +285,14 @@ public class RobotManager {
         // Move into drop-off position.
         robot.positionManager.updatePosition(robot);
         Position startPos = robot.getPosition();
-        navigation.travelLinear(
-                new Point(startPos.getX() + navigation.CLAW_SIZE, startPos.getY(), "Dropoff"), robot);
+        navigation.path.add(navigation.pathIndex,
+                new Position(new Point(startPos.getX() + navigation.CLAW_SIZE, startPos.getY(), "POI dropoff"),
+                        startPos.getRotation()));
+        travelToNextPOI();
 
         openClaw();
 
-//         Move back to starting position.
+        // Move back to starting position.
         navigation.travelLinear(startPos.getLocation(), robot);
 
         // Retract slides.
