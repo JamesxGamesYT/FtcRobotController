@@ -15,19 +15,17 @@ import java.util.Objects;
  */
 public class Navigation
 {
-    // TODO: enable multiple auton runs without relaunching app
-    // TODO: check frames after ramping for movement
-    // TODO: make ramping acceleration linear
     public enum RotationDirection {CLOCKWISE, COUNTERCLOCKWISE}
 
     // AUTON CONSTANTS
     // ===============
-    final double STRAFE_ACCELERATION = 0.00015;  // Power unit per millisecond
-    final double ROTATE_ACCELERATION = 0.0002;  // Power unit per millisecond
+    final double STRAFE_ACCELERATION = 0.1;  // Inches per second per second
+    final double ROTATE_ACCELERATION = 0.1;
+    // How many inches per second the robot goes at when moving forward with all motors set to full power.
+    // TODO: empirically measure this value.
+    final double SPEED_FACTOR = 1.0;
     final double MAX_STRAFE_POWER = 1.0;
     final double MIN_STRAFE_POWER = 0.2;
-    final double STRAFE_RAMP_DISTANCE =
-            (MAX_STRAFE_POWER + MIN_STRAFE_POWER) / 2 + (MAX_STRAFE_POWER - MIN_STRAFE_POWER) / STRAFE_ACCELERATION;
     final double MAX_ROTATE_POWER = 0.5;
     final double MIN_ROTATE_POWER = 0.1;
     final boolean ROTATIONAL_RAMPING = false;
@@ -186,25 +184,24 @@ public class Navigation
      */
     public void rotate(double target, boolean ramping, Robot robot)
     {
-        robot.positionManager.updatePosition(robot);
-        // Both values are restricted to interval (-pi, pi].
-        final double startOrientation = robot.getPosition().getRotation();
-        double currentOrientation = startOrientation;  // Copies by value because double is primitive.
-
-        double rotationSize = getRotationSize(startOrientation, target);
-
-        double power = MIN_ROTATE_POWER;  // If ramping is false, power will stay at this value.
-        double rotationRemaining = getRotationSize(currentOrientation, target);
-        double rotationProgress = getRotationSize(startOrientation, currentOrientation);
-
-        while (rotationRemaining > EPSILON_ANGLE) {
-            robot.telemetry.addData("rot left", rotationRemaining);
-            robot.telemetry.addData("current orientation", currentOrientation);
-            robot.telemetry.addData("target", target);
-            robot.telemetry.update();
-
-            if (ramping) {
-                // TODO: reimplement this
+//        robot.positionManager.updatePosition(robot);
+//        // Both values are restricted to interval (-pi, pi].
+//        final double startOrientation = robot.getPosition().getRotation();
+//        double currentOrientation = startOrientation;  // Copies by value because double is primitive.
+//
+//        double rotationSize = getRotationSize(startOrientation, target);
+//
+//        double power = MIN_ROTATE_POWER;  // If ramping is false, power will stay at this value.
+//        double rotationRemaining = getRotationSize(currentOrientation, target);
+//        double rotationProgress = getRotationSize(startOrientation, currentOrientation);
+//
+//        while (rotationRemaining > EPSILON_ANGLE) {
+//            robot.telemetry.addData("rot left", rotationRemaining);
+//            robot.telemetry.addData("current orientation", currentOrientation);
+//            robot.telemetry.addData("target", target);
+//            robot.telemetry.update();
+//
+//            if (ramping) {
 //                if (rotationProgress < rotationSize / 2) {
 //                    // Ramping up.
 //                    if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
@@ -221,25 +218,25 @@ public class Navigation
 //                                MIN_ROTATE_POWER, MAX_ROTATE_POWER);
 //                    }
 //                }
-            }
-
-            switch (getRotationDirection(currentOrientation, target)) {
-                case CLOCKWISE:
-                    setDriveMotorPowers(0.0, 0.0, power, robot, false);
-                    break;
-                case COUNTERCLOCKWISE:
-                    setDriveMotorPowers(0.0, 0.0, -power, robot, false);
-                    break;
-            }
-
-            robot.positionManager.updatePosition(robot);
-            currentOrientation = robot.getPosition().getRotation();
-
-            rotationRemaining = getRotationSize(currentOrientation, target);
-            rotationProgress = getRotationSize(startOrientation, currentOrientation);
-        }
-
-        stopMovement(robot);
+//            }
+//
+//            switch (getRotationDirection(currentOrientation, target)) {
+//                case CLOCKWISE:
+//                    setDriveMotorPowers(0.0, 0.0, power, robot, false);
+//                    break;
+//                case COUNTERCLOCKWISE:
+//                    setDriveMotorPowers(0.0, 0.0, -power, robot, false);
+//                    break;
+//            }
+//
+//            robot.positionManager.updatePosition(robot);
+//            currentOrientation = robot.getPosition().getRotation();
+//
+//            rotationRemaining = getRotationSize(currentOrientation, target);
+//            rotationProgress = getRotationSize(startOrientation, currentOrientation);
+//        }
+//
+//        stopMovement(robot);
     }
 
     /** Determines whether the robot has to turn clockwise or counterclockwise to get from theta to target.
@@ -267,60 +264,67 @@ public class Navigation
      *  @param target The desired position of the robot.
      */
     public void travelLinear(Point target, Robot robot) {
-        robot.positionManager.updatePosition(robot);
-        final Point startLoc = robot.getPosition().getLocation();
-        Point currentLoc = new Point(startLoc.x, startLoc.y, "current");
-
-        double totalDistance = getEuclideanDistance(startLoc, target);
-
-        double power = MIN_STRAFE_POWER;
-        double distanceToTarget = getEuclideanDistance(currentLoc, target);
-        double distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
-
-        while (distanceToTarget > EPSILON_LOC) {
-
-            if (distanceTraveled < totalDistance / 2) {
-                // Ramping up.
-                power = Range.clip(
-                        (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-            }
-            else {
-                // Ramping down.
-                power = Range.clip(
-                        (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-            }
-
-            setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot, false);
-
-            robot.positionManager.updatePosition(robot);
-            currentLoc = robot.getPosition().getLocation();
-
-            distanceToTarget = getEuclideanDistance(currentLoc, target);
-            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
-
-            robot.telemetry.addData("X", currentLoc.x);
-            robot.telemetry.addData("Y", currentLoc.y);
-            robot.telemetry.addData("dX", target.x);
-            robot.telemetry.addData("dY", target.y);
-            robot.telemetry.update();
-        }
-        stopMovement(robot);
+//        robot.positionManager.updatePosition(robot);
+//        final Point startLoc = robot.getPosition().getLocation();
+//        Point currentLoc = new Point(startLoc.x, startLoc.y, "current");
+//
+//        double totalDistance = getEuclideanDistance(startLoc, target);
+//
+//        double power = MIN_STRAFE_POWER;
+//        double distanceToTarget = getEuclideanDistance(currentLoc, target);
+//        double distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+//
+//        while (distanceToTarget > EPSILON_LOC) {
+//
+//            if (distanceTraveled < totalDistance / 2) {
+//                // Ramping up.
+//                power = Range.clip(
+//                        (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+//                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+//            }
+//            else {
+//                // Ramping down.
+//                power = Range.clip(
+//                        (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+//                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+//            }
+//
+//            setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot, false);
+//
+//            robot.positionManager.updatePosition(robot);
+//            currentLoc = robot.getPosition().getLocation();
+//
+//            distanceToTarget = getEuclideanDistance(currentLoc, target);
+//            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+//
+//            robot.telemetry.addData("X", currentLoc.x);
+//            robot.telemetry.addData("Y", currentLoc.y);
+//            robot.telemetry.addData("dX", target.x);
+//            robot.telemetry.addData("dY", target.y);
+//            robot.telemetry.update();
+//        }
+//        stopMovement(robot);
     }
 
     /** Calculates half the amount of time it is estimated for a linear strafe to take.
      *
      *  @param distance the distance of the strafe
+     *  @param strafeAngle the angle of the strafe
      */
-    private double getHalfStrafeTime(double distance) {
-        if (distance / 2 >= STRAFE_RAMP_DISTANCE) {  // We never get to MAX_STRAFE_POWER
-            return (
-                (distance / 2 - STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER
-              + (MAX_STRAFE_POWER - MIN_STRAFE_POWER) / STRAFE_ACCELERATION) * 2;
+    private double getHalfStrafeTime(double distance, double strafeAngle) {
+        // TODO: these need to be calculated using the strafe angle motor power constants, and SPEED_FACTOR.
+        // Inches per second is probably a good unit.
+        double min_strafe_speed = 0.0;
+        double max_strafe_speed = 0.0;
+
+        double ramp_distance = (max_strafe_speed + min_strafe_speed) / 2
+                             * (max_strafe_speed - min_strafe_speed) / STRAFE_ACCELERATION;
+        if (distance / 2 >= ramp_distance) {
+            return (distance / 2 - ramp_distance) / max_strafe_speed
+                 + (max_strafe_speed - min_strafe_speed) / STRAFE_ACCELERATION;
         }
-        else {
-            return (-MIN_STRAFE_POWER + Math.sqrt(Math.pow(MIN_STRAFE_POWER, 2) + distance * STRAFE_ACCELERATION))
+        else {  // We never get to max_strafe_speed
+            return (-min_strafe_speed + Math.sqrt(Math.pow(min_strafe_speed, 2) + distance * STRAFE_ACCELERATION))
                  / 0.5 * STRAFE_ACCELERATION;
         }
     }
