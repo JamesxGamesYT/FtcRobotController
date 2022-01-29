@@ -306,7 +306,7 @@ public class Navigation
 //        stopMovement(robot);
     }
 
-    /** Calculates the speed of the robot when strafing given the direction of strafing and the strafing spead
+    /** Calculates the speed of the robot when strafing given the direction of strafing and the strafing speed
      *
      *  @param strafeAngle the direction (angle) in which the robot should strafe
      *  @param power the strafing speed of the robot
@@ -317,14 +317,11 @@ public class Navigation
         double powerSet2 = Math.sin(strafeAngle) - Math.cos(strafeAngle);
         double[] rawPowers = scaleRange(powerSet1, powerSet2);
 
-        //TODO: the usage of averageMotorSpeed might need to be changed, not sure yet
-        double averageMotorSpeed = (wheel_speeds[0] + wheel_speeds[1] + wheel_speeds[2] + wheel_speeds[3]) / 4;
-
         if (strafeAngle > -Math.PI/2 && strafeAngle < Math.PI/2) {
-            return (SPEED_FACTOR * power * averageMotorSpeed * Math.sqrt(2 * Math.pow(rawPowers[1]/rawPowers[0], 2) + 2)) / 2;
+            return (SPEED_FACTOR * power * Math.sqrt(2 * Math.pow(rawPowers[1]/rawPowers[0], 2) + 2)) / 2;
         }
         else {
-            return (SPEED_FACTOR * power * averageMotorSpeed * Math.sqrt(2 * Math.pow(rawPowers[0]/rawPowers[1], 2) + 2)) / 2;
+            return (SPEED_FACTOR * power * Math.sqrt(2 * Math.pow(rawPowers[0]/rawPowers[1], 2) + 2)) / 2;
         }
     }
 
