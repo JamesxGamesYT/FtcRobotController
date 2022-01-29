@@ -306,16 +306,55 @@ public class Navigation
 //        stopMovement(robot);
     }
 
+    /** Calculates the speed of the robot when strafing given the direction of strafing and the strafing spead
+     *
+     *  @param strafeAngle the direction (angle) in which the robot should strafe
+     *  @param power the strafing speed of the robot
+     *  @return the speed of the robot
+     */
+    private double getRobotSpeed(double strafeAngle, double power) {
+        double powerSet1 = Math.sin(strafeAngle) + Math.cos(strafeAngle);
+        double powerSet2 = Math.sin(strafeAngle) - Math.cos(strafeAngle);
+        double[] rawPowers = scaleRange(powerSet1, powerSet2);
+
+        //TODO: the usage of averageMotorSpeed might need to be changed, not sure yet
+        double averageMotorSpeed = (wheel_speeds[0] + wheel_speeds[1] + wheel_speeds[2] + wheel_speeds[3]) / 4;
+
+        if (strafeAngle > -Math.PI/2 && strafeAngle < Math.PI/2) {
+            return (SPEED_FACTOR * power * averageMotorSpeed * Math.sqrt(2 * Math.pow(rawPowers[1]/rawPowers[0], 2) + 2)) / 2;
+        }
+        else {
+            return (SPEED_FACTOR * power * averageMotorSpeed * Math.sqrt(2 * Math.pow(rawPowers[0]/rawPowers[1], 2) + 2)) / 2;
+        }
+    }
+
+    /** Determines the minimum strafing speed of the robot
+     *
+     *  @param strafeAngle the direction (angle) in which the robot should strafe
+     *  @return the minimum strafing speed of the robot
+     */
+    private double getMinStrafeSpeed(double strafeAngle) {
+        return getRobotSpeed(strafeAngle, MIN_STRAFE_POWER);
+    }
+
+    /** Determines the maximum strafing speed of the robot
+     *
+     *  @param strafeAngle the direction (angle) in which the robot should strafe
+     *  @return the minimum strafing speed of the robot
+     */
+    private double getMaxStrafeSpeed(double strafeAngle) {
+        return getRobotSpeed(strafeAngle, MAX_STRAFE_POWER);
+    }
+
     /** Calculates half the amount of time it is estimated for a linear strafe to take.
      *
      *  @param distance the distance of the strafe
      *  @param strafeAngle the angle of the strafe
      */
     private double getHalfStrafeTime(double distance, double strafeAngle) {
-        // TODO: these need to be calculated using the strafe angle motor power constants, and SPEED_FACTOR.
         // Inches per second is probably a good unit.
-        double min_strafe_speed = 0.0;
-        double max_strafe_speed = 0.0;
+        double min_strafe_speed = getMinStrafeSpeed(strafeAngle);
+        double max_strafe_speed = getMaxStrafeSpeed(strafeAngle);
 
         double ramp_distance = (max_strafe_speed + min_strafe_speed) / 2
                              * (max_strafe_speed - min_strafe_speed) / STRAFE_ACCELERATION;
