@@ -25,7 +25,6 @@ public class Navigation
     // ===============
     final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
-    final int ENCODER_RAMP_DISTANCE = 1000;
     final double MAX_STRAFE_POWER = 1.0;
     final double MIN_STRAFE_POWER = 0.3;
     final double MAX_ROTATION_POWER = 0.5;
@@ -34,9 +33,11 @@ public class Navigation
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 2.0;
     final double EPSILON_ANGLE = 0.15;
-    final int EPSILON_ENCODERS = 30;
     // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
     final int NUM_CHECK_FRAMES = 0;
+
+    // Distance between starting locations on the warehouse side and the carousel side.
+    final int DISTANCE_BETWEEN_START_POINTS = 25;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
     final double CLAW_SIZE = 5.0;
@@ -63,13 +64,11 @@ public class Navigation
     public ArrayList<Position> path;
     public int pathIndex;
 
-    public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor) {
+    public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor,
+                      RobotManager.StartingSide startingSide) {
         this.path = path;
         pathIndex = 0;
-
-        if (allianceColor == RobotManager.AllianceColor.RED) {
-            reflectPath();
-        }
+        transformPath(allianceColor, startingSide);
     }
 
     /** Adds a desired position to the path.
@@ -368,12 +367,20 @@ public class Navigation
         return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
     }
 
-    /** Reflects the path to the other side of the playing field.
+    /** Transforms the robot's path based on the alliance color and side of the field it is starting on.
      */
-    private void reflectPath() {
-        for (Position pos : path) {
-            pos.setX(144.0 - pos.getX());
-            pos.setRotation(Math.PI - pos.getRotation());
+    private void transformPath(RobotManager.AllianceColor allianceColor, RobotManager.StartingSide startingSide) {
+        for (int i = 0; i < path.size(); i++) {
+            Position pos = path.get(i);
+            Position copy = new Position(new Point(pos.getX(), pos.getY(), pos.getLocation().name), pos.getRotation());
+            if (allianceColor == RobotManager.AllianceColor.RED) {
+                copy.setX(-pos.getX());
+                copy.setRotation(-pos.getRotation());
+            }
+            if (startingSide == RobotManager.StartingSide.WAREHOUSE) {
+                copy.setY(DISTANCE_BETWEEN_START_POINTS - pos.getY());
+            }
+            path.set(i, copy);
         }
     }
 
@@ -709,10 +716,51 @@ public class Navigation
 /** Hardcoded paths through the playing field during the Autonomous period.
  */
 class AutonomousPaths {
-    public static final ArrayList<Position> DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
-    public static final ArrayList<Position> DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
-    public static final ArrayList<Position> NO_DUCK_CAROUSEL_PATH = new ArrayList<>(Arrays.asList());
-    public static final ArrayList<Position> NO_DUCK_WAREHOUSE_PATH = new ArrayList<>(Arrays.asList());
+    // Coordinates relative to starting location close to carousel.
+    public static final Position allianceShippingHub =
+            new Position(new Point(13, 25, "POI shipping hub"), -Math.PI / 2);
+    public static final Position allianceStorageUnit =
+            new Position(new Point(25, -29, "POI alliance storage unit"), 0);
+    public static final Position carousel =
+            new Position(new Point(10, -25, "POI carousel"), -Math.PI / 4);
+    public static final Position warehouse =
+            new Position(new Point(0, 50, "POI warehouse"), -Math.PI / 2);
+
+    public static final ArrayList<Position> PARK_ASU = new ArrayList<>(Arrays.asList(
+            allianceStorageUnit
+    ));
+    public static final ArrayList<Position> PRELOAD_BOX = new ArrayList<>(Arrays.asList(
+            allianceShippingHub
+    ));
+    public static final ArrayList<Position> CAROUSEL = new ArrayList<>(Arrays.asList(
+            carousel
+    ));
+    public static final ArrayList<Position> PRELOAD_BOX_AND_PARK_ASU = new ArrayList<>(Arrays.asList(
+            allianceShippingHub,
+            new Position(new Point(13, -29, "lined up with storage unit"), -Math.PI / 2),
+            allianceStorageUnit
+    ));
+    public static final ArrayList<Position> PRELOAD_BOX_AND_CAROUSEL = new ArrayList<>(Arrays.asList(
+            allianceShippingHub,
+            carousel
+    ));
+    public static final ArrayList<Position> PRELOAD_BOX_CAROUSEL_AND_PARK_ASU = new ArrayList<>(Arrays.asList(
+            allianceShippingHub,
+            carousel,
+            allianceStorageUnit
+    ));
+    public static final ArrayList<Position> CAROUSEL_AND_PARK_ASU = new ArrayList<>(Arrays.asList(
+            new Position(new Point(15, -25, "in front of carousel"), -Math.PI / 4),
+            carousel
+    ));
+    public static final ArrayList<Position> PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
+            warehouse
+    ));
+    public static final ArrayList<Position> PRELOAD_BOX_AND_PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
+            allianceShippingHub,
+            new Position(new Point(0, 0, "starting location"), -Math.PI / 2),
+            warehouse
+    ));
 
     // TESTING PATHS
     // =============
@@ -724,9 +772,6 @@ class AutonomousPaths {
             new Position(new Point(6, 0, "Out from wall"), 0),
             new Position(new Point(6, 25, "In line with shipping hub"), 0),
             new Position(new Point(13, 25, "Location Shipping hub"), 0),
-            new Position(new Point(13, 25, "POI shipping hub"), -Math.PI / 2)
-    ));
-    public static final ArrayList<Position> STRAFING_PRELOAD_BOX_ONLY = new ArrayList<>(Arrays.asList(
             new Position(new Point(13, 25, "POI shipping hub"), -Math.PI / 2)
     ));
     public static final ArrayList<Position> PRELOAD_BOX_AND_PARK = new ArrayList<>(Arrays.asList(
@@ -743,18 +788,6 @@ class AutonomousPaths {
             new Position(new Point(0, 10, "Out from wall1"), 0),
             new Position(new Point(29, 10, "Out from wall2"), 0),
             new Position(new Point(29, 25, "POI storage unit"), 0)
-    ));
-    public static final ArrayList<Position> STRAFING_PARK_STORAGE_UNIT = new ArrayList<>(Arrays.asList(
-            new Position(new Point(26, 25, "POI storage unit"), 0)
-    ));
-    public static final ArrayList<Position> CAROUSEL_PARK_STORAGE_UNIT = new ArrayList<>(Arrays.asList(
-            new Position(new Point(26, 25, "POI storage unit"), 0)
-    ));
-    public static final ArrayList<Position> CAROUSEL_PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
-            new Position(new Point(26, 25, "POI storage unit"), 0)
-    ));
-    public static final ArrayList<Position> PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
-            new Position(new Point(26, 25, "POI storage unit"), 0)
     ));
     public static final ArrayList<Position> MOVE_STRAIGHT = new ArrayList<>(Arrays.asList(
             new Position(new Point(0, 20, "P1"), 0)

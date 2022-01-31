@@ -16,7 +16,7 @@ public class CVTestOpMode extends LinearOpMode {
     @Override
     public void runOpMode() {
         RobotManager robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, new ArrayList<>(Collections.emptyList()),
-                                                     RobotManager.AllianceColor.BLUE, telemetry, elapsedTime);
+                                                     RobotManager.AllianceColor.BLUE, RobotManager.StartingSide.CAROUSEL, telemetry, elapsedTime);
         ComputerVision cv = robotManager.computerVision;
 
         waitForStart();

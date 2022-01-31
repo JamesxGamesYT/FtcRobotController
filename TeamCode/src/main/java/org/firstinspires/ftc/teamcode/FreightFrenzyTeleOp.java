@@ -26,7 +26,7 @@ public class FreightFrenzyTeleOp extends OpMode {
     public void init() {
         initSharedPreferences();
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, new ArrayList<>(Collections.emptyList()),
-                                        allianceColor, telemetry, elapsedTime);
+                                        allianceColor, RobotManager.StartingSide.CAROUSEL, telemetry, elapsedTime);
         IMUPositioning.Initialize(this);
     }
 

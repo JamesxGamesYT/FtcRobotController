@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- STARTING SIDE -->
+
+    <string-array name="startingSide">
+        <item>Carousel</item>
+        <item>Warehouse</item>
+    </string-array>
+
+    <string-array name="startingSideAlias">
+        <item>"CAROUSEL"</item>
+        <item>"WAREHOUSE"</item>
+    </string-array>
+
     <!-- ALLIANCE COLOR -->
 
     <string-array name="allianceColor">
@@ -16,10 +28,17 @@
     <!-- AUTON TYPE -->
 
     <string-array name="autonType">
-        <item>Duck (carousel side)</item>
-        <item>Duck (warehouse side)</item>
-        <item>No Duck (carousel side)</item>
-        <item>No Duck (warehouse side)</item>
+        <item>Park alliance storage unit</item>
+        <item>Preload box</item>
+        <item>Carousel</item>
+        <item>Preload box and park alliance storage unit</item>
+        <item>Preload box and carousel</item>
+        <item>Preload box, carousel, and park</item>
+        <item>Preload box and park alliance storage unit</item>
+
+        <item>Park warehouse</item>
+        <item>Preload box and park warehouse</item>
+
         <item>Preload box only</item>
         <item>Preload box and park</item>
         <item>Park</item>
@@ -28,10 +47,17 @@
     </string-array>
 
     <string-array name="autonTypeAlias">
-        <item>"DUCK_CAROUSEL"</item>
-        <item>"DUCK_WAREHOUSE"</item>
-        <item>"NO_DUCK_CAROUSEL"</item>
-        <item>"NO_DUCK_WAREHOUSE"</item>
+        <item>"PARK_ASU"</item>
+        <item>"PRELOAD_BOX"</item>
+        <item>"CAROUSEL"</item>
+        <item>"PRELOAD_BOX_AND_PARK_ASU"</item>
+        <item>"PRELOAD_BOX_AND_CAROUSEL"</item>
+        <item>"PRELOAD_BOX_CAROUSEL_AND_PARK_ASU"</item>
+        <item>"CAROUSEL_AND_PARK_ASU"</item>
+
+        <item>"PARK_WAREHOUSE"</item>
+        <item>"PRELOAD_BOX_AND_PARK_WAREHOUSE"</item>
+
         <item>"PRELOAD_BOX_ONLY"</item>
         <item>"PRELOAD_BOX_AND_PARK"</item>
         <item>"PARK"</item>

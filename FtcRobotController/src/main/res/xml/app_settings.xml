@@ -90,6 +90,15 @@ See https://developer.android.com/guide/topics/ui/settings.html
 
   </PreferenceCategory>
 
+    <!-- STARTING SIDE -->
+    <ListPreference
+            android:key="starting_side"
+            android:title="Starting Side"
+            android:summary="Select a starting side"
+            android:entries="@array/startingSide"
+            android:defaultValue="CAROUSEL"
+            android:entryValues="@array/startingSideAlias" />
+
     <!-- ALLIANCE COLOR -->
     <ListPreference
             android:key="alliance_color"

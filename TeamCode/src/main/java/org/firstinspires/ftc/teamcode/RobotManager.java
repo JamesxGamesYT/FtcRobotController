@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 public class RobotManager {
 
     public enum AllianceColor {BLUE, RED}
+    public enum StartingSide {WAREHOUSE, CAROUSEL}
 
     public Robot robot;
 
@@ -31,14 +32,14 @@ public class RobotManager {
     private ElapsedTime elapsedTime;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
-                        ArrayList<Position> path, AllianceColor allianceColor,
+                        ArrayList<Position> path, AllianceColor allianceColor, StartingSide startingSide,
                         Telemetry telemetry, ElapsedTime elapsedTime) {
 
         this.telemetry = telemetry;
         this.elapsedTime = elapsedTime;
 
         elapsedTime.reset();
-        navigation = new Navigation(path, allianceColor);
+        navigation = new Navigation(path, allianceColor, startingSide);
         mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);

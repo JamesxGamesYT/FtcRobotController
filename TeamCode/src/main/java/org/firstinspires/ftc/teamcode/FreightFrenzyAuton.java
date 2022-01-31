@@ -19,7 +19,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
     public void runOpMode() {
         initSharedPreferences();
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, AutonomousPaths.PRELOAD_BOX_ONLY,
-                                        FreightFrenzyAuton.allianceColor, telemetry, elapsedTime);
+                                        FreightFrenzyAuton.allianceColor, FreightFrenzyAuton.startingSide, telemetry,
+                                        elapsedTime);
 
         IMUPositioning.Initialize(this);
         robotManager.computerVision.startStreaming();
@@ -59,14 +60,23 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
     private static SharedPreferences sharedPrefs;
 
+    private static RobotManager.StartingSide startingSide;
     private static RobotManager.AllianceColor allianceColor;
     private static ArrayList<Position> navigationPath;
 
     public void initSharedPreferences() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.hardwareMap.appContext);
 
+        String startingSide = sharedPrefs.getString("starting_side", "ERROR");
         String allianceColor = sharedPrefs.getString("alliance_color", "ERROR");
         String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
+
+        if (startingSide.equals("CAROUSEL")) {
+            FreightFrenzyAuton.startingSide = RobotManager.StartingSide.CAROUSEL;
+        }
+        else if (startingSide.equals("WAREHOUSE")) {
+            FreightFrenzyAuton.startingSide = RobotManager.StartingSide.WAREHOUSE;
+        }
 
         if (allianceColor.equals("BLUE")) {
             FreightFrenzyAuton.allianceColor = RobotManager.AllianceColor.BLUE;
@@ -76,18 +86,35 @@ public class FreightFrenzyAuton extends LinearOpMode {
         }
 
         switch (autonMode) {
-            case "DUCK_CAROUSEL":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.DUCK_CAROUSEL_PATH.clone();
+            case "PARK_ASU":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK_ASU.clone();
                 break;
-            case "DUCK_WAREHOUSE":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.DUCK_WAREHOUSE_PATH.clone();
+            case "PRELOAD_BOX":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX.clone();
                 break;
-            case "NO_DUCK_CAROUSEL":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.NO_DUCK_CAROUSEL_PATH.clone();
+            case "CAROUSEL":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.CAROUSEL.clone();
                 break;
-            case "NO_DUCK_WAREHOUSE":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.NO_DUCK_WAREHOUSE_PATH.clone();
+            case "PRELOAD_BOX_AND_PARK_ASU":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK_ASU.clone();
                 break;
+            case "PRELOAD_BOX_AND_CAROUSEL":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_CAROUSEL.clone();
+                break;
+            case "PRELOAD_BOX_CAROUSEL_AND_PARK_ASU":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_CAROUSEL_AND_PARK_ASU.clone();
+                break;
+            case "CAROUSEL_AND_PARK_ASU":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.CAROUSEL_AND_PARK_ASU.clone();
+                break;
+
+            case "PARK_WAREHOUSE":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK_WAREHOUSE.clone();
+                break;
+            case "PRELOAD_BOX_AND_PARK_WAREHOUSE":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK_WAREHOUSE.clone();
+                break;
+
             case "PRELOAD_BOX_ONLY":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_ONLY.clone();
                 break;
