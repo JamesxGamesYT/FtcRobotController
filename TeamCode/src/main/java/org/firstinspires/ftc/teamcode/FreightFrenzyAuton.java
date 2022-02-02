@@ -18,7 +18,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
     @Override
     public void runOpMode() {
         initSharedPreferences();
-        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, AutonomousPaths.PRELOAD_BOX_ONLY,
+        robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, FreightFrenzyAuton.navigationPath,
                                         FreightFrenzyAuton.allianceColor, FreightFrenzyAuton.startingSide, telemetry,
                                         elapsedTime);
 
@@ -69,7 +69,13 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
         String startingSide = sharedPrefs.getString("starting_side", "ERROR");
         String allianceColor = sharedPrefs.getString("alliance_color", "ERROR");
-        String autonMode = sharedPrefs.getString("auton_mode", "ERROR");
+        String autonMode = sharedPrefs.getString("auton_type", "ERROR");
+
+
+        telemetry.addData("Auton mode", autonMode);
+        telemetry.addData("Starting side", startingSide);
+        telemetry.addData("Alliance color", allianceColor);
+
 
         if (startingSide.equals("CAROUSEL")) {
             FreightFrenzyAuton.startingSide = RobotManager.StartingSide.CAROUSEL;

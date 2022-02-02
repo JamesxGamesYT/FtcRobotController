@@ -28,19 +28,19 @@ public class Navigation
     final double MAX_STRAFE_POWER = 1.0;
     final double MIN_STRAFE_POWER = 0.3;
     final double MAX_ROTATION_POWER = 0.5;
-    final double MIN_ROTATION_POWER = 0.15;
+    final double MIN_ROTATION_POWER = 0.2;
     final boolean ROTATIONAL_RAMPING = true;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 2.0;
     final double EPSILON_ANGLE = 0.15;
     // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
-    final int NUM_CHECK_FRAMES = 0;
+    final int NUM_CHECK_FRAMES = 10;
 
     // Distance between starting locations on the warehouse side and the carousel side.
     final int DISTANCE_BETWEEN_START_POINTS = 25;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    final double CLAW_SIZE = 5.0;
+    final double CLAW_SIZE = 9.0;
 
     // TELEOP CONSTANTS
     // ================
@@ -68,7 +68,7 @@ public class Navigation
                       RobotManager.StartingSide startingSide) {
         this.path = path;
         pathIndex = 0;
-        transformPath(allianceColor, startingSide);
+//        transformPath(allianceColor, startingSide);
     }
 
     /** Adds a desired position to the path.
@@ -286,12 +286,18 @@ public class Navigation
         double totalDistance = getEuclideanDistance(startLoc, target);
 
         double power = MIN_STRAFE_POWER;
-        double distanceToTarget = getEuclideanDistance(currentLoc, target);
-        double distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+        double distanceToTarget;
+        double distanceTraveled;
         boolean finishedTravel = false;
         double numFramesSinceLastFailure = 0;
 
         while (!finishedTravel) {
+
+            robot.positionManager.updatePosition(robot);
+            currentLoc = robot.getPosition().getLocation();
+
+            distanceToTarget = getEuclideanDistance(currentLoc, target);
+            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
             if (distanceTraveled < totalDistance / 2) {
                 // Ramping up.
@@ -310,34 +316,35 @@ public class Navigation
                 }
             }
 
-            setDriveMotorPowers(robot.getPosition().getRotation() - getAngleBetween(currentLoc, target), power, 0.0, robot, false);
+            double strafeAngle = robot.getPosition().getRotation() - getAngleBetween(currentLoc, target);
+            if (strafeAngle > Math.PI) {
+                strafeAngle -= 2 * Math.PI;
+            }
+            else if (strafeAngle < -Math.PI) {
+                strafeAngle += 2 * Math.PI;
+            }
+            setDriveMotorPowers(strafeAngle, power, 0.0, robot, false);
 
 //            robot.telemetry.addData("X", startLoc.x);
 //            robot.telemetry.addData("Y", startLoc.y);
 //            robot.telemetry.addData("X", currentLoc.x);
 //            robot.telemetry.addData("Y", currentLoc.y);
 //
-//            try {
-//                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
-//                fout.write(("start at:" + startLoc.x + " " + startLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.write(("current at:" + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.write(("target at:" + target.x + " " + target.y + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.write(("strafe angle: " + getAngleBetween(currentLoc, target)).getBytes(StandardCharsets.UTF_8));
-//                fout.close();
-//            }
-//            catch (Exception e) {}
+            try {
+                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
+                fout.write(("current: " + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
+                fout.write(("atan: " + getAngleBetween(currentLoc, target) + "\n").getBytes(StandardCharsets.UTF_8));
+                fout.write(("orientation: " + robot.getPosition().getRotation() + "\n").getBytes(StandardCharsets.UTF_8));
+                fout.write(("strafeAngle: " + strafeAngle + "\n").getBytes(StandardCharsets.UTF_8));
+                fout.close();
+            }
+            catch (Exception e) {}
 //
 //
 //            robot.telemetry.addData("tX", target.x);
 //            robot.telemetry.addData("tY", target.y);
 //            robot.telemetry.addData("Strafe angle", getAngleBetween(currentLoc, target));
 //            robot.telemetry.update();
-
-            robot.positionManager.updatePosition(robot);
-            currentLoc = robot.getPosition().getLocation();
-
-            distanceToTarget = getEuclideanDistance(currentLoc, target);
-            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
             if (distanceToTarget > EPSILON_LOC) {
                 numFramesSinceLastFailure = 0;
@@ -393,7 +400,6 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
-        strafeDirection *= -1;
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 

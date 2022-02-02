@@ -286,9 +286,15 @@ public class RobotManager {
         // Move into drop-off position.
         robot.positionManager.updatePosition(robot);
         Position startPos = robot.getPosition();
+
+        double forwardDistance = navigation.CLAW_SIZE;
+        if (level == Robot.SlidesState.L1) forwardDistance -= 2;
+        else if (level == Robot.SlidesState.L3) forwardDistance += 2;
+
         navigation.path.add(navigation.pathIndex,
-                new Position(new Point(startPos.getX() + navigation.CLAW_SIZE, startPos.getY(), "POI dropoff"),
+                new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff"),
                         startPos.getRotation()));
+
         travelToNextPOI();
 
         openClaw();
