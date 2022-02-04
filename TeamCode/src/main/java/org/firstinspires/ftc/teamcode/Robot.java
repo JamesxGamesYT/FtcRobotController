@@ -58,7 +58,7 @@ public class Robot {
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
 
     // Hardware
-    public DcMotor carousel, slidesLeft, slidesRight;
+    public DcMotor carousel, slidesLeft, slidesRight,clawLEDs;
     public CRServo claw;
 
     // Other
@@ -86,6 +86,9 @@ public class Robot {
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
         claw = hardwareMap.get(CRServo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
+        clawLEDs=hardwareMap.get(DcMotor.class,"LED");
+        clawLEDs.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        clawLEDs.setDirection(DcMotorSimple.Direction.FORWARD);
 
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
             driveMotors.put(motor, hardwareMap.get(DcMotor.class, RobotConfig.DriveMotorNames.get(motor)));
@@ -106,6 +109,7 @@ public class Robot {
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        clawLEDs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     /** Returns the position of the robot.

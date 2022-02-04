@@ -38,9 +38,11 @@ public class MechanismDriving {
         switch (robot.desiredClawState) {
             case CLOSED:
                 robot.claw.setPower(CLAW_CLOSED_POS);//closed
+                robot.clawLEDs.setPower(0);
                 break;
             case OPEN:
                 robot.claw.setPower(CLAW_OPEN_POS);//open
+                robot.clawLEDs.setPower(1);
                 break;
         }
     }
