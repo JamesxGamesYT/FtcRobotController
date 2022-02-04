@@ -17,7 +17,7 @@ public class MechanismDriving {
 
     public double carouselStartTime = 0.0;
     public static final double CAROUSEL_PAUSED_TIME = 750;
-    public static final double CAROUSEL_SPIN_TIME = 2000;
+    public static final double CAROUSEL_SPIN_TIME = 2450;
 
     private double carouselPower;
 

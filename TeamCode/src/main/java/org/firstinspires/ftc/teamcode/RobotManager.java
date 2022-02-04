@@ -285,22 +285,27 @@ public class RobotManager {
 
         // Move into drop-off position.
         robot.positionManager.updatePosition(robot);
-        Position startPos = robot.getPosition();
+        Position startPos = new Position(
+                new Point(robot.getPosition().getX(), robot.getPosition().getY(), "POI startPos"),
+                robot.getPosition().getRotation());
 
         double forwardDistance = navigation.CLAW_SIZE;
-        if (level == Robot.SlidesState.L1) forwardDistance -= 2;
-        else if (level == Robot.SlidesState.L3) forwardDistance += 2;
+        if (level == Robot.SlidesState.L1) forwardDistance -= 1.5;
+        else if (level == Robot.SlidesState.L2) forwardDistance -= 1;
 
         navigation.path.add(navigation.pathIndex,
                 new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff"),
                         startPos.getRotation()));
-
         travelToNextPOI();
+
+//        navigation.travelLinear(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff"), robot);
 
         openClaw();
 
         // Move back to starting position.
-        navigation.travelLinear(startPos.getLocation(), robot);
+//        navigation.travelLinear(startPos.getLocation(), robot);
+        navigation.path.add(navigation.pathIndex, startPos);
+        travelToNextPOI();
 
         // Retract slides.
         robot.desiredSlidesState = Robot.SlidesState.RETRACTED;

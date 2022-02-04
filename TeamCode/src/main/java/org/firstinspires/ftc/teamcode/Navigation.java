@@ -23,16 +23,18 @@ public class Navigation
 
     // AUTON CONSTANTS
     // ===============
-    final double STRAFE_RAMP_DISTANCE = 10.0;  // Inches
+    final double STRAFE_RAMP_DISTANCE = 7.5;  // Inches
     final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
     final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.3;
+    final double MIN_STRAFE_POWER = 0.5;
+    final double STRAFE_CORRECTION_POWER = 0.3;
     final double MAX_ROTATION_POWER = 0.5;
     final double MIN_ROTATION_POWER = 0.2;
+    final double ROTATION_CORRECTION_POWER = 0.2;
     final boolean ROTATIONAL_RAMPING = true;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 2.0;
-    final double EPSILON_ANGLE = 0.15;
+    final double EPSILON_ANGLE = 0.17;
     // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
     final int NUM_CHECK_FRAMES = 10;
 
@@ -40,7 +42,7 @@ public class Navigation
     final int DISTANCE_BETWEEN_START_POINTS = 25;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    final double CLAW_SIZE = 9.0;
+    final double CLAW_SIZE = 7.0;
 
     // TELEOP CONSTANTS
     // ================
@@ -53,8 +55,8 @@ public class Navigation
     // ===================
 
     // Speeds relative to one another.
-    //                              RL   RR   FL   FR
-    public double[] wheel_speeds = {0.67, 0.67, 1.0, 1.0};
+    //                              RL    RR    FL    FR
+    public double[] wheel_speeds = {0.75, 0.77, 0.97, 1.0};
     public double strafePower;  // Tele-Op only
 
     // First position in this ArrayList is the first position that robot is planning to go to.
@@ -201,6 +203,7 @@ public class Navigation
         double rotationProgress = getRotationSize(startOrientation, currentOrientation);
         boolean finishedRotation = false;
         int numFramesSinceLastFailure = 0;
+        boolean checkFrames = false;
 
         while (!finishedRotation) {
             robot.telemetry.addData("rot left", rotationRemaining);
@@ -226,6 +229,10 @@ public class Navigation
                 }
             }
 
+            if (checkFrames) {
+                power = ROTATION_CORRECTION_POWER;
+            }
+
             switch (getRotationDirection(currentOrientation, target)) {
                 case CLOCKWISE:
                     setDriveMotorPowers(0.0, 0.0, power, robot, false);
@@ -244,6 +251,7 @@ public class Navigation
             if (rotationRemaining > EPSILON_ANGLE) {
                 numFramesSinceLastFailure = 0;
             } else {
+                checkFrames = true;
                 numFramesSinceLastFailure++;
                 if (numFramesSinceLastFailure >= NUM_CHECK_FRAMES) {
                     finishedRotation = true;
@@ -290,6 +298,7 @@ public class Navigation
         double distanceTraveled;
         boolean finishedTravel = false;
         double numFramesSinceLastFailure = 0;
+        boolean checkFrames = false;
 
         while (!finishedTravel) {
 
@@ -306,14 +315,17 @@ public class Navigation
                             (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
                             MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
-            }
-            else {
+            } else {
                 // Ramping down.
                 if (distanceToTarget <= STRAFE_RAMP_DISTANCE) {
                     power = Range.clip(
                             (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
                             MIN_STRAFE_POWER, MAX_STRAFE_POWER);
                 }
+            }
+
+            if (checkFrames) {
+                power = STRAFE_CORRECTION_POWER;
             }
 
             double strafeAngle = robot.getPosition().getRotation() - getAngleBetween(currentLoc, target);
@@ -330,15 +342,15 @@ public class Navigation
 //            robot.telemetry.addData("X", currentLoc.x);
 //            robot.telemetry.addData("Y", currentLoc.y);
 //
-            try {
-                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
-                fout.write(("current: " + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.write(("atan: " + getAngleBetween(currentLoc, target) + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.write(("orientation: " + robot.getPosition().getRotation() + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.write(("strafeAngle: " + strafeAngle + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.close();
-            }
-            catch (Exception e) {}
+//            try {
+//                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
+//                fout.write(("current: " + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.write(("atan: " + getAngleBetween(currentLoc, target) + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.write(("orientation: " + robot.getPosition().getRotation() + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.write(("strafeAngle: " + strafeAngle + "\n").getBytes(StandardCharsets.UTF_8));
+//                fout.close();
+//            }
+//            catch (Exception e) {}
 //
 //
 //            robot.telemetry.addData("tX", target.x);
@@ -350,6 +362,7 @@ public class Navigation
                 numFramesSinceLastFailure = 0;
             }
             else {
+                checkFrames = true;
                 numFramesSinceLastFailure++;
                 if (numFramesSinceLastFailure >= NUM_CHECK_FRAMES) {
                     finishedTravel = true;
@@ -724,7 +737,7 @@ public class Navigation
 class AutonomousPaths {
     // Coordinates relative to starting location close to carousel.
     public static final Position allianceShippingHub =
-            new Position(new Point(13, 25, "POI shipping hub"), -Math.PI / 2);
+            new Position(new Point(16, 20, "POI shipping hub"), -Math.PI / 2);
     public static final Position allianceStorageUnit =
             new Position(new Point(25, -29, "POI alliance storage unit"), 0);
     public static final Position carousel =
