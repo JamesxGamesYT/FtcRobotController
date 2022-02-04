@@ -144,11 +144,11 @@ class AutonPipeline extends OpenCvPipeline {
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
-            Robot.BarcodeScanResult result = processBarcodeFrame(input);
+            Robot.BarcodeScanResult result = processBarcodeFrame(input, output);
 
-//            if (robot.numBarcodeAttempts % 5 == 0) {
-//                saveMatToDiskFullPath(output, ComputerVision.DataDir + "/barcodeImage" + robot.numBarcodeAttempts + ".png");
-//            }
+            if (robot.numBarcodeAttempts % 5 == 0) {
+                saveMatToDiskFullPath(output, ComputerVision.DataDir + "/barcodeImage" + robot.numBarcodeAttempts + ".png");
+            }
 
             // Increment the barcode result in the frequency counter and find the max value in that map
             int freq = robot.barcodeScanResultMap.get(result);
@@ -481,7 +481,7 @@ class AutonPipeline extends OpenCvPipeline {
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private Robot.BarcodeScanResult processBarcodeFrame(Mat input/*, Mat output*/) {
+    private Robot.BarcodeScanResult processBarcodeFrame(Mat input, Mat output) {
         Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft));
 
         // Convert input image to HSV space and perform basic blur
@@ -505,18 +505,24 @@ class AutonPipeline extends OpenCvPipeline {
 //
 //        // Draw the detected areas to the output for visualization
 //        // TODO: Get rid of this for competition
-//        input.copyTo(output);
-//
-//        for (int idx = 0; idx < contours.size(); idx++) {
-//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
-//        }
-//
-//        contours.clear();
-//        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-//
-//        for (int idx = 0; idx < contours.size(); idx++) {
-//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
-//        }
+
+
+        input.copyTo(output);
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
+        }
+
+        contours.clear();
+        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
+        }
+
+
+
+
 
         // Determine the centroids of the tape regions
         double[] tapeCentroidsX = new double[2];

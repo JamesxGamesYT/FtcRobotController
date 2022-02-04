@@ -193,8 +193,8 @@ public class RobotManager {
 
     /** Moves the robot to the next point of interest.
      */
-    public void travelToNextPOI() {
-        navigation.travelToNextPOI(robot);
+    public Position travelToNextPOI() {
+        return navigation.travelToNextPOI(robot);
     }
 
 
@@ -244,11 +244,17 @@ public class RobotManager {
     public void deliverDuck() {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
+
+        telemetry.addData("Spin state", robot.desiredCarouselState.name());
+        telemetry.update();
+
         double startingTime = robot.elapsedTime.milliseconds();
+        while (true) {}
+
         // Sleep for MechanismDriving.CAROUSEL_SPIN_TIME milliseconds.
-        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
-        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
-        mechanismDriving.updateCarousel(robot);
+//        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
+//        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+//        mechanismDriving.updateCarousel(robot);
     }
 
     /** Opens the claw.

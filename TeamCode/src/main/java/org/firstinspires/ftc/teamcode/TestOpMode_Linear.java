@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.util.Range;
  * It includes all the skeletal structure that all linear OpModes contain.
  */
 
+@Disabled
 @TeleOp(name="Basic: test Linear OpMode", group="Linear Opmode")
 public class TestOpMode_Linear extends LinearOpMode {
 

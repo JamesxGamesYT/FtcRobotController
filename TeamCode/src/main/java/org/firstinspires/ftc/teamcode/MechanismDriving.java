@@ -13,22 +13,17 @@ public class MechanismDriving {
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
     double slideRampDownDist=1000, maxSpeedCoefficient =0.8, reducedSpeedCoefficient =0.7;
-    public static final double CAROUSEL_SPEED = 0.5;
+    public static final double CAROUSEL_SPEED = 0.625;
 
     public double carouselStartTime = 0.0;
-    public static final double CAROUSEL_PAUSED_TIME = 750;
-    public static final double CAROUSEL_SPIN_TIME = 2450;
+    public static final double CAROUSEL_PAUSED_TIME = 700;
+    public static final double CAROUSEL_SPIN_TIME = 2000;
 
-    private double carouselPower;
+    private double carouselPower = CAROUSEL_SPEED;
 
     MechanismDriving(RobotManager.AllianceColor allianceColor) {
-        switch (allianceColor) {
-            case BLUE:
-                carouselPower = -CAROUSEL_SPEED;
-                break;
-            case RED:
-                carouselPower = CAROUSEL_SPEED;
-                break;
+        if (allianceColor == RobotManager.AllianceColor.BLUE) {
+            carouselPower = -CAROUSEL_SPEED;
         }
     }
 

@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Disabled
 @TeleOp(name="claw test", group="Linear Opmode")//register this op mode in the op mode list on the phone
 public class ClawTestOpMode extends LinearOpMode{
     private ElapsedTime runtime = new ElapsedTime();
