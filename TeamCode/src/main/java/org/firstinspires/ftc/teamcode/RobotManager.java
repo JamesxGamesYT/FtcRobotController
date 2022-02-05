@@ -245,16 +245,12 @@ public class RobotManager {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
 
-        telemetry.addData("Spin state", robot.desiredCarouselState.name());
-        telemetry.update();
-
         double startingTime = robot.elapsedTime.milliseconds();
-        while (true) {}
 
         // Sleep for MechanismDriving.CAROUSEL_SPIN_TIME milliseconds.
-//        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
-//        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
-//        mechanismDriving.updateCarousel(robot);
+        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
+        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+        mechanismDriving.updateCarousel(robot);
     }
 
     /** Opens the claw.
@@ -296,20 +292,15 @@ public class RobotManager {
                 robot.getPosition().getRotation());
 
         double forwardDistance = navigation.CLAW_SIZE;
-        if (level == Robot.SlidesState.L1) forwardDistance -= 1.5;
-        else if (level == Robot.SlidesState.L2) forwardDistance -= 1;
 
         navigation.path.add(navigation.pathIndex,
                 new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff"),
                         startPos.getRotation()));
         travelToNextPOI();
 
-//        navigation.travelLinear(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff"), robot);
-
         openClaw();
 
         // Move back to starting position.
-//        navigation.travelLinear(startPos.getLocation(), robot);
         navigation.path.add(navigation.pathIndex, startPos);
         travelToNextPOI();
 

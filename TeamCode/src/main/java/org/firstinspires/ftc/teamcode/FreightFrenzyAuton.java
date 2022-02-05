@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+// TODO:
+// carousel movement speed
+
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
@@ -41,11 +44,17 @@ public class FreightFrenzyAuton extends LinearOpMode {
         Position lastPOI;
 
         while ((lastPOI = robotManager.travelToNextPOI()) != null) {
+            telemetry.update();
+            telemetry.addData("POI", lastPOI.getLocation().name);
+            telemetry.addData("Action", lastPOI.getLocation().action.name());
+            telemetry.update();
             switch (lastPOI.getLocation().action) {
                 case PRELOAD_BOX:
                     robotManager.deliverToShippingHub(hubLevel);
+                    break;
                 case CAROUSEL:
                     robotManager.deliverDuck();
+                    break;
             }
         }
 
@@ -112,8 +121,14 @@ public class FreightFrenzyAuton extends LinearOpMode {
             case "PRELOAD_BOX_AND_PARK_ASU":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK_ASU.clone();
                 break;
+            case "CAROUSEL_AND_PRELOAD_BOX":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.CAROUSEL_AND_PRELOAD_BOX.clone();
+                break;
             case "PRELOAD_BOX_AND_CAROUSEL":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_CAROUSEL.clone();
+                break;
+            case "CAROUSEL_PRELOAD_BOX_AND_PARK_ASU":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.CAROUSEL_PRELOAD_BOX_AND_PARK_ASU.clone();
                 break;
             case "PRELOAD_BOX_CAROUSEL_AND_PARK_ASU":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_CAROUSEL_AND_PARK_ASU.clone();
@@ -121,29 +136,31 @@ public class FreightFrenzyAuton extends LinearOpMode {
             case "CAROUSEL_AND_PARK_ASU":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.CAROUSEL_AND_PARK_ASU.clone();
                 break;
-
             case "PARK_WAREHOUSE":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK_WAREHOUSE.clone();
                 break;
             case "PRELOAD_BOX_AND_PARK_WAREHOUSE":
                 FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK_WAREHOUSE.clone();
                 break;
+            case "CAROUSEL_AND_PARK_WAREHOUSE":
+                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.CAROUSEL_AND_PARK_WAREHOUSE.clone();
+                break;
 
-            case "PRELOAD_BOX_ONLY":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_ONLY.clone();
-                break;
-            case "PRELOAD_BOX_AND_PARK":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK.clone();
-                break;
-            case "PARK":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK_STORAGE_UNIT.clone();
-                break;
-            case "MOVE_STRAIGHT":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.MOVE_STRAIGHT.clone();
-                break;
-            case "ROTATE_180":
-                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.ROTATE_180.clone();
-                break;
+//            case "PRELOAD_BOX_ONLY":
+//                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_ONLY.clone();
+//                break;
+//            case "PRELOAD_BOX_AND_PARK":
+//                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PRELOAD_BOX_AND_PARK.clone();
+//                break;
+//            case "PARK":
+//                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.PARK_STORAGE_UNIT.clone();
+//                break;
+//            case "MOVE_STRAIGHT":
+//                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.MOVE_STRAIGHT.clone();
+//                break;
+//            case "ROTATE_180":
+//                FreightFrenzyAuton.navigationPath = (ArrayList<Position>) AutonomousPaths.ROTATE_180.clone();
+//                break;
         }
     }
 }
