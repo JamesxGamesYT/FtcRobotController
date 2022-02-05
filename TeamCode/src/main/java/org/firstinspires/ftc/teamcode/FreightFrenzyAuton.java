@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-// TODO:
-// carousel movement speed
-
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 

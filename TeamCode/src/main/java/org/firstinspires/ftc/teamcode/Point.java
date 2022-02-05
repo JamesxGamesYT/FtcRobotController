@@ -11,6 +11,8 @@ public class Point {
     protected double x;
     protected double y;
     protected Action action = Action.NONE;
+    protected double strafePower = 0.0;
+    protected double rotatePower = 0.0;
     // Prefix with POI if it's a point of interest (in which case it is a stopping point in Auton).
     protected String name;
     Point(double X,double Y,String Name){
@@ -18,11 +20,13 @@ public class Point {
         y=Y;
         name=Name;
     }
-    Point(double X,double Y,String Name, Action action){
+    Point(double X,double Y,String Name, Action action, double strafePower, double rotatePower){
         x=X;
         y=Y;
         name=Name;
         this.action = action;
+        this.strafePower = strafePower;
+        this.rotatePower = rotatePower;
     }
     void setX(double X){
         x=X;

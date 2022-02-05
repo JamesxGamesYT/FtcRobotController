@@ -23,34 +23,35 @@ public class Navigation
 
     // AUTON CONSTANTS
     // ===============
-    final double STRAFE_RAMP_DISTANCE = 7.5;  // Inches
-    final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
-    final double MAX_STRAFE_POWER = 1.0;
-    final double MIN_STRAFE_POWER = 0.5;
-    final double STRAFE_CORRECTION_POWER = 0.2;
-    final double MAX_ROTATION_POWER = 0.5;
-    final double MIN_ROTATION_POWER = 0.2;
-    final double ROTATION_CORRECTION_POWER = 0.2;
-    final boolean ROTATIONAL_RAMPING = true;
+    static final double STRAFE_RAMP_DISTANCE = 7.5;  // Inches
+    static final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
+    static final double MAX_STRAFE_POWER = 1.0;
+    static final double MIN_STRAFE_POWER = 0.5;
+    static final double STRAFE_CORRECTION_POWER = 0.2;
+    static final double MAX_ROTATION_POWER = 0.5;
+    static final double MIN_ROTATION_POWER = 0.2;
+    static final double ROTATION_CORRECTION_POWER = 0.2;
     // Accepted amounts of deviation between the robot's desired position and actual position.
-    final double EPSILON_LOC = 1.0;
-    final double EPSILON_ANGLE = 0.17;
+    static final double EPSILON_LOC = 1.0;
+    static final double EPSILON_ANGLE = 0.17;
     // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
-    final int NUM_CHECK_FRAMES = 10;
+    static final int NUM_CHECK_FRAMES = 10;
 
     // Distance between starting locations on the warehouse side and the carousel side.
-    final double DISTANCE_BETWEEN_START_POINTS = 40.0;
-    final double RED_BARCODE_OFFSET = 1;
+    static final double DISTANCE_BETWEEN_START_POINTS = 40.0;
+    static final double RED_BARCODE_OFFSET = 1;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    final double CLAW_SIZE = 7;
+    static final double CLAW_SIZE = 7;
+
+    static final double FLOAT_EPSILON = 0.001;
 
     // TELEOP CONSTANTS
     // ================
-    final double COARSE_MOVEMENT_MAX_POWER = 1.0;
-    final double FINE_MOVEMENT_MAX_POWER = 0.5;
-    final double COARSE_ROTATION_POWER = 0.8;
-    final double FINE_ROTATION_POWER = 0.4;
+    static final double COARSE_MOVEMENT_MAX_POWER = 1.0;
+    static final double FINE_MOVEMENT_MAX_POWER = 0.5;
+    static final double COARSE_ROTATION_POWER = 0.8;
+    static final double FINE_ROTATION_POWER = 0.4;
 
     // INSTANCE ATTRIBUTES
     // ===================
@@ -96,8 +97,8 @@ public class Navigation
             Position target = path.get(pathIndex);
             robot.telemetry.addData("Going to", target.getX() + ", " + target.getY());
             robot.telemetry.update();
-            travelLinear(target.getLocation(), robot);
-            rotate(target.getRotation(), ROTATIONAL_RAMPING, robot);
+            travelLinear(target.getLocation(), target.getLocation().strafePower, robot);
+            rotate(target.getRotation(), target.getLocation().rotatePower, robot);
             pathIndex++;
 
             robot.telemetry.addData("Got to", target.getLocation().name);
@@ -194,9 +195,9 @@ public class Navigation
      *
      * @param target The orientation the robot should assume once this method exits.
      *               Within the interval (-pi, pi].
-     * @param ramping Whether to use ramping.
+     * @param constantPower A hard-coded power value for the method to use instead of ramping. Ignored if set to zero.
      */
-    public void rotate(double target, boolean ramping, Robot robot)
+    public void rotate(double target, double constantPower, Robot robot)
     {
         robot.positionManager.updatePosition(robot);
         // Both values are restricted to interval (-pi, pi].
@@ -205,7 +206,15 @@ public class Navigation
 
         double rotationSize = getRotationSize(startOrientation, target);
 
-        double power = MIN_ROTATION_POWER;  // If ramping is false, power will stay at this value.
+        double power;
+        boolean ramping = true;
+        if (Math.abs(constantPower - 0) > FLOAT_EPSILON) {
+            power = constantPower;
+            ramping = false;
+        }
+        else {
+            power = MIN_ROTATION_POWER;
+        }
         double rotationRemaining = getRotationSize(currentOrientation, target);
         double rotationProgress = getRotationSize(startOrientation, currentOrientation);
         boolean finishedRotation = false;
@@ -292,15 +301,24 @@ public class Navigation
     /** Makes the robot travel in a straight line for a certain distance.
      *
      *  @param target The desired position of the robot.
+     *  @param constantPower A hard-coded power value for the method to use instead of ramping. Ignored if set to zero.
      */
-    public void travelLinear(Point target, Robot robot) {
+    public void travelLinear(Point target, double constantPower, Robot robot) {
         robot.positionManager.updatePosition(robot);
         final Point startLoc = robot.getPosition().getLocation();
         Point currentLoc;
 
         double totalDistance = getEuclideanDistance(startLoc, target);
 
-        double power = MIN_STRAFE_POWER;
+        double power;
+        boolean ramping = true;
+        if (Math.abs(constantPower - 0.0) > FLOAT_EPSILON) {
+            power = constantPower;
+            ramping = false;
+        }
+        else {
+            power = MIN_STRAFE_POWER;
+        }
         double distanceToTarget;
         double distanceTraveled;
         boolean finishedTravel = false;
@@ -315,19 +333,21 @@ public class Navigation
             distanceToTarget = getEuclideanDistance(currentLoc, target);
             distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
 
-            if (distanceTraveled < totalDistance / 2) {
-                // Ramping up.
-                if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-                }
-            } else {
-                // Ramping down.
-                if (distanceToTarget <= STRAFE_RAMP_DISTANCE) {
-                    power = Range.clip(
-                            (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-                            MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+            if (ramping) {
+                if (distanceTraveled < totalDistance / 2) {
+                    // Ramping up.
+                    if (distanceTraveled <= STRAFE_RAMP_DISTANCE) {
+                        power = Range.clip(
+                                (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                                MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+                    }
+                } else {
+                    // Ramping down.
+                    if (distanceToTarget <= STRAFE_RAMP_DISTANCE) {
+                        power = Range.clip(
+                                (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
+                                MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+                    }
                 }
             }
 
@@ -400,7 +420,8 @@ public class Navigation
         for (int i = 0; i < path.size(); i++) {
             Position pos = path.get(i);
             Position copy = new Position(
-                    new Point(pos.getX(), pos.getY(), pos.getLocation().name, pos.getLocation().action),
+                    new Point(pos.getX(), pos.getY(), pos.getLocation().name, pos.getLocation().action,
+                              pos.getLocation().strafePower, pos.getLocation().rotatePower),
                     pos.getRotation());
             if (allianceColor == RobotManager.AllianceColor.RED) {
                 copy.setY(-copy.getY() + RED_BARCODE_OFFSET);
@@ -749,11 +770,13 @@ public class Navigation
 class AutonomousPaths {
     // Coordinates relative to starting location close to carousel.
     public static final Position allianceShippingHub =
-            new Position(new Point(13, 20, "POI shipping hub", Point.Action.PRELOAD_BOX), -Math.PI / 2);
+            new Position(new Point(13, 20, "POI shipping hub",
+                    Point.Action.PRELOAD_BOX, 0, 0), -Math.PI / 2);
     public static final Position allianceStorageUnit =
             new Position(new Point(22, -16, "POI alliance storage unit"), 0);
     public static final Position carousel =
-            new Position(new Point(3, -17, "POI carousel", Point.Action.CAROUSEL), -Math.PI / 4);
+            new Position(new Point(3, -17, "POI carousel", Point.Action.CAROUSEL,
+                    Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 4);
     public static final Position warehouse =
             new Position(new Point(16, 53, "POI warehouse"), -Math.PI / 2);
 
