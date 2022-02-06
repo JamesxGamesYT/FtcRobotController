@@ -23,17 +23,19 @@ public class Navigation
 
     // AUTON CONSTANTS
     // ===============
-    static final double STRAFE_RAMP_DISTANCE = 7.5;  // Inches
-    static final double ROTATION_RAMP_DISTANCE = Math.PI / 4;  // Radians
+    public enum MovementMode {FORWARD_ONLY, STRAFE}
+
+    static final double STRAFE_RAMP_DISTANCE = 6;  // Inches
+    static final double ROTATION_RAMP_DISTANCE = Math.PI / 3;  // Radians
     static final double MAX_STRAFE_POWER = 1.0;
-    static final double MIN_STRAFE_POWER = 0.5;
+    static final double MIN_STRAFE_POWER = 0.7;
     static final double STRAFE_CORRECTION_POWER = 0.2;
     static final double MAX_ROTATION_POWER = 0.5;
     static final double MIN_ROTATION_POWER = 0.2;
     static final double ROTATION_CORRECTION_POWER = 0.2;
     // Accepted amounts of deviation between the robot's desired position and actual position.
-    static final double EPSILON_LOC = 1.0;
-    static final double EPSILON_ANGLE = 0.17;
+    static final double EPSILON_LOC = 1.4;
+    static final double EPSILON_ANGLE = 0.19;
     // The number of frames to wait after a rotate or travelLinear call in order to check for movement from momentum.
     static final int NUM_CHECK_FRAMES = 10;
 
@@ -42,9 +44,11 @@ public class Navigation
     static final double RED_BARCODE_OFFSET = 1;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    static final double CLAW_SIZE = 7;
+    static final double CLAW_SIZE = 6.5;
 
     static final double FLOAT_EPSILON = 0.001;
+
+    static final MovementMode MOVEMENT_MODE = MovementMode.FORWARD_ONLY;
 
     // TELEOP CONSTANTS
     // ================
@@ -58,7 +62,7 @@ public class Navigation
 
     // Speeds relative to one another.
     //                              RL    RR    FL    FR
-    public double[] wheel_speeds = {0.75, 0.77, 0.97, 1.0};
+    public double[] wheel_speeds = {0.70, 0.70, 1.0, 1.0};
     public double strafePower;  // Tele-Op only
 
     // First position in this ArrayList is the first position that robot is planning to go to.
@@ -75,18 +79,6 @@ public class Navigation
         transformPath(allianceColor, startingSide);
     }
 
-    /** Adds a desired position to the path.
-     */
-    public void addPosition(Position pos) {
-        path.add(pos);
-    }
-
-    /** Adds a desired position to the path at a specific index.
-     */
-    public void addPosition(Position pos, int index) {
-        path.add(index, pos);
-    }
-
     /** Makes the robot travel along the path until it reaches a POI.
      */
     public Position travelToNextPOI(Robot robot) {
@@ -95,10 +87,22 @@ public class Navigation
                 return null;
             }
             Position target = path.get(pathIndex);
+            robot.positionManager.updatePosition(robot);
             robot.telemetry.addData("Going to", target.getX() + ", " + target.getY());
             robot.telemetry.update();
-            travelLinear(target.getLocation(), target.getLocation().strafePower, robot);
-            rotate(target.getRotation(), target.getLocation().rotatePower, robot);
+            switch (MOVEMENT_MODE) {
+                case FORWARD_ONLY:
+                    rotate(getAngleBetween(robot.getPosition().getLocation(), target.getLocation()),
+                            target.getLocation().rotatePower, robot);
+                    travelLinear(target.getLocation(), target.getLocation().strafePower, robot);
+                    rotate(target.getRotation(), target.getLocation().rotatePower, robot);
+                    break;
+                case STRAFE:
+                    travelLinear(target.getLocation(), target.getLocation().strafePower, robot);
+                    rotate(target.getRotation(), target.getLocation().rotatePower, robot);
+                    break;
+            }
+
             pathIndex++;
 
             robot.telemetry.addData("Got to", target.getLocation().name);
@@ -355,13 +359,8 @@ public class Navigation
                 power = STRAFE_CORRECTION_POWER;
             }
 
-            double strafeAngle = robot.getPosition().getRotation() - getAngleBetween(currentLoc, target);
-            if (strafeAngle > Math.PI) {
-                strafeAngle -= 2 * Math.PI;
-            }
-            else if (strafeAngle < -Math.PI) {
-                strafeAngle += 2 * Math.PI;
-            }
+            double strafeAngle = getStrafeAngle(currentLoc, robot.getPosition().getRotation(), target);
+
             setDriveMotorPowers(strafeAngle, power, 0.0, robot, false);
 
 //            robot.telemetry.addData("X", startLoc.x);
@@ -398,6 +397,19 @@ public class Navigation
         }
 
         stopMovement(robot);
+    }
+
+    /** Calculates the angle at which the robot must strafe in order to get to a target location.
+     */
+    private double getStrafeAngle(Point currentLoc, double currentOrientation, Point target) {
+        double strafeAngle = currentOrientation - getAngleBetween(currentLoc, target);
+        if (strafeAngle > Math.PI) {
+            strafeAngle -= 2 * Math.PI;
+        }
+        else if (strafeAngle < -Math.PI) {
+            strafeAngle += 2 * Math.PI;
+        }
+        return strafeAngle;
     }
 
     /** Determines the angle between the horizontal axis and the segment connecting A and B.
@@ -770,15 +782,15 @@ public class Navigation
 class AutonomousPaths {
     // Coordinates relative to starting location close to carousel.
     public static final Position allianceShippingHub =
-            new Position(new Point(13, 20, "POI shipping hub",
+            new Position(new Point(15, 22, "POI shipping hub",
                     Point.Action.PRELOAD_BOX, 0, 0), -Math.PI / 2);
     public static final Position allianceStorageUnit =
-            new Position(new Point(22, -16, "POI alliance storage unit"), 0);
+            new Position(new Point(19, -18, "POI alliance storage unit"), 0);
     public static final Position carousel =
             new Position(new Point(3, -17, "POI carousel", Point.Action.CAROUSEL,
                     Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 4);
     public static final Position warehouse =
-            new Position(new Point(16, 53, "POI warehouse"), -Math.PI / 2);
+            new Position(new Point(15, 60, "POI warehouse"), Math.PI / 2);
 
     public static final Position out_from_carousel =
             new Position(new Point(
@@ -786,15 +798,16 @@ class AutonomousPaths {
     public static final Position backed_up_from_ASH =
             new Position(new Point(
                     allianceShippingHub.getX() - 5, allianceShippingHub.getY(),
-                    "backed up from shipping hub"), 0);
+                    "backed up from shipping hub"), -Math.PI / 2);
     public static final Position lined_up_with_ASU =
             new Position(new Point(
                     allianceShippingHub.getX() - 5, allianceStorageUnit.getY(),
-                    "lined up with storage unit"), 0);
+                    "lined up with storage unit"), -Math.PI / 2);
     public static final Position warehouse_entrance =
-            new Position(new Point(-2, warehouse.getY() - 10, "warehouse entrance"), Math.PI / 2);
+            new Position(new Point(-3, warehouse.getY() - 11, "warehouse entrance"), Math.PI / 2);
     public static final Position inside_warehouse =
-            new Position(new Point(-2, warehouse.getY(), "inside_warehouse"), Math.PI / 2);
+            new Position(new Point(-6, warehouse.getY(), "inside warehouse", Point.Action.NONE,
+                    Navigation.STRAFE_CORRECTION_POWER, 0.0), Math.PI / 2);
 
     public static final ArrayList<Position> PARK_ASU = new ArrayList<>(Arrays.asList(
             new Position(new Point(10, allianceStorageUnit.getY(), "near storage unit"), 0),
@@ -843,7 +856,7 @@ class AutonomousPaths {
             allianceStorageUnit
     ));
     public static final ArrayList<Position> PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
-            new Position(new Point(5, 0, "out from start wall"), Math.PI / 2),
+            new Position(new Point(6, warehouse_entrance.getY() - 11, "out from start wall"), Math.PI / 2),
             warehouse_entrance,
             inside_warehouse,
             warehouse

@@ -58,8 +58,10 @@ public class Robot {
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();
 
     // Hardware
-    public DcMotor carousel, slidesLeft, slidesRight,clawLEDs;
+//    public DcMotor carousel, slidesLeft, slidesRight, clawLEDs;
+    public DcMotor carousel, slidesLeft, slidesRight;
     public CRServo claw;
+    public Servo clawIndicator;
 
     // Other
     public Telemetry telemetry;
@@ -86,9 +88,10 @@ public class Robot {
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
         claw = hardwareMap.get(CRServo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
-        clawLEDs=hardwareMap.get(DcMotor.class,"LED");
-        clawLEDs.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        clawLEDs.setDirection(DcMotorSimple.Direction.FORWARD);
+//        clawLEDs=hardwareMap.get(DcMotor.class,"LED");
+//        clawLEDs.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        clawLEDs.setDirection(DcMotorSimple.Direction.FORWARD);
+        clawIndicator = hardwareMap.get(Servo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW_INDICATOR));
 
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
             driveMotors.put(motor, hardwareMap.get(DcMotor.class, RobotConfig.DriveMotorNames.get(motor)));
@@ -109,7 +112,7 @@ public class Robot {
         slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        clawLEDs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//        clawLEDs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     /** Returns the position of the robot.
@@ -126,7 +129,7 @@ public class Robot {
 class RobotConfig {
     enum Motors {CAROUSEL, SLIDES_LEFT, SLIDES_RIGHT}
     public enum DriveMotors {REAR_LEFT, REAR_RIGHT, FRONT_LEFT, FRONT_RIGHT};
-    enum Servos {CLAW}
+    enum Servos {CLAW, CLAW_INDICATOR}
 
     public static final Map<Motors, String> MotorNames = new HashMap<Motors, String>() {{
         put(Motors.CAROUSEL, "carousel");
@@ -148,5 +151,8 @@ class RobotConfig {
         put(DriveMotors.REAR_RIGHT, DcMotor.Direction.REVERSE);
     }};
 
-    public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{ put(Servos.CLAW, "claw"); }};
+    public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{
+        put(Servos.CLAW, "claw");
+        put(Servos.CLAW_INDICATOR, "Claw Indicator");
+    }};
 }

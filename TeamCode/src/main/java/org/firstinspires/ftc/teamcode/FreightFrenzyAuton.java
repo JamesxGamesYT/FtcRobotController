@@ -30,6 +30,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
         Robot.SlidesState hubLevel = robotManager.readBarcode();
         robotManager.computerVision.stopStreaming();
 //       }
+//        Robot.SlidesState hubLevel = Robot.SlidesState.L3;
 
         telemetry.addData("level", hubLevel.name());
         telemetry.addLine("Waiting for start");
