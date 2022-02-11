@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 public class MechanismDriving {
 
-    private int desiredSlidePosition;
+    private static int desiredSlidePosition;
 
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3500, CAPPING_POS = 4000;
     public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.4; //These are not final values
@@ -77,74 +77,75 @@ public class MechanismDriving {
      */
     public boolean updateSlides(Robot robot) {
 
-        switch(robot.desiredSlidesState){
-            case RETRACTED:
-                setSlidePosition(robot, RETRACTED_POS);
-                break;
-            case L1:
-                setSlidePosition(robot, LEVEL1_POS);
-                break;
-            case L2:
-                setSlidePosition(robot, LEVEL2_POS);
-                break;
-            case L3:
-                setSlidePosition(robot, LEVEL3_POS);
-                break;
-            case CAPPING:
-                setSlidePosition(robot, CAPPING_POS);
-                break;
-        }
+        if(Robot.desiredSlidesState != Robot.SlidesState.UNREADY){
+            switch(robot.desiredSlidesState){
+                case RETRACTED:
+                    setSlidePosition(robot, RETRACTED_POS);
+                    break;
+                case L1:
+                    setSlidePosition(robot, LEVEL1_POS);
+                    break;
+                case L2:
+                    setSlidePosition(robot, LEVEL2_POS);
+                    break;
+                case L3:
+                    setSlidePosition(robot, LEVEL3_POS);
+                    break;
+                case CAPPING:
+                    setSlidePosition(robot, CAPPING_POS);
+                    break;
+            }
 
-        double mainSpeed,reducedSpeed;//"ramp" the motor speeds down based on how far away from the destination the motors are
-        mainSpeed= maxSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
-        reducedSpeed= reducedSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
-        mainSpeed=Range.clip(mainSpeed,0.05,1);//limit the max speed to 1 and the min speed to 0.05
-        reducedSpeed=Range.clip(reducedSpeed,0.04,1);
+            double mainSpeed,reducedSpeed;//"ramp" the motor speeds down based on how far away from the destination the motors are
+            mainSpeed= maxSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+            reducedSpeed= reducedSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
+            mainSpeed=Range.clip(mainSpeed,0.05,1);//limit the max speed to 1 and the min speed to 0.05
+            reducedSpeed=Range.clip(reducedSpeed,0.04,1);
 
-        // If the current position is less than desired position then move it up
-        if (desiredSlidePosition - robot.slidesRight.getCurrentPosition() > EPSILON) {
-            // Ensures that one motor does not go beyond the other too much
-            if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(mainSpeed);
-                robot.slidesRight.setPower(mainSpeed);
+            // If the current position is less than desired position then move it up
+            if (desiredSlidePosition - robot.slidesRight.getCurrentPosition() > EPSILON) {
+                // Ensures that one motor does not go beyond the other too much
+                if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
+                    robot.slidesLeft.setPower(mainSpeed);
+                    robot.slidesRight.setPower(mainSpeed);
+                }
+                else if(robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
+                    robot.slidesLeft.setPower(reducedSpeed);
+                    robot.slidesRight.setPower(mainSpeed);
+                }
+                else if(robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
+                    robot.slidesLeft.setPower(mainSpeed);
+                    robot.slidesRight.setPower(reducedSpeed);
+                }
             }
-            else if(robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(reducedSpeed);
-                robot.slidesRight.setPower(mainSpeed);
+
+            // If the current position is above the current position, move these downwards
+            if (robot.slidesRight.getCurrentPosition() - desiredSlidePosition > EPSILON) {
+                // Ensures that one motor does not go beyond the other too much
+                if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
+                    robot.slidesLeft.setPower(-mainSpeed); // Go in the opposite direction
+                    robot.slidesRight.setPower(-mainSpeed);
+                }
+                else if (robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
+                    robot.slidesLeft.setPower(-reducedSpeed);
+                    robot.slidesRight.setPower(-mainSpeed);
+                }
+                else if (robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
+                    robot.slidesLeft.setPower(-mainSpeed);
+                    robot.slidesRight.setPower(-reducedSpeed);
+                }
             }
-            else if(robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(mainSpeed);
-                robot.slidesRight.setPower(reducedSpeed);
+//            robot.telemetry.addData("slides: target: ",desiredSlidePosition+" current pos right: "+robot.slidesRight.getCurrentPosition()+ " current pos left: "+robot.slidesLeft.getCurrentPosition());
+            // Stop motors when we have reached the desired position
+            if (Math.abs(robot.slidesRight.getCurrentPosition() - desiredSlidePosition) < EPSILON) {
+                robot.slidesLeft.setPower(0);
+                robot.slidesRight.setPower(0);
+                return true;
+            }
+            else {
+                return false;
             }
         }
-
-        // If the current position is above the current position, move these downwards
-        if (robot.slidesRight.getCurrentPosition() - desiredSlidePosition > EPSILON) {
-            // Ensures that one motor does not go beyond the other too much
-            if (robot.slidesLeft.getCurrentPosition() == robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-mainSpeed); // Go in the opposite direction
-                robot.slidesRight.setPower(-mainSpeed);
-            }
-            else if (robot.slidesLeft.getCurrentPosition() < robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-reducedSpeed);
-                robot.slidesRight.setPower(-mainSpeed);
-            }
-            else if (robot.slidesLeft.getCurrentPosition() > robot.slidesRight.getCurrentPosition()) {
-                robot.slidesLeft.setPower(-mainSpeed);
-                robot.slidesRight.setPower(-reducedSpeed);
-            }
-        }
-//        robot.telemetry.addData("slides: target: ",desiredSlidePosition+" current pos right: "+robot.slidesRight.getCurrentPosition()+ " current pos left: "+robot.slidesLeft.getCurrentPosition());
-        // Stop motors when we have reached the desired position
-        if (Math.abs(robot.slidesRight.getCurrentPosition() - desiredSlidePosition) < EPSILON) {
-            robot.slidesLeft.setPower(0);
-            robot.slidesRight.setPower(0);
-            return true;
-        }
-        else {
-            return false;
-        }
-
-
+        return false;
     }
 }

@@ -22,11 +22,11 @@ import java.util.Objects;
 public class Robot {
     // Robot desired states.
     public enum CarouselState {STOPPED, SPINNING, AUTO_SPIN}
-    public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING}
+    public enum SlidesState {RETRACTED, L1, L2, L3, CAPPING, UNREADY}
     public enum ClawState {CLOSED, OPEN}
 
     public CarouselState desiredCarouselState;
-    public SlidesState desiredSlidesState;
+    public static SlidesState desiredSlidesState=SlidesState.UNREADY;
     public ClawState desiredClawState;
 
     enum BarcodeScanState {CHECK_SCAN, SCAN}
@@ -80,7 +80,7 @@ public class Robot {
 
         // Initialize desired states.
         desiredCarouselState = CarouselState.STOPPED;
-        desiredSlidesState = SlidesState.RETRACTED;
+        //slide state initialisation has been moved to line 114
         desiredClawState = ClawState.CLOSED;
 
         // Initialize hardware.
@@ -106,10 +106,13 @@ public class Robot {
 
         slidesLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        if(desiredSlidesState ==SlidesState.UNREADY) {//if the slides have yet to be initialised then reset the encoders for the slides and set the slide state to retracted
+            slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            slidesLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            slidesRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            desiredSlidesState = SlidesState.RETRACTED;
+        }
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        clawLEDs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
