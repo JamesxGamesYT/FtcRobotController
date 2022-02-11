@@ -90,6 +90,24 @@ See https://developer.android.com/guide/topics/ui/settings.html
 
   </PreferenceCategory>
 
+    <!-- MOVEMENT MODE -->
+    <ListPreference
+            android:key="movement_mode"
+            android:title="Movement mode"
+            android:summary="Select a movement mode"
+            android:entries="@array/movementMode"
+            android:defaultValue="STRAFE"
+            android:entryValues="@array/movementModeAlias" />
+
+    <!-- WAIT TIME AT START -->
+    <ListPreference
+            android:key="wait_time"
+            android:title="Wait time at start"
+            android:summary="Select a wait time at start"
+            android:entries="@array/waitTimeAtStart"
+            android:defaultValue="0_SECONDS"
+            android:entryValues="@array/waitTimeAtStartAlias" />
+
     <!-- STARTING SIDE -->
     <ListPreference
             android:key="starting_side"

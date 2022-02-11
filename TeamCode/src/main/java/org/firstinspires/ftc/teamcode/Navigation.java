@@ -44,11 +44,11 @@ public class Navigation
     static final double RED_BARCODE_OFFSET = 1;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    static final double CLAW_SIZE = 6.5;
+    static final double CLAW_SIZE = 6.9;
 
     static final double FLOAT_EPSILON = 0.001;
 
-    static final MovementMode MOVEMENT_MODE = MovementMode.FORWARD_ONLY;
+    public MovementMode movementMode = MovementMode.STRAFE;
 
     // TELEOP CONSTANTS
     // ================
@@ -73,8 +73,9 @@ public class Navigation
     public int pathIndex;
 
     public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor,
-                      RobotManager.StartingSide startingSide) {
+                      RobotManager.StartingSide startingSide, MovementMode movementMode) {
         this.path = path;
+        this.movementMode = movementMode;
         pathIndex = 0;
         transformPath(allianceColor, startingSide);
     }
@@ -90,9 +91,9 @@ public class Navigation
             robot.positionManager.updatePosition(robot);
             robot.telemetry.addData("Going to", target.getX() + ", " + target.getY());
             robot.telemetry.update();
-            switch (MOVEMENT_MODE) {
+            switch (movementMode) {
                 case FORWARD_ONLY:
-                    rotate(getAngleBetween(robot.getPosition().getLocation(), target.getLocation()),
+                    rotate(getAngleBetween(robot.getPosition().getLocation(), target.getLocation()) - Math.PI / 2,
                             target.getLocation().rotatePower, robot);
                     travelLinear(target.getLocation(), target.getLocation().strafePower, robot);
                     rotate(target.getRotation(), target.getLocation().rotatePower, robot);
@@ -787,14 +788,14 @@ class AutonomousPaths {
     public static final Position allianceStorageUnit =
             new Position(new Point(19, -18, "POI alliance storage unit"), 0);
     public static final Position carousel =
-            new Position(new Point(3, -17, "POI carousel", Point.Action.CAROUSEL,
+            new Position(new Point(4, -18, "POI carousel", Point.Action.CAROUSEL,
                     Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 4);
     public static final Position warehouse =
-            new Position(new Point(15, 60, "POI warehouse"), Math.PI / 2);
+            new Position(new Point(15, 60, "POI warehouse"), -Math.PI / 2);
 
     public static final Position out_from_carousel =
             new Position(new Point(
-                    carousel.getX() + 4, carousel.getY() + 4, "out from carousel"), -Math.PI / 4);
+                    carousel.getX() + 5, carousel.getY() + 3, "out from carousel"), -Math.PI / 4);
     public static final Position backed_up_from_ASH =
             new Position(new Point(
                     allianceShippingHub.getX() - 5, allianceShippingHub.getY(),
@@ -804,10 +805,10 @@ class AutonomousPaths {
                     allianceShippingHub.getX() - 5, allianceStorageUnit.getY(),
                     "lined up with storage unit"), -Math.PI / 2);
     public static final Position warehouse_entrance =
-            new Position(new Point(-3, warehouse.getY() - 11, "warehouse entrance"), Math.PI / 2);
+            new Position(new Point(-3, warehouse.getY() - 11, "warehouse entrance"), -Math.PI / 2);
     public static final Position inside_warehouse =
             new Position(new Point(-6, warehouse.getY(), "inside warehouse", Point.Action.NONE,
-                    Navigation.STRAFE_CORRECTION_POWER, 0.0), Math.PI / 2);
+                    Navigation.STRAFE_CORRECTION_POWER, 0.0), -Math.PI / 2);
 
     public static final ArrayList<Position> PARK_ASU = new ArrayList<>(Arrays.asList(
             new Position(new Point(10, allianceStorageUnit.getY(), "near storage unit"), 0),
@@ -856,7 +857,7 @@ class AutonomousPaths {
             allianceStorageUnit
     ));
     public static final ArrayList<Position> PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
-            new Position(new Point(6, warehouse_entrance.getY() - 11, "out from start wall"), Math.PI / 2),
+            new Position(new Point(6, warehouse_entrance.getY() - 11, "out from start wall"), -Math.PI / 2),
             warehouse_entrance,
             inside_warehouse,
             warehouse
@@ -864,7 +865,7 @@ class AutonomousPaths {
     public static final ArrayList<Position> PRELOAD_BOX_AND_PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
             allianceShippingHub,
             new Position(new Point(backed_up_from_ASH.getX(), backed_up_from_ASH.getY(), "backed up from ASH"),
-                    Math.PI / 2),
+                    -Math.PI / 2),
             warehouse_entrance,
             inside_warehouse,
             warehouse

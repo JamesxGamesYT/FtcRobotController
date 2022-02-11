@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- MOVEMENT MODE -->
+
+    <string-array name="movementMode">
+        <item>Strafing</item>
+        <item>Forward only</item>
+    </string-array>
+
+    <string-array name="movementModeAlias">
+        <item>"STRAFE"</item>
+        <item>"FORWARD_ONLY"</item>
+    </string-array>
+
+    <!-- WAIT TIME AT START -->
+
+    <string-array name="waitTimeAtStart">
+        <item>0 seconds</item>
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>15 seconds</item>
+        <item>20 seconds</item>
+    </string-array>
+
+    <string-array name="waitTimeAtStartAlias">
+        <item>"0_SECONDS"</item>
+        <item>"5_SECONDS"</item>
+        <item>"10_SECONDS"</item>
+        <item>"15_SECONDS"</item>
+        <item>"20_SECONDS"</item>
+    </string-array>
+
     <!-- STARTING SIDE -->
 
     <string-array name="startingSide">
@@ -32,8 +62,8 @@
         <item>Preload box</item>
         <item>Carousel</item>
         <item>Preload box and park alliance storage unit</item>
-        <item>Preload box and carousel</item>
         <item>Carousel and preload box</item>
+        <item>Preload box and carousel</item>
         <item>Carousel, preload box, and park ASU</item>
         <item>Preload box, carousel, and park ASU</item>
         <item>Carousel and park alliance storage unit</item>

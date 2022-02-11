@@ -29,22 +29,24 @@ public class RobotManager {
     private GamepadWrapper gamepads, previousStateGamepads;
 
     private Telemetry telemetry;
-    private ElapsedTime elapsedTime;
+    public ElapsedTime elapsedTime;
 
     public RobotManager(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2,
                         ArrayList<Position> path, AllianceColor allianceColor, StartingSide startingSide,
-                        Telemetry telemetry, ElapsedTime elapsedTime) {
+                        Navigation.MovementMode movementMode, Telemetry telemetry, ElapsedTime elapsedTime) {
 
         this.telemetry = telemetry;
         this.elapsedTime = elapsedTime;
 
         elapsedTime.reset();
-        navigation = new Navigation(path, allianceColor, startingSide);
+        navigation = new Navigation(path, allianceColor, startingSide, movementMode);
         mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
-        computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
+        if (!path.isEmpty()) {
+            computerVision = new ComputerVision(hardwareMap, new AutonPipeline(robot, telemetry, allianceColor));
+        }
 
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
@@ -292,10 +294,11 @@ public class RobotManager {
                 robot.getPosition().getRotation());
 
         double forwardDistance = navigation.CLAW_SIZE;
+//        if (level == Robot.SlidesState.L1) {forwardDistance -= 0.75;}
 
         navigation.path.add(navigation.pathIndex,
-                new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff"),
-                        startPos.getRotation()));
+                new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff",
+                        Point.Action.NONE, 0.4, 0.0), startPos.getRotation()));
         travelToNextPOI();
 
         openClaw();

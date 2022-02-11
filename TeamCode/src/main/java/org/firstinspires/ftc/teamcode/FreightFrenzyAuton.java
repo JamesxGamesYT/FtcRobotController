@@ -19,27 +19,33 @@ public class FreightFrenzyAuton extends LinearOpMode {
     public void runOpMode() {
         initSharedPreferences();
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, FreightFrenzyAuton.navigationPath,
-                                        FreightFrenzyAuton.allianceColor, FreightFrenzyAuton.startingSide, telemetry,
-                                        elapsedTime);
+                                        FreightFrenzyAuton.allianceColor, FreightFrenzyAuton.startingSide,
+                                        FreightFrenzyAuton.movementMode, telemetry, elapsedTime);
 
         IMUPositioning.Initialize(this);
         robotManager.computerVision.startStreaming();
 
-//        while (!isStarted()) {
-//         Warning: the following is blocking; it can probably be made non-blocking, if necessary
-        Robot.SlidesState hubLevel = robotManager.readBarcode();
+        Robot.SlidesState hubLevel;
+        do {
+            hubLevel = robotManager.readBarcode();
+        }
+        while (!isStarted());
+
+
         robotManager.computerVision.stopStreaming();
-//       }
-//        Robot.SlidesState hubLevel = Robot.SlidesState.L3;
 
         telemetry.addData("level", hubLevel.name());
-        telemetry.addLine("Waiting for start");
         telemetry.update();
 
-        waitForStart(); // Wait for the play button to be pressed
+//        waitForStart(); // Wait for the play button to be pressed
+
+        double startTime = robotManager.elapsedTime.milliseconds();
+        while (robotManager.elapsedTime.milliseconds() - startTime < waitTime * 1000) {}
 
         robotManager.closeClaw();
         Position lastPOI;
+
+//        hubLevel = Robot.SlidesState.L1;
 
         while ((lastPOI = robotManager.travelToNextPOI()) != null) {
             telemetry.update();
@@ -75,6 +81,8 @@ public class FreightFrenzyAuton extends LinearOpMode {
 
     private static SharedPreferences sharedPrefs;
 
+    private static int waitTime = 0;
+    private static Navigation.MovementMode movementMode;
     private static RobotManager.StartingSide startingSide;
     private static RobotManager.AllianceColor allianceColor;
     private static ArrayList<Position> navigationPath;
@@ -82,15 +90,44 @@ public class FreightFrenzyAuton extends LinearOpMode {
     public void initSharedPreferences() {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.hardwareMap.appContext);
 
+        String movementMode = sharedPrefs.getString("movement_mode", "ERROR");
+        String waitTime = sharedPrefs.getString("wait_time", "ERROR");
         String startingSide = sharedPrefs.getString("starting_side", "ERROR");
         String allianceColor = sharedPrefs.getString("alliance_color", "ERROR");
         String autonMode = sharedPrefs.getString("auton_type", "ERROR");
 
-
+        telemetry.addData("Movement mode", movementMode);
+        telemetry.addData("Wait time", waitTime);
         telemetry.addData("Auton mode", autonMode);
         telemetry.addData("Starting side", startingSide);
         telemetry.addData("Alliance color", allianceColor);
 
+        switch (movementMode) {
+            case "STRAFE":
+                FreightFrenzyAuton.movementMode = Navigation.MovementMode.STRAFE;
+                break;
+            case "FORWARD_ONLY":
+                FreightFrenzyAuton.movementMode = Navigation.MovementMode.FORWARD_ONLY;
+                break;
+        }
+
+        switch (waitTime) {
+            case "0_SECONDS":
+                FreightFrenzyAuton.waitTime = 0;
+                break;
+            case "5_SECONDS":
+                FreightFrenzyAuton.waitTime = 5;
+                break;
+            case "10_SECONDS":
+                FreightFrenzyAuton.waitTime = 10;
+                break;
+            case "15_SECONDS":
+                FreightFrenzyAuton.waitTime = 15;
+                break;
+            case "20_SECONDS":
+                FreightFrenzyAuton.waitTime = 20;
+                break;
+        }
 
         if (startingSide.equals("CAROUSEL")) {
             FreightFrenzyAuton.startingSide = RobotManager.StartingSide.CAROUSEL;

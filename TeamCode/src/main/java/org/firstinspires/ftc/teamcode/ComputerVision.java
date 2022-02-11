@@ -133,18 +133,17 @@ class AutonPipeline extends OpenCvPipeline {
      */
     @Override
     public Mat processFrame(Mat input) {
-//        if (first) {
-//            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
-//            first = false;
-//        }
-
-
-        // input.copyTo(output);
+//        return input;
+////        if (first) {
+////            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
+////            first = false;
+////        }
+//
 
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
-            Robot.BarcodeScanResult result = processBarcodeFrame(input, output);
+            Robot.BarcodeScanResult result = processBarcodeFrame(input);
 
             if (robot.numBarcodeAttempts % 5 == 0) {
                 saveMatToDiskFullPath(output, ComputerVision.DataDir + "/barcodeImage" + robot.numBarcodeAttempts + ".png");
@@ -452,10 +451,11 @@ class AutonPipeline extends OpenCvPipeline {
     // The Region of Interest that contains all the barcode elements and the least non-floor background possible
     final static int BarcodeCropLeft = 150;
     final static int BarcodeCropTop = 180;
+    final static int BarcodeCropRight = 30;
 
     // Define HSV scalars that represent ranges of color to be selected from the barcode image
-    final static Scalar[] BarcodeCapRange      = {new Scalar(15, 70, 50), new Scalar(80, 255, 255)};
-    final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(130, 255, 255)};
+    final static Scalar[] BarcodeCapRange      = {new Scalar(121, 60, 50), new Scalar(162, 255, 255)};
+    final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(120, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
 
@@ -481,8 +481,8 @@ class AutonPipeline extends OpenCvPipeline {
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private Robot.BarcodeScanResult processBarcodeFrame(Mat input, Mat output) {
-        Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft));
+    private Robot.BarcodeScanResult processBarcodeFrame(Mat input/*, Mat output*/) {
+        Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft - BarcodeCropRight));
 
         // Convert input image to HSV space and perform basic blur
         Imgproc.cvtColor(frame, barcodeHsv, Imgproc.COLOR_RGB2HSV);
@@ -500,26 +500,26 @@ class AutonPipeline extends OpenCvPipeline {
         Core.bitwise_or(barcodeTapeRegionsBlue, barcodeTapeRegions, barcodeTapeRegions);
 
         // Visualize the detected areas with appropriately colored outlines
-        ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+//        ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+//        Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
 //
 //        // Draw the detected areas to the output for visualization
 //        // TODO: Get rid of this for competition
-
-
-        input.copyTo(output);
-
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
-        }
-
-        contours.clear();
-        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-
-        for (int idx = 0; idx < contours.size(); idx++) {
-            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
-        }
-
+//
+//
+//        input.copyTo(output);
+//
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
+//        }
+//
+//        contours.clear();
+//        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+//
+//        for (int idx = 0; idx < contours.size(); idx++) {
+//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
+//        }
+//
 
 
 

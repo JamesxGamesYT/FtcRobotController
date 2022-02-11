@@ -26,7 +26,8 @@ public class FreightFrenzyTeleOp extends OpMode {
     public void init() {
         initSharedPreferences();
         robotManager = new RobotManager(hardwareMap, gamepad1, gamepad2, new ArrayList<>(Collections.emptyList()),
-                                        allianceColor, RobotManager.StartingSide.CAROUSEL, telemetry, elapsedTime);
+                                        allianceColor, RobotManager.StartingSide.CAROUSEL,
+                                        Navigation.MovementMode.STRAFE, telemetry, elapsedTime);
         IMUPositioning.Initialize(this);
     }
 
@@ -40,7 +41,7 @@ public class FreightFrenzyTeleOp extends OpMode {
         robotManager.maneuver();
         robotManager.robot.positionManager.updatePosition(robotManager.robot);
 
-        telemetry.addData("LED Power", robotManager.robot.clawLEDs.getPower());
+//        telemetry.addData("LED Power", robotManager.robot.clawLEDs.getPower());
         telemetry.addData("Pos X", robotManager.robot.positionManager.position.getX());
         telemetry.addData("Pos Y", robotManager.robot.positionManager.position.getY());
         telemetry.addData("Pos R", robotManager.robot.positionManager.position.getRotation());
