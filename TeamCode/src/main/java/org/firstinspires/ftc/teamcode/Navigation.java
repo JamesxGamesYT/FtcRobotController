@@ -4,6 +4,7 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
@@ -264,46 +265,48 @@ public class Navigation
      *  @param target The desired position of the robot.
      */
     public void travelLinear(Point target, Robot robot) {
-//        robot.positionManager.updatePosition(robot);
-//        final Point startLoc = robot.getPosition().getLocation();
-//        Point currentLoc = new Point(startLoc.x, startLoc.y, "current");
-//
-//        double totalDistance = getEuclideanDistance(startLoc, target);
-//
-//        double power = MIN_STRAFE_POWER;
-//        double distanceToTarget = getEuclideanDistance(currentLoc, target);
-//        double distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
-//
-//        while (distanceToTarget > EPSILON_LOC) {
-//
-//            if (distanceTraveled < totalDistance / 2) {
-//                // Ramping up.
-//                power = Range.clip(
-//                        (distanceTraveled / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-//                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-//            }
-//            else {
-//                // Ramping down.
-//                power = Range.clip(
-//                        (distanceToTarget / STRAFE_RAMP_DISTANCE) * MAX_STRAFE_POWER,
-//                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
-//            }
-//
-//            setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot, false);
-//
-//            robot.positionManager.updatePosition(robot);
-//            currentLoc = robot.getPosition().getLocation();
-//
-//            distanceToTarget = getEuclideanDistance(currentLoc, target);
-//            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
-//
-//            robot.telemetry.addData("X", currentLoc.x);
-//            robot.telemetry.addData("Y", currentLoc.y);
-//            robot.telemetry.addData("dX", target.x);
-//            robot.telemetry.addData("dY", target.y);
-//            robot.telemetry.update();
-//        }
-//        stopMovement(robot);
+        robot.positionManager.updatePosition(robot);
+        final Point startLoc = robot.getPosition().getLocation();
+        Point currentLoc = new Point(startLoc.x, startLoc.y, "current");
+        double startingTime = robot.elapsedTime.milliseconds();
+
+        double totalDistance = getEuclideanDistance(startLoc, target);
+        double halfStrafeTime = getHalfStrafeTime(totalDistance, getAngleBetween(startLoc, target));
+
+        double power = MIN_STRAFE_POWER;
+        double timeElapsed = 0;
+        double timeLeft = 2 * halfStrafeTime - timeElapsed;
+
+        while (timeElapsed < 2*halfStrafeTime) {
+
+            if (timeElapsed < halfStrafeTime) {
+                // Ramping up.
+                power = Range.clip(
+                        (timeElapsed / halfStrafeTime) * MAX_STRAFE_POWER,
+                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+            }
+            else {
+                // Ramping down.
+                power = Range.clip(
+                        (timeLeft / halfStrafeTime) * MAX_STRAFE_POWER,
+                        MIN_STRAFE_POWER, MAX_STRAFE_POWER);
+            }
+
+            setDriveMotorPowers(getAngleBetween(currentLoc, target), power, 0.0, robot, false);
+
+            robot.positionManager.updatePosition(robot);
+            currentLoc = robot.getPosition().getLocation();
+
+            timeElapsed = robot.elapsedTime.milliseconds()-startingTime;
+            timeLeft = 2 * halfStrafeTime - timeElapsed;
+
+            robot.telemetry.addData("X", currentLoc.x);
+            robot.telemetry.addData("Y", currentLoc.y);
+            robot.telemetry.addData("dX", target.x);
+            robot.telemetry.addData("dY", target.y);
+            robot.telemetry.update();
+        }
+        stopMovement(robot);
     }
 
     /** Calculates the speed of the robot when strafing given the direction of strafing and the strafing speed
