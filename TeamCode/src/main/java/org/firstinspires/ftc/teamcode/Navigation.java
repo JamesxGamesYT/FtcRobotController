@@ -328,24 +328,6 @@ public class Navigation
         }
     }
 
-    /** Determines the minimum strafing speed of the robot
-     *
-     *  @param strafeAngle the direction (angle) in which the robot should strafe
-     *  @return the minimum strafing speed of the robot
-     */
-    private double getMinStrafeSpeed(double strafeAngle) {
-        return getRobotSpeed(strafeAngle, MIN_STRAFE_POWER);
-    }
-
-    /** Determines the maximum strafing speed of the robot
-     *
-     *  @param strafeAngle the direction (angle) in which the robot should strafe
-     *  @return the minimum strafing speed of the robot
-     */
-    private double getMaxStrafeSpeed(double strafeAngle) {
-        return getRobotSpeed(strafeAngle, MAX_STRAFE_POWER);
-    }
-
     /** Calculates half the amount of time it is estimated for a linear strafe to take.
      *
      *  @param distance the distance of the strafe
@@ -353,8 +335,8 @@ public class Navigation
      */
     private double getHalfStrafeTime(double distance, double strafeAngle) {
         // Inches per second is probably a good unit.
-        double min_strafe_speed = getMinStrafeSpeed(strafeAngle);
-        double max_strafe_speed = getMaxStrafeSpeed(strafeAngle);
+        double min_strafe_speed = getRobotSpeed(strafeAngle, MIN_STRAFE_POWER);
+        double max_strafe_speed = getRobotSpeed(strafeAngle, MAX_STRAFE_POWER);
 
         double ramp_distance = (max_strafe_speed + min_strafe_speed) / 2
                              * (max_strafe_speed - min_strafe_speed) / STRAFE_ACCELERATION;
