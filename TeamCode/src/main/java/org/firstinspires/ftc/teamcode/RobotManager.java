@@ -39,7 +39,7 @@ public class RobotManager {
         this.elapsedTime = elapsedTime;
 
         elapsedTime.reset();
-        navigation = new Navigation(path, allianceColor, startingSide, movementMode);
+        navigation = new Navigation(path, allianceColor, startingSide, movementMode,this);
         mechanismDriving = new MechanismDriving(allianceColor);
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
@@ -315,5 +315,17 @@ public class RobotManager {
         }
 
         closeClaw();
+    }
+
+    /**returns ture is the driver is attempting to move the robot linearly
+     *
+     * @return boolean whether the d-pad has a button pressed or the joystick is not centered
+     */
+    public boolean hasMovementDirection() {
+        boolean dpad_pressed= gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD)||gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD)||gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_LEFT)||gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_RIGHT);
+        boolean joystick_moved;
+        double stickDist=Math.sqrt(Math.pow(gamepads.getAnalogValues().gamepad1LeftStickY,2)+Math.pow(gamepads.getAnalogValues().gamepad1LeftStickX,2));
+        joystick_moved=stickDist>=0.05;
+        return dpad_pressed||joystick_moved;
     }
 }

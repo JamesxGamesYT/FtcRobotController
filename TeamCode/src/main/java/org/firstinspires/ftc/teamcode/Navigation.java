@@ -64,6 +64,7 @@ public class Navigation
     //                              RL    RR    FL    FR
     public double[] wheel_speeds = {0.70, 0.70, 1.0, 1.0};
     public double strafePower;  // Tele-Op only
+    RobotManager robotManager;
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -73,11 +74,12 @@ public class Navigation
     public int pathIndex;
 
     public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor,
-                      RobotManager.StartingSide startingSide, MovementMode movementMode) {
+                      RobotManager.StartingSide startingSide, MovementMode movementMode,RobotManager robotManager) {
         this.path = path;
         this.movementMode = movementMode;
         pathIndex = 0;
         transformPath(allianceColor, startingSide);
+        this.robotManager=robotManager;
     }
 
     /** Makes the robot travel along the path until it reaches a POI.
@@ -119,7 +121,7 @@ public class Navigation
      *  @return Whether the strafe power is greater than zero.
      */
     public void updateStrafePower(AnalogValues analogValues, Robot robot) {
-        double throttle = analogValues.gamepad1LeftTrigger;
+        double throttle = analogValues.gamepad1RightTrigger;
         if (throttle < 0.05) {  // Throttle dead zone.
             strafePower = 0.0;
             return;
@@ -459,6 +461,9 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
+        if(!robotManager.hasMovementDirection()&&path.size()==0) {//if the joystick is centered and the d-pad is unpressed and the auton path is empty dont move the robot limnerly
+            power=0;
+        }
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
