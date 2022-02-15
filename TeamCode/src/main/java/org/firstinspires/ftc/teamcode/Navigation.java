@@ -25,6 +25,7 @@ public class Navigation
     // How many inches per second the robot goes at when moving forward with all motors set to full power.
     // TODO: empirically measure this value.
     final double SPEED_FACTOR = 1.0;
+    final double ROTATION_RADIUS = 1.0; // Radius of the robot's rotation (still needs to be calculated)
     final double MAX_STRAFE_POWER = 1.0;
     final double MIN_STRAFE_POWER = 0.2;
     final double MAX_ROTATE_POWER = 0.5;
@@ -347,6 +348,27 @@ public class Navigation
         else {  // We never get to max_strafe_speed
             return (-min_strafe_speed + Math.sqrt(Math.pow(min_strafe_speed, 2) + distance * STRAFE_ACCELERATION))
                  / 0.5 * STRAFE_ACCELERATION;
+        }
+    }
+
+    /** Calculates half the amount of time it is estimated for a rotation to take.
+     *
+     *  @param angle The angle of the rotation
+     */
+    private double getHalfRotateTime(double angle) {
+        // Get this in inches per second but convert to radians per second
+        double min_rotate_speed = (SPEED_FACTOR * MIN_ROTATE_POWER) / ROTATION_RADIUS;
+        double max_rotate_speed = (SPEED_FACTOR * MAX_ROTATE_POWER) / ROTATION_RADIUS;
+
+        double ramp_angle = (max_rotate_speed + min_rotate_speed) / 2
+                * (max_rotate_speed - min_rotate_speed) / ROTATE_ACCELERATION;
+        if (distance / 2 >= ramp_angle) {
+            return (distance / 2 - ramp_angle) / max_rotate_speed
+                    + (max_rotate_speed - min_rotate_speed) / ROTATE_ACCELERATION;
+        }
+        else {  // We never get to max_rotate_speed
+            return (-min_rotate_speed + Math.sqrt(Math.pow(min_rotate_speed, 2) + angle * ROTATE_ACCELERATION))
+                    / 0.5 * ROTATE_ACCELERATION;
         }
     }
 
