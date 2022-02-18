@@ -182,7 +182,7 @@ public class Navigation
         // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
         //       upon initialization.
 
-        double turn = analogValues.gamepad1RightStickX;
+        double turn = analogValues.gamepad1LeftStickX;
         if(robotManager.gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_COUNTER_CLOCKWISE)){
             turn=-1;
         }
@@ -199,7 +199,7 @@ public class Navigation
             turn *= COARSE_ROTATION_POWER;
         }
 
-        double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, analogValues.gamepad1LeftStickX);
+        double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, analogValues.gamepad1RightStickX);
         setDriveMotorPowers(moveDirection, strafePower, turn, robot, false);
         robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
     }
