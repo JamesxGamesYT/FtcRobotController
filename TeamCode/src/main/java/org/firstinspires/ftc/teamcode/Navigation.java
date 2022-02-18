@@ -31,6 +31,8 @@ public class Navigation
     final double MAX_ROTATE_POWER = 0.5;
     final double MIN_ROTATE_POWER = 0.1;
     final boolean ROTATIONAL_RAMPING = false;
+    final double STRAFE_RAMP_DISTANCE = 1.0;
+    final double ROTATION_RAMP_DISTANCE = 1.0;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     final double EPSILON_LOC = 1.0;
     final double EPSILON_ANGLE = 0.08;
@@ -186,59 +188,61 @@ public class Navigation
      */
     public void rotate(double target, boolean ramping, Robot robot)
     {
-//        robot.positionManager.updatePosition(robot);
-//        // Both values are restricted to interval (-pi, pi].
-//        final double startOrientation = robot.getPosition().getRotation();
-//        double currentOrientation = startOrientation;  // Copies by value because double is primitive.
-//
-//        double rotationSize = getRotationSize(startOrientation, target);
-//
-//        double power = MIN_ROTATE_POWER;  // If ramping is false, power will stay at this value.
-//        double rotationRemaining = getRotationSize(currentOrientation, target);
-//        double rotationProgress = getRotationSize(startOrientation, currentOrientation);
-//
-//        while (rotationRemaining > EPSILON_ANGLE) {
-//            robot.telemetry.addData("rot left", rotationRemaining);
-//            robot.telemetry.addData("current orientation", currentOrientation);
-//            robot.telemetry.addData("target", target);
-//            robot.telemetry.update();
-//
-//            if (ramping) {
-//                if (rotationProgress < rotationSize / 2) {
-//                    // Ramping up.
-//                    if (rotationProgress <= ROTATION_RAMP_DISTANCE) {
-//                        power = Range.clip(
-//                                (rotationProgress / ROTATION_RAMP_DISTANCE) * MAX_ROTATE_POWER,
-//                                MIN_ROTATE_POWER, MAX_ROTATE_POWER);
-//                    }
-//                }
-//                else {
-//                    // Ramping down.
-//                    if (rotationRemaining <= ROTATION_RAMP_DISTANCE) {
-//                        power = Range.clip(
-//                                (rotationRemaining / ROTATION_RAMP_DISTANCE) * MAX_ROTATE_POWER,
-//                                MIN_ROTATE_POWER, MAX_ROTATE_POWER);
-//                    }
-//                }
-//            }
-//
-//            switch (getRotationDirection(currentOrientation, target)) {
-//                case CLOCKWISE:
-//                    setDriveMotorPowers(0.0, 0.0, power, robot, false);
-//                    break;
-//                case COUNTERCLOCKWISE:
-//                    setDriveMotorPowers(0.0, 0.0, -power, robot, false);
-//                    break;
-//            }
-//
-//            robot.positionManager.updatePosition(robot);
-//            currentOrientation = robot.getPosition().getRotation();
-//
-//            rotationRemaining = getRotationSize(currentOrientation, target);
-//            rotationProgress = getRotationSize(startOrientation, currentOrientation);
-//        }
-//
-//        stopMovement(robot);
+        robot.positionManager.updatePosition(robot);
+        // Both values are restricted to interval (-pi, pi].
+        final double startOrientation = robot.getPosition().getRotation();
+        double currentOrientation = startOrientation;  // Copies by value because double is primitive.
+        double startingTime = robot.elapsedTime.milliseconds();
+
+        double rotationSize = getRotationSize(startOrientation, target);
+        double halfRotateTime = getHalfRotateTime(rotationSize);
+
+        double power = MIN_ROTATE_POWER;  // If ramping is false, power will stay at this value.
+        double rotationProgress = getRotationSize(startOrientation, currentOrientation);
+        double rotationRemaining = getRotationSize(currentOrientation, target);
+        double timeElapsed = 0;
+        double timeLeft = 2 * halfRotateTime - timeElapsed;
+
+        while (timeElapsed < 2 * halfRotateTime) {
+            robot.telemetry.addData("rot left", rotationRemaining);
+            robot.telemetry.addData("current orientation", currentOrientation);
+            robot.telemetry.addData("target", target);
+            robot.telemetry.update();
+
+            if (ramping) {
+                if (timeElapsed < halfRotateTime) {
+                    // Ramping up.
+                    power = Range.clip(
+                            (timeElapsed / halfRotateTime) * MAX_ROTATE_POWER,
+                            MIN_ROTATE_POWER, MAX_ROTATE_POWER);
+                }
+                else {
+                    // Ramping down.
+                    power = Range.clip(
+                            (timeLeft / halfRotateTime) * MAX_ROTATE_POWER,
+                            MIN_ROTATE_POWER, MAX_ROTATE_POWER);
+                }
+            }
+
+            switch (getRotationDirection(currentOrientation, target)) {
+                case CLOCKWISE:
+                    setDriveMotorPowers(0.0, 0.0, power, robot, false);
+                    break;
+                case COUNTERCLOCKWISE:
+                    setDriveMotorPowers(0.0, 0.0, -power, robot, false);
+                    break;
+            }
+
+            robot.positionManager.updatePosition(robot);
+            currentOrientation = robot.getPosition().getRotation();
+
+            rotationProgress = getRotationSize(startOrientation, currentOrientation);
+            rotationRemaining = getRotationSize(currentOrientation, target);
+            timeElapsed = robot.elapsedTime.milliseconds()-startingTime;
+            timeLeft = 2 * halfRotateTime - timeElapsed;
+        }
+
+        stopMovement(robot);
     }
 
     /** Determines whether the robot has to turn clockwise or counterclockwise to get from theta to target.
@@ -275,10 +279,12 @@ public class Navigation
         double halfStrafeTime = getHalfStrafeTime(totalDistance, getAngleBetween(startLoc, target));
 
         double power = MIN_STRAFE_POWER;
+        double distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+        double distanceRemaining = getEuclideanDistance(currentLoc, target);
         double timeElapsed = 0;
         double timeLeft = 2 * halfStrafeTime - timeElapsed;
 
-        while (timeElapsed < 2*halfStrafeTime) {
+        while (timeElapsed < 2 * halfStrafeTime) {
 
             if (timeElapsed < halfStrafeTime) {
                 // Ramping up.
@@ -298,6 +304,8 @@ public class Navigation
             robot.positionManager.updatePosition(robot);
             currentLoc = robot.getPosition().getLocation();
 
+            distanceTraveled = getEuclideanDistance(startLoc, currentLoc);
+            distanceRemaining = getEuclideanDistance(currentLoc, target);
             timeElapsed = robot.elapsedTime.milliseconds()-startingTime;
             timeLeft = 2 * halfStrafeTime - timeElapsed;
 
