@@ -183,6 +183,12 @@ public class Navigation
         //       upon initialization.
 
         double turn = analogValues.gamepad1RightStickX;
+        if(robotManager.gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_COUNTER_CLOCKWISE)){
+            turn=-1;
+        }
+        if(robotManager.gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_CLOCKWISE)){
+            turn=1;
+        }
         if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
             turn = 0;
         }

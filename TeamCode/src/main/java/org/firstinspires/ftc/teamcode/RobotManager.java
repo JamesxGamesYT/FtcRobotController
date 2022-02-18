@@ -26,7 +26,7 @@ public class RobotManager {
     public Navigation navigation;
     public ComputerVision computerVision;
 
-    private GamepadWrapper gamepads, previousStateGamepads;
+    protected GamepadWrapper gamepads, previousStateGamepads;
 
     private Telemetry telemetry;
     public ElapsedTime elapsedTime;
