@@ -523,7 +523,6 @@ class AutonPipeline extends OpenCvPipeline {
 
 
 
-
         // Determine the centroids of the tape regions
         double[] tapeCentroidsX = new double[2];
         int tapeComponentsCount = Imgproc.connectedComponentsWithStats(barcodeTapeRegions, barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, 8);
@@ -538,12 +537,15 @@ class AutonPipeline extends OpenCvPipeline {
         // Determine the centroid of the cap region
         int capComponentsCount = Imgproc.connectedComponentsWithStats(barcodeCapRegions, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids, 8);
         if (capComponentsCount != 2) return Robot.BarcodeScanResult.WRONG_CAPS;
+
         double capCentroidX = barcodeCapCentroids.at(double.class, 1, 1).getV();
+        double third = frame.rows() / 3.0;
 
-
-        if (capCentroidX < tapeCentroidsX[0]) return Robot.BarcodeScanResult.LEFT;
-        else if (capCentroidX < tapeCentroidsX[1]) return Robot.BarcodeScanResult.CENTER;
-        return Robot.BarcodeScanResult.RIGHT;
+        return Robot.BarcodeScanResult.ResultFromValue((int) Math.floor(capCentroidX / third));
+        
+//        if (capCentroidX < tapeCentroidsX[0]) return Robot.BarcodeScanResult.LEFT;
+//        else if (capCentroidX < tapeCentroidsX[1]) return Robot.BarcodeScanResult.CENTER;
+//        return Robot.BarcodeScanResult.RIGHT;
     }
 
 
