@@ -57,14 +57,12 @@ public class Navigation
     static final double COARSE_ROTATION_POWER = 0.8;
     static final double FINE_ROTATION_POWER = 0.4;
 
-    static final double JOYSTICK_DEAD_ZONE_SIZE = 0.05;
-
     // INSTANCE ATTRIBUTES
     // ===================
 
     // Speeds relative to one another.
     //                              RL    RR    FL    FR
-    public double[] wheel_speeds = {0.70, 0.70, 1.0, 1.0};
+    public double[] wheel_speeds = {-1.0, -1.0, -1.0, -1.0};
     public double strafePower;  // Tele-Op only
 
     // First position in this ArrayList is the first position that robot is planning to go to.
@@ -120,10 +118,27 @@ public class Navigation
      *
      *  @return Whether the strafe power is greater than zero.
      */
-    public void updateStrafePower(AnalogValues analogValues, Robot robot) {
+    public void updateStrafePower(boolean hasMovementDirection, AnalogValues analogValues, Robot robot) {
+        if (!hasMovementDirection) {
+            strafePower = 0;
+            return;
+        }
+
         double throttle = analogValues.gamepad1RightTrigger;
         if (throttle < 0.05) {  // Throttle dead zone.
-            strafePower = 0.0;
+            // Determine power scale factor using constant from distance of joystick from center.
+            double power = Range.clip(Math.sqrt(Math.pow(analogValues.gamepad1RightStickX, 2)
+                    + Math.pow(analogValues.gamepad1LeftStickY, 2)), 0, 1);
+            if (power <= 0.05) { // joystick dead zone
+                power = 0;
+            }
+            if (robot.fineMovement) {
+                power *= FINE_MOVEMENT_MAX_POWER;
+            }
+            else {
+                power *= COARSE_MOVEMENT_MAX_POWER;
+            }
+            strafePower = power;
             return;
         }
         if (robot.fineMovement) {
@@ -182,14 +197,14 @@ public class Navigation
         // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
         //       upon initialization.
 
-        double turn = analogValues.gamepad1LeftStickX;
+        double turn = -analogValues.gamepad1LeftStickX;
         if (turnCC) {
             turn = -1;
         }
         if (turnC) {
             turn = 1;
         }
-        if (-JOYSTICK_DEAD_ZONE_SIZE < turn && turn < JOYSTICK_DEAD_ZONE_SIZE) {
+        if (-RobotManager.JOYSTICK_DEAD_ZONE_SIZE < turn && turn < RobotManager.JOYSTICK_DEAD_ZONE_SIZE) {
             turn = 0;
         }
         if (robot.fineRotation) {
@@ -199,9 +214,9 @@ public class Navigation
             turn *= COARSE_ROTATION_POWER;
         }
 
-        double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, analogValues.gamepad1RightStickX);
+        double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, -analogValues.gamepad1RightStickX);
         setDriveMotorPowers(moveDirection, strafePower, turn, robot, false);
-        robot.telemetry.addData("Left Stick Position",Math.toDegrees(moveDirection) + " degrees");
+        robot.telemetry.addData("Left joystick X", -analogValues.gamepad1LeftStickX);
     }
 
     /** Rotates the robot a number of degrees.
@@ -467,7 +482,8 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
-        if (Math.abs(power - 0) < FLOAT_EPSILON) {
+        robot.telemetry.addData("turn %.2f", turn);
+        if (Math.abs(power - 0) < FLOAT_EPSILON && Math.abs(turn - 0) < FLOAT_EPSILON) {
             stopMovement(robot);
         }
         double sinMoveDirection = Math.sin(strafeDirection);

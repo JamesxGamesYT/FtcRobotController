@@ -17,6 +17,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class RobotManager {
 
+    static final double JOYSTICK_DEAD_ZONE_SIZE = 0.05;
+
     public enum AllianceColor {BLUE, RED}
     public enum StartingSide {WAREHOUSE, CAROUSEL}
 
@@ -150,6 +152,8 @@ public class RobotManager {
             }
         }
 
+        mechanismDriving.adjustDesiredSlideHeight(gamepads.getAnalogValues(), robot);
+
         robot.telemetry.addData("Front Motor Relative Speeds", "left (%.2f), right (%.2f)",
                 navigation.wheel_speeds[2], navigation.wheel_speeds[3]);
         robot.telemetry.addData("Rear Motor Relative Speeds", "left (%.2f), right (%.2f)",
@@ -171,26 +175,22 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-        navigation.updateStrafePower(gamepads.getAnalogValues(), robot);
+        navigation.updateStrafePower(hasMovementDirection(), gamepads.getAnalogValues(), robot);
 
         // Only move if one of the D-Pad buttons are pressed or the joystick is not centered.
-        if (hasMovementDirection()) {
-            boolean movedStraight = navigation.moveStraight(
-                    gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
-                    gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
-                    gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_LEFT),
-                    gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_RIGHT),
-                    robot
-            );
-            if (!movedStraight) {
-                navigation.maneuver(
-                        gamepads.getAnalogValues(),
-                        gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_COUNTER_CLOCKWISE),
-                        gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_CLOCKWISE),
-                        robot);
-            }
-        } else {
-            navigation.stopMovement(robot);
+        boolean movedStraight = navigation.moveStraight(
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_FORWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_BACKWARD),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_LEFT),
+                gamepads.getButtonState(GamepadWrapper.DriverAction.MOVE_STRAIGHT_RIGHT),
+                robot
+        );
+        if (!movedStraight) {
+            navigation.maneuver(
+                    gamepads.getAnalogValues(),
+                    gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_COUNTER_CLOCKWISE),
+                    gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_CLOCKWISE),
+                    robot);
         }
     }
 
@@ -339,7 +339,7 @@ public class RobotManager {
         double stickDist = Math.sqrt(
                 Math.pow(gamepads.getAnalogValues().gamepad1LeftStickY,2)
               + Math.pow(gamepads.getAnalogValues().gamepad1RightStickX,2));
-        boolean joystickMoved = stickDist >= Navigation.JOYSTICK_DEAD_ZONE_SIZE;
+        boolean joystickMoved = stickDist >= RobotManager.JOYSTICK_DEAD_ZONE_SIZE;
         return dpadPressed || joystickMoved;
     }
 }
