@@ -467,6 +467,9 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
+        if (Math.abs(power - 0) < FLOAT_EPSILON) {
+            stopMovement(robot);
+        }
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
@@ -493,7 +496,7 @@ public class Navigation
 
     /** Sets all drivetrain motor powers to zero.
      */
-    private void stopMovement(Robot robot) {
+    public void stopMovement(Robot robot) {
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
             Objects.requireNonNull(robot.driveMotors.get(motor)).setPower(0.0);
         }

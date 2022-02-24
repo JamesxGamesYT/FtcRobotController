@@ -189,6 +189,8 @@ public class RobotManager {
                         gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_CLOCKWISE),
                         robot);
             }
+        } else {
+            navigation.stopMovement(robot);
         }
     }
 
