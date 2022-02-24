@@ -258,10 +258,12 @@ public class RobotManager {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
 
+        int sleepTime = 0;
+        for (int interval : MechanismDriving.CAROUSEL_TIMES) {
+            sleepTime += interval;
+        }
         double startingTime = robot.elapsedTime.milliseconds();
-
-        // Sleep for MechanismDriving.CAROUSEL_SPIN_TIME milliseconds.
-        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
+        while (robot.elapsedTime.milliseconds() - startingTime < sleepTime) {}
 
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
         mechanismDriving.updateCarousel(robot);
