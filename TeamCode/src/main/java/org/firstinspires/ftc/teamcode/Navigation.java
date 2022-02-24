@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import android.os.Environment;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 import java.io.FileOutputStream;
@@ -459,6 +460,10 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
+        for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
+            Objects.requireNonNull(robot.driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
+
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
@@ -487,6 +492,7 @@ public class Navigation
      */
     private void stopMovement(Robot robot) {
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
+            Objects.requireNonNull(robot.driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             Objects.requireNonNull(robot.driveMotors.get(motor)).setPower(0.0);
         }
     }
