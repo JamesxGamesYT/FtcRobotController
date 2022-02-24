@@ -7,7 +7,7 @@ public class MechanismDriving {
 
     private static int desiredSlidePosition;
 
-    public static final int RETRACTED_POS = 0, LEVEL1_POS = 1000, LEVEL2_POS = 2000, LEVEL3_POS = 3500, CAPPING_POS = 4000;
+    public static final int RETRACTED_POS = 0, LEVEL1_POS = 1500, LEVEL2_POS = 3500, LEVEL3_POS = 6000, CAPPING_POS = 8000;
     public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.4; //These are not final values
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
@@ -18,6 +18,8 @@ public class MechanismDriving {
     public double carouselStartTime = 0.0;
     public static final double CAROUSEL_PAUSED_TIME = 1000;
     public static final double CAROUSEL_SPIN_TIME = 2000;
+
+    public static final int slidesAdjustmentSpeed = 2;
 
     private double carouselPower = CAROUSEL_SPEED;
 
@@ -71,6 +73,16 @@ public class MechanismDriving {
         desiredSlidePosition = position;
     }
 
+    /** Sets desired states of slide motor powers using joystick.
+     *
+     * TODO: implement this
+     */
+    public void adjustDesiredSlideHeight(AnalogValues analogValues, Robot robot) {
+//        if (analogValues.gamepad2LeftStickY < -RobotManager.JOYSTICK_DEAD_ZONE_SIZE) {
+//            Robot.desiredSlidesState
+//        }
+    }
+
     /** Sets slide motor powers to move in direction of desired position, if necessary.
      *
      * @return whether the slides are in the desired position.
@@ -78,7 +90,7 @@ public class MechanismDriving {
     public boolean updateSlides(Robot robot) {
 
         if(Robot.desiredSlidesState != Robot.SlidesState.UNREADY){
-            switch(robot.desiredSlidesState){
+            switch(Robot.desiredSlidesState){
                 case RETRACTED:
                     setSlidePosition(robot, RETRACTED_POS);
                     break;
