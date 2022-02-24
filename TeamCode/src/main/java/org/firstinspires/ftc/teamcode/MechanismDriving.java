@@ -14,13 +14,11 @@ public class MechanismDriving {
     public static final int EPSILON = 30;  // slide encoder position tolerances
     double slideRampDownDist=1000, maxSpeedCoefficient =0.8, reducedSpeedCoefficient =0.7;
 
-    public static final double[] CAROUSEL_POWERS = {.625, .75};
-    public static final int[] CAROUSEL_TIMES = {1500, 500};
+    public static final double[] CAROUSEL_POWERS = {.625, .75, 0};
+    public static final int[] CAROUSEL_TIMES = {1500, 500, 750};
     public int carouselPowerIndex = 0;
 
     public double carouselStartTime = 0.0;
-    public static final double CAROUSEL_PAUSED_TIME = 1000;
-    public static final double CAROUSEL_SPIN_TIME = 2000;
 
     private double[] carouselPowers = CAROUSEL_POWERS;
 
