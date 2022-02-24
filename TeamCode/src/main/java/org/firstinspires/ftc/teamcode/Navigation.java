@@ -57,6 +57,8 @@ public class Navigation
     static final double COARSE_ROTATION_POWER = 0.8;
     static final double FINE_ROTATION_POWER = 0.4;
 
+    static final double JOYSTICK_DEAD_ZONE_SIZE = 0.05;
+
     // INSTANCE ATTRIBUTES
     // ===================
 
@@ -64,7 +66,6 @@ public class Navigation
     //                              RL    RR    FL    FR
     public double[] wheel_speeds = {0.70, 0.70, 1.0, 1.0};
     public double strafePower;  // Tele-Op only
-    RobotManager robotManager;
 
     // First position in this ArrayList is the first position that robot is planning to go to.
     // This condition must be maintained (positions should be deleted as the robot travels)
@@ -74,12 +75,11 @@ public class Navigation
     public int pathIndex;
 
     public Navigation(ArrayList<Position> path, RobotManager.AllianceColor allianceColor,
-                      RobotManager.StartingSide startingSide, MovementMode movementMode,RobotManager robotManager) {
+                      RobotManager.StartingSide startingSide, MovementMode movementMode) {
         this.path = path;
         this.movementMode = movementMode;
         pathIndex = 0;
         transformPath(allianceColor, startingSide);
-        this.robotManager=robotManager;
     }
 
     /** Makes the robot travel along the path until it reaches a POI.
@@ -177,19 +177,19 @@ public class Navigation
 
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
-    public void maneuver(AnalogValues analogValues, Robot robot) {
+    public void maneuver(AnalogValues analogValues, boolean turnCC, boolean turnC, Robot robot) {
         // Uses left stick to go forward, and right stick to turn.
         // NOTE: right-side drivetrain motor inputs don't have to be negated because their directions will be reversed
         //       upon initialization.
 
         double turn = analogValues.gamepad1LeftStickX;
-        if(robotManager.gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_COUNTER_CLOCKWISE)){
-            turn=-1;
+        if (turnCC) {
+            turn = -1;
         }
-        if(robotManager.gamepads.getButtonState(GamepadWrapper.DriverAction.TURN_CLOCKWISE)){
-            turn=1;
+        if (turnC) {
+            turn = 1;
         }
-        if (-0.05 < turn && turn < 0.05) {  // joystick dead zone
+        if (-JOYSTICK_DEAD_ZONE_SIZE < turn && turn < JOYSTICK_DEAD_ZONE_SIZE) {
             turn = 0;
         }
         if (robot.fineRotation) {
@@ -467,9 +467,6 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
-        if(!robotManager.hasMovementDirection()&&path.size()==0) {//if the joystick is centered and the d-pad is unpressed and the auton path is empty dont move the robot limnerly
-            power=0;
-        }
         double sinMoveDirection = Math.sin(strafeDirection);
         double cosMoveDirection = Math.cos(strafeDirection);
 
