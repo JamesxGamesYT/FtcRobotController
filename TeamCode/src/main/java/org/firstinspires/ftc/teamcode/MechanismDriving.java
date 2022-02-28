@@ -13,7 +13,10 @@ public class MechanismDriving {
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
     double slideRampDownDist=1000, maxSpeedCoefficient =0.8, reducedSpeedCoefficient =0.7;
-    public static final double CAROUSEL_SPEED = 0.625;
+
+    public static final double[] CAROUSEL_POWERS = {.625, .75};
+    public static final int[] CAROUSEL_TIMES = {1500, 500};
+    public int carouselPowerIndex = 0;
 
     public double carouselStartTime = 0.0;
     public static final double CAROUSEL_PAUSED_TIME = 1000;
@@ -21,11 +24,13 @@ public class MechanismDriving {
 
     public static final int slidesAdjustmentSpeed = 2;
 
-    private double carouselPower = CAROUSEL_SPEED;
+    private double[] carouselPowers = CAROUSEL_POWERS;
 
     MechanismDriving(RobotManager.AllianceColor allianceColor) {
         if (allianceColor == RobotManager.AllianceColor.BLUE) {
-            carouselPower = -CAROUSEL_SPEED;
+            for (int i = 0; i < carouselPowers.length; i++) {
+                carouselPowers[i] = -carouselPowers[i];
+            }
         }
     }
 
@@ -49,19 +54,25 @@ public class MechanismDriving {
     /** Activates or stops carousel depending on robot's desired state.
      */
     public void updateCarousel(Robot robot) {
-        switch(robot.desiredCarouselState) {
-            case STOPPED:
-                robot.carousel.setPower(0);
-                break;
-            case SPINNING:
-                robot.carousel.setPower(carouselPower);
-                break;
-            case AUTO_SPIN:
-                double carouselTime = robot.elapsedTime.milliseconds() - carouselStartTime;
-                if (carouselTime % (CAROUSEL_PAUSED_TIME + CAROUSEL_SPIN_TIME) < CAROUSEL_SPIN_TIME)
-                    robot.carousel.setPower(carouselPower);
-                else
-                    robot.carousel.setPower(0);
+        if (robot.desiredCarouselState == Robot.CarouselState.STOPPED) {
+            robot.carouselMotor.setPower(0.0);
+            carouselPowerIndex = 0;
+            return;
+        }
+        if (robot.elapsedTime.milliseconds() - carouselStartTime < CAROUSEL_TIMES[carouselPowerIndex]) {
+            robot.carouselMotor.setPower(carouselPowers[carouselPowerIndex]);
+        }
+        else {
+            carouselStartTime = robot.elapsedTime.milliseconds();
+            carouselPowerIndex++;
+
+            if (carouselPowerIndex == carouselPowers.length) {
+                if (robot.desiredCarouselState == Robot.CarouselState.AUTO_SPIN) {
+                    carouselPowerIndex = 0;
+                } else {
+                    robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+                }
+            }
         }
     }
 
@@ -90,6 +101,7 @@ public class MechanismDriving {
     public boolean updateSlides(Robot robot) {
 
         if(Robot.desiredSlidesState != Robot.SlidesState.UNREADY){
+            // todo: arin, do we mean to have Robot with a capital R here?
             switch(Robot.desiredSlidesState){
                 case RETRACTED:
                     setSlidePosition(robot, RETRACTED_POS);
