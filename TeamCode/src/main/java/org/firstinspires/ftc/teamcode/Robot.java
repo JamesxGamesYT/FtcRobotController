@@ -60,7 +60,7 @@ public class Robot {
     // Hardware
 //    public DcMotor carousel, slidesLeft, slidesRight, clawLEDs;
     public DcMotor carousel, slidesLeft, slidesRight;
-    public CRServo claw;
+    public Servo claw;
     public Servo clawIndicator;
 
     // Other
@@ -87,7 +87,7 @@ public class Robot {
         carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
-        claw = hardwareMap.get(CRServo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
+        claw = hardwareMap.get(Servo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
 //        clawLEDs=hardwareMap.get(DcMotor.class,"LED");
 //        clawLEDs.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        clawLEDs.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -104,8 +104,9 @@ public class Robot {
 //            Objects.requireNonNull(driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
-        slidesLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        slidesLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        slidesRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
         if(desiredSlidesState ==SlidesState.UNREADY) {//if the slides have yet to be initialised then reset the encoders for the slides and set the slide state to retracted
             slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             slidesRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

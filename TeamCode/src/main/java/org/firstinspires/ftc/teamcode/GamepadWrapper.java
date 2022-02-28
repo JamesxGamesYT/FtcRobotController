@@ -62,9 +62,9 @@ public class GamepadWrapper {
             case CHANGE_ROTATION_MODE:
                 return gamepad1.right_bumper;
             case MOVE_STRAIGHT_FORWARD:
-                return gamepad1.dpad_down;
-            case MOVE_STRAIGHT_BACKWARD:
                 return gamepad1.dpad_up;
+            case MOVE_STRAIGHT_BACKWARD:
+                return gamepad1.dpad_down;
             case MOVE_STRAIGHT_LEFT:
                 return gamepad1.x;
             case MOVE_STRAIGHT_RIGHT:
@@ -103,7 +103,8 @@ class AnalogValues {
         this.gamepad1RightStickX = gamepad1.right_stick_x;
         this.gamepad1RightStickY = gamepad1.right_stick_y;
         this.gamepad1LeftStickX = gamepad1.left_stick_x;
-        this.gamepad1LeftStickY = gamepad1.left_stick_y;
+        this.gamepad1LeftStickY = -gamepad1.left_stick_y;
+
         this.gamepad2RightStickX = gamepad2.right_stick_x;
         this.gamepad2RightStickY = gamepad2.right_stick_y;
         this.gamepad2LeftStickX = gamepad2.left_stick_x;

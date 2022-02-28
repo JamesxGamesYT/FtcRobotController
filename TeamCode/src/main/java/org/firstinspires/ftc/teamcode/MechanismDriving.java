@@ -8,7 +8,7 @@ public class MechanismDriving {
     private static int desiredSlidePosition;
 
     public static final int RETRACTED_POS = 0, LEVEL1_POS = 1500, LEVEL2_POS = 3500, LEVEL3_POS = 6000, CAPPING_POS = 8000;
-    public static final double CLAW_CLOSED_POS = 100.0, CLAW_OPEN_POS = -0.4; //These are not final values
+    public static final double CLAW_CLOSED_POS = 0, CLAW_OPEN_POS = 1.0; //These are not final values
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
     public static final int EPSILON = 30;  // slide encoder position tolerances
@@ -34,14 +34,14 @@ public class MechanismDriving {
     public void updateClaw(Robot robot) {
         switch (robot.desiredClawState) {
             case CLOSED:
-                robot.claw.setPower(CLAW_CLOSED_POS);//closed
+                robot.claw.setPosition(CLAW_CLOSED_POS);//closed
 //                robot.clawLEDs.setPower(0);
-                robot.clawIndicator.setPosition(0);
+                robot.clawIndicator.setPosition(1);
                 break;
             case OPEN:
-                robot.claw.setPower(CLAW_OPEN_POS);//open
+                robot.claw.setPosition(CLAW_OPEN_POS);//open
 //                robot.clawLEDs.setPower(1);
-                robot.clawIndicator.setPosition(1);
+                robot.clawIndicator.setPosition(0);
                 break;
         }
     }
