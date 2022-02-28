@@ -62,8 +62,8 @@ public class Navigation
     // ===================
 
     // Speeds relative to one another.
-    //                              RL    RR    FL    FR
-    public double[] wheel_speeds = {-1.0, -1.0, -1.0, -1.0};
+    //                              RL   RR   FL   FR
+    public double[] wheel_speeds = {1.0, 1.0, 1.0, 1.0};
     public double strafePower;  // Tele-Op only
 
     // First position in this ArrayList is the first position that robot is planning to go to.
