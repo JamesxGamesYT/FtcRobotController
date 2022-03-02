@@ -112,6 +112,9 @@ class EncoderPositioning {
             int encoderCounts = Objects.requireNonNull(robot.driveMotors.get(rollerAngle.getKey())).getCurrentPosition();
             double force = rollerAngle.getValue();
 
+            if (rollerAngle.getKey() == RobotConfig.DriveMotors.FRONT_RIGHT || rollerAngle.getKey() == RobotConfig.DriveMotors.REAR_RIGHT) encoderCounts = -encoderCounts;
+//            theta -= Math.PI / 4.0;
+
             deltaPSumX += -encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
             deltaPSumY += -encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
         }

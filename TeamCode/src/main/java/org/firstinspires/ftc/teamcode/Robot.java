@@ -166,10 +166,10 @@ class RobotConfig {
     }};
 
     public static final Map<DriveMotors, DcMotor.Direction> DriveMotorsDirections = new HashMap<DriveMotors, DcMotor.Direction>() {{
-        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.FORWARD);
-        put(DriveMotors.REAR_LEFT, DcMotor.Direction.FORWARD);
-        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.REVERSE);
-        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.REAR_LEFT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.FORWARD);
     }};
 
     public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{

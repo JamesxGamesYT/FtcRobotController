@@ -393,15 +393,6 @@ public class Navigation
 //            robot.telemetry.addData("X", currentLoc.x);
 //            robot.telemetry.addData("Y", currentLoc.y);
 
-            try {
-                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
-                fout.write(("current: " + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.write(("atan: " + getAngleBetween(currentLoc, target) + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.write(("orientation: " + robot.getPosition().getRotation() + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.write(("strafeAngle: " + strafeAngle + "\n").getBytes(StandardCharsets.UTF_8));
-                fout.close();
-            }
-            catch (Exception e) {}
 
 //
 //            robot.telemetry.addData("tX", target.x);
@@ -483,6 +474,15 @@ public class Navigation
      *              zero if you only want the robot to strafe.
      */
     private void setDriveMotorPowers(double strafeDirection, double power, double turn, Robot robot, boolean debug) {
+        try {
+            FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
+            fout.write(("current: " + robot.positionManager.position.getLocation().x + " " + robot.positionManager.position.getLocation().y + "\n").getBytes(StandardCharsets.UTF_8));
+            fout.write(("orientation: " + robot.getPosition().getRotation() + "\n").getBytes(StandardCharsets.UTF_8));
+            fout.write(("strafeAngle: " + strafeDirection + "\n").getBytes(StandardCharsets.UTF_8));
+            fout.close();
+        }
+        catch (Exception e) {}
+
         for (RobotConfig.DriveMotors motor : RobotConfig.DriveMotors.values()) {
             Objects.requireNonNull(robot.driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
