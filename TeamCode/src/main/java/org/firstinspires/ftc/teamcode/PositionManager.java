@@ -10,6 +10,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -98,6 +100,13 @@ class EncoderPositioning {
     }};
 
 
+    static HashMap<RobotConfig.DriveMotors, String> WheelNames = new HashMap<RobotConfig.DriveMotors, String>() {{
+        put(RobotConfig.DriveMotors.FRONT_RIGHT, "FrontRight");
+        put(RobotConfig.DriveMotors.FRONT_LEFT, "FrontLeft");
+        put(RobotConfig.DriveMotors.REAR_LEFT, "RearLeft");
+        put(RobotConfig.DriveMotors.REAR_RIGHT, "RearRight");
+    }};
+
     /** Checks the robot's encoders to get an estimate of the distance and direction traveled.
      *  Read encoder values and use them to create a Position that represents the robot's movement relative to the last time the encoders were read.
      *  Reset encoder values to zero.
@@ -108,15 +117,33 @@ class EncoderPositioning {
         double theta = robot.positionManager.position.getRotation();
         double deltaPSumX = 0.0d, deltaPSumY = 0.0d;
 
+        String log = "";
+
         for (HashMap.Entry<RobotConfig.DriveMotors, Double> rollerAngle : RollerAngles.entrySet()) {
             int encoderCounts = Objects.requireNonNull(robot.driveMotors.get(rollerAngle.getKey())).getCurrentPosition();
             double force = rollerAngle.getValue();
 
-            deltaPSumX += -encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
-            deltaPSumY += -encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
+            double calcX = -encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
+            double calcY = -encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
+
+            deltaPSumX += calcX;
+            deltaPSumY += calcY;
+
+            log += WheelNames.get(rollerAngle.getKey()) + ": " + encoderCounts + ", x: " + calcX + ", y: " + calcY + "\n";
         }
 
         resetEncoders(robot);
+        log += "x: " + deltaPSumX + ", y: " + deltaPSumY + "\n\n";
+
+
+        try {
+            FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/debugathon.txt", true);
+            fout.write(log.getBytes(StandardCharsets.UTF_8));
+            fout.close();
+        }
+        catch (Exception e) {}
+
+
         return new Position(MAGICAL_RATIO * deltaPSumX, MAGICAL_RATIO * deltaPSumY, 0.0);
 
 
