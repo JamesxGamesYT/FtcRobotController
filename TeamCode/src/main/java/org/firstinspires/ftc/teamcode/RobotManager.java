@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 public class RobotManager {
 
     static final double JOYSTICK_DEAD_ZONE_SIZE = 0.05;
+    static final double TRIGGER_DEAD_ZONE_SIZE = 0.05;
 
     public enum AllianceColor {BLUE, RED}
     public enum StartingSide {WAREHOUSE, CAROUSEL}
@@ -108,11 +109,19 @@ public class RobotManager {
         }
 
         // Fine movement/rotation.
-        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_MOVEMENT_MODE)) {
-            robot.fineMovement = !robot.fineMovement;
+        if (getButtonRelease(GamepadWrapper.DriverAction.FINE_MOVEMENT_TOGGLE)) {
+            if (robot.movementMode == Robot.MovementMode.FINE) {
+                robot.movementMode = Robot.MovementMode.NORMAL;
+            } else {
+                robot.movementMode = Robot.MovementMode.FINE;
+            }
         }
-        if (getButtonRelease(GamepadWrapper.DriverAction.CHANGE_ROTATION_MODE)) {
-            robot.fineRotation = !robot.fineRotation;
+        if (getButtonRelease(GamepadWrapper.DriverAction.ULTRA_FINE_MOVEMENT_TOGGLE)) {
+            if (robot.movementMode == Robot.MovementMode.ULTRA_FINE) {
+                robot.movementMode = Robot.MovementMode.NORMAL;
+            } else {
+                robot.movementMode = Robot.MovementMode.ULTRA_FINE;
+            }
         }
 
         if (getButtonRelease(GamepadWrapper.DriverAction.TOGGLE_WHEEL_SPEED_ADJUSTMENT)) {
@@ -158,8 +167,7 @@ public class RobotManager {
                 navigation.wheel_speeds[2], navigation.wheel_speeds[3]);
         robot.telemetry.addData("Rear Motor Relative Speeds", "left (%.2f), right (%.2f)",
                 navigation.wheel_speeds[0], navigation.wheel_speeds[1]);
-        robot.telemetry.addData("Fine movement", "" + robot.fineMovement);
-        robot.telemetry.addData("Fine rotation", "" + robot.fineRotation);
+        robot.telemetry.addData("Movement mode", "" + robot.movementMode.name());
 
         previousStateGamepads.copyGamepads(gamepads);
     }
@@ -175,7 +183,7 @@ public class RobotManager {
     /** Changes drivetrain motor inputs based off the controller inputs.
      */
     public void maneuver() {
-        navigation.updateStrafePower(hasMovementDirection(), gamepads.getAnalogValues(), robot);
+        navigation.updateStrafePower(hasMovementDirection(), gamepads, robot);
 
         // Only move if one of the D-Pad buttons are pressed or the joystick is not centered.
         boolean movedStraight = navigation.moveStraight(

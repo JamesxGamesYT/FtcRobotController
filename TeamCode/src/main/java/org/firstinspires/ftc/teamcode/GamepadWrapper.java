@@ -10,9 +10,10 @@ import com.qualcomm.robotcore.hardware.Gamepad;
  */
 public class GamepadWrapper {
     public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
-                              SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, CHANGE_MOVEMENT_MODE,
-                              CHANGE_ROTATION_MODE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
-                              MOVE_STRAIGHT_RIGHT, TOGGLE_AUTO_SPIN, TOGGLE_WHEEL_SPEED_ADJUSTMENT, TURN_COUNTER_CLOCKWISE,TURN_CLOCKWISE
+                              SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, ULTRA_FINE_MOVEMENT_TOGGLE,
+                              FINE_MOVEMENT_TOGGLE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
+                              MOVE_STRAIGHT_RIGHT, TOGGLE_AUTO_SPIN, TOGGLE_WHEEL_SPEED_ADJUSTMENT,
+                              TURN_COUNTER_CLOCKWISE, TURN_CLOCKWISE
     }
 
     Gamepad gamepad1, gamepad2;
@@ -57,9 +58,9 @@ public class GamepadWrapper {
                 return gamepad2.b;
             case OPEN_CLAW:
                 return gamepad2.y;
-            case CHANGE_MOVEMENT_MODE:
+            case FINE_MOVEMENT_TOGGLE:
                 return gamepad1.left_bumper;
-            case CHANGE_ROTATION_MODE:
+            case ULTRA_FINE_MOVEMENT_TOGGLE:
                 return gamepad1.right_bumper;
             case MOVE_STRAIGHT_FORWARD:
                 return gamepad1.dpad_down;
