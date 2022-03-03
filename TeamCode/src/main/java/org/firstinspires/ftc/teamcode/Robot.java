@@ -51,8 +51,8 @@ public class Robot {
         }};
     }
 
-    boolean fineMovement = false;
-    boolean fineRotation = false;
+    enum MovementMode {NORMAL, FINE, ULTRA_FINE}
+    MovementMode movementMode = MovementMode.NORMAL;
     boolean wheelSpeedAdjustment = false;
 
     HashMap<RobotConfig.DriveMotors, DcMotor> driveMotors = new HashMap<RobotConfig.DriveMotors, DcMotor>();

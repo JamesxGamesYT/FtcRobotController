@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.os.Environment;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.Range;
 
 import java.io.FileOutputStream;
@@ -53,10 +54,10 @@ public class Navigation
 
     // TELEOP CONSTANTS
     // ================
-    static final double COARSE_MOVEMENT_MAX_POWER = 1.0;
-    static final double FINE_MOVEMENT_MAX_POWER = 0.5;
-    static final double COARSE_ROTATION_POWER = 0.8;
-    static final double FINE_ROTATION_POWER = 0.4;
+    static final double MOVEMENT_MAX_POWER = 1.0;
+    static final double ROTATION_POWER = 0.8;
+    static final double FINE_MOVEMENT_SCALE_FACTOR = 0.5;
+    static final double ULTRA_FINE_MOVEMENT_SCALE_FACTOR = 0.1;
 
     // INSTANCE ATTRIBUTES
     // ===================
@@ -119,34 +120,38 @@ public class Navigation
      *
      *  @return Whether the strafe power is greater than zero.
      */
-    public void updateStrafePower(boolean hasMovementDirection, AnalogValues analogValues, Robot robot) {
+    public void updateStrafePower(boolean hasMovementDirection, GamepadWrapper gamepads, Robot robot) {
         if (!hasMovementDirection) {
             strafePower = 0;
             return;
         }
 
+        AnalogValues analogValues = gamepads.getAnalogValues();
+
         double throttle = analogValues.gamepad1RightTrigger;
-        if (throttle < 0.05) {  // Throttle dead zone.
+        if (throttle < RobotManager.TRIGGER_DEAD_ZONE_SIZE) {  // Throttle dead zone.
             // Determine power scale factor using constant from distance of joystick from center.
-            double power = Range.clip(Math.sqrt(Math.pow(analogValues.gamepad1RightStickX, 2)
+            double distance = Range.clip(Math.sqrt(Math.pow(analogValues.gamepad1RightStickX, 2)
                     + Math.pow(analogValues.gamepad1LeftStickY, 2)), 0, 1);
-            if (power <= 0.05) { // joystick dead zone
-                power = 0;
+            if (distance <= RobotManager.JOYSTICK_DEAD_ZONE_SIZE) {  // joystick dead zone
+                // Joystick is not used, but hasMovementDirection is true, so one of the straight movement buttons must
+                // have been pressed.
+                strafePower = MOVEMENT_MAX_POWER;
+            } else {
+                strafePower = distance * MOVEMENT_MAX_POWER;
             }
-            if (robot.fineMovement) {
-                power *= FINE_MOVEMENT_MAX_POWER;
-            }
-            else {
-                power *= COARSE_MOVEMENT_MAX_POWER;
-            }
-            strafePower = power;
-            return;
-        }
-        if (robot.fineMovement) {
-            strafePower = throttle * FINE_MOVEMENT_MAX_POWER;
         }
         else {
-            strafePower = throttle * COARSE_MOVEMENT_MAX_POWER;
+            strafePower = throttle * MOVEMENT_MAX_POWER;
+        }
+
+        switch (robot.movementMode) {
+            case FINE:
+                strafePower *= FINE_MOVEMENT_SCALE_FACTOR;
+                break;
+            case ULTRA_FINE:
+                strafePower *= ULTRA_FINE_MOVEMENT_SCALE_FACTOR;
+                break;
         }
     }
 
@@ -200,24 +205,25 @@ public class Navigation
 
         double turn = -analogValues.gamepad1LeftStickX;
         if (turnCC) {
-            turn = -1;
+            turn = -ROTATION_POWER;
         }
         if (turnC) {
-            turn = 1;
+            turn = ROTATION_POWER;
         }
         if (-RobotManager.JOYSTICK_DEAD_ZONE_SIZE < turn && turn < RobotManager.JOYSTICK_DEAD_ZONE_SIZE) {
             turn = 0;
         }
-        if (robot.fineRotation) {
-            turn *= FINE_ROTATION_POWER;
-        }
-        else {
-            turn *= COARSE_ROTATION_POWER;
+        switch (robot.movementMode) {
+            case FINE:
+                turn *= FINE_MOVEMENT_SCALE_FACTOR;
+                break;
+            case ULTRA_FINE:
+                turn *= ULTRA_FINE_MOVEMENT_SCALE_FACTOR;
+                break;
         }
 
         double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, -analogValues.gamepad1RightStickX);
         setDriveMotorPowers(moveDirection, strafePower, turn, robot, false);
-        robot.telemetry.addData("Left joystick X", -analogValues.gamepad1LeftStickX);
     }
 
     /** Rotates the robot a number of degrees.
