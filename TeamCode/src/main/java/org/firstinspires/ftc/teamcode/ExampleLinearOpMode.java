@@ -20,23 +20,17 @@ public class ExampleLinearOpMode extends LinearOpMode {
         DcMotor rearRight = hardwareMap.get(DcMotor.class, "rear_right");
 
         frontLeft.setPower(1.0);
-        sleep(5000);
-        frontLeft.setPower(0.0);
-
         frontRight.setPower(1.0);
-        sleep(5000);
-        frontRight.setPower(0.0);
-
         rearLeft.setPower(1.0);
-        sleep(5000);
-        rearLeft.setPower(0.0);
-
         rearRight.setPower(1.0);
-        sleep(5000);
-        rearRight.setPower(0.0);
+
 
         while (opModeIsActive()) {//loop this until stop button is pressed
-
+            telemetry.addData("FL", frontLeft.getCurrentPosition());
+            telemetry.addData("FR", frontRight.getCurrentPosition());
+            telemetry.addData("RL", rearLeft.getCurrentPosition());
+            telemetry.addData("RR", rearRight.getCurrentPosition());
+            telemetry.update();
         }
     }
 }
