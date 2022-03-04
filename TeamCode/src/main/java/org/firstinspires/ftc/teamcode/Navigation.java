@@ -398,16 +398,7 @@ public class Navigation
 //            robot.telemetry.addData("Y", startLoc.y);
 //            robot.telemetry.addData("X", currentLoc.x);
 //            robot.telemetry.addData("Y", currentLoc.y);
-//
-//            try {
-//                FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/navdestination.txt", true);
-//                fout.write(("current: " + currentLoc.x + " " + currentLoc.y + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.write(("atan: " + getAngleBetween(currentLoc, target) + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.write(("orientation: " + robot.getPosition().getRotation() + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.write(("strafeAngle: " + strafeAngle + "\n").getBytes(StandardCharsets.UTF_8));
-//                fout.close();
-//            }
-//            catch (Exception e) {}
+
 
 //
 //            robot.telemetry.addData("tX", target.x);

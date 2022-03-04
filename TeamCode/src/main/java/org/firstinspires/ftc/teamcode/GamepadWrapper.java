@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 /** Wraps a gamepad so that button mappings are stored in one place.
  */
 public class GamepadWrapper {
-    public enum DriverAction {START_STOP_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
+    public enum DriverAction {RUN_CAROUSEL, SET_SLIDES_RETRACTED, SET_SLIDES_L1, SET_SLIDES_L2, SET_SLIDES_L3,
                               SET_SLIDES_CAPPING, OPEN_CLAW, CLOSE_CLAW, ULTRA_FINE_MOVEMENT_TOGGLE,
                               FINE_MOVEMENT_TOGGLE, MOVE_STRAIGHT_FORWARD, MOVE_STRAIGHT_BACKWARD, MOVE_STRAIGHT_LEFT,
                               MOVE_STRAIGHT_RIGHT, TOGGLE_AUTO_SPIN, TOGGLE_WHEEL_SPEED_ADJUSTMENT,
@@ -42,7 +42,7 @@ public class GamepadWrapper {
      */
     public boolean getButtonState(DriverAction driverAction) {
         switch (driverAction) {
-            case START_STOP_CAROUSEL:
+            case RUN_CAROUSEL:
                 return gamepad2.a;
             case SET_SLIDES_RETRACTED:
                 return gamepad2.dpad_down;

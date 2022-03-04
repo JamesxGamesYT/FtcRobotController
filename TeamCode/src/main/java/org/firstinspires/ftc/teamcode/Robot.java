@@ -26,11 +26,26 @@ public class Robot {
     public enum ClawState {CLOSED, OPEN}
 
     public CarouselState desiredCarouselState;
-    public static SlidesState desiredSlidesState=SlidesState.UNREADY;
+    public static SlidesState desiredSlidesState = SlidesState.UNREADY;
     public ClawState desiredClawState;
 
     enum BarcodeScanState {CHECK_SCAN, SCAN}
-    enum BarcodeScanResult {LEFT, CENTER, RIGHT, WRONG_CAPS, WRONG_TAPE};
+    enum BarcodeScanResult {
+        LEFT(0), CENTER(1), RIGHT(2), WRONG_CAPS(3), WRONG_TAPE(4);
+
+        public final int value;
+
+        private BarcodeScanResult(int value) {
+            this.value = value;
+        }
+
+        public static BarcodeScanResult ResultFromValue(int label) {
+            for (BarcodeScanResult e : values()) {
+                if (e.value == label) return e;
+            }
+            return null;
+        }
+    };
 
     public BarcodeScanState barcodeScanState;
 
@@ -59,7 +74,7 @@ public class Robot {
 
     // Hardware
 //    public DcMotor carousel, slidesLeft, slidesRight, clawLEDs;
-    public DcMotor carousel, slidesLeft, slidesRight;
+    public DcMotor carouselMotor, slidesLeft, slidesRight;
     public Servo claw;
     public Servo clawIndicator;
 
@@ -84,7 +99,9 @@ public class Robot {
         desiredClawState = ClawState.CLOSED;
 
         // Initialize hardware.
-        carousel = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
+        carouselMotor = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.CAROUSEL));
+        carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         slidesLeft = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_LEFT));
         slidesRight = hardwareMap.get(DcMotor.class, RobotConfig.MotorNames.get(RobotConfig.Motors.SLIDES_RIGHT));
         claw = hardwareMap.get(Servo.class, RobotConfig.ServoNames.get(RobotConfig.Servos.CLAW));
@@ -116,8 +133,7 @@ public class Robot {
         }
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        clawLEDs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-    }
+g    }
 
     /** Returns the position of the robot.
      */
@@ -149,10 +165,10 @@ class RobotConfig {
     }};
 
     public static final Map<DriveMotors, DcMotor.Direction> DriveMotorsDirections = new HashMap<DriveMotors, DcMotor.Direction>() {{
-        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.FORWARD);
-        put(DriveMotors.REAR_LEFT, DcMotor.Direction.FORWARD);
-        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.REVERSE);
-        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.REVERSE);
+       DriveMotors put(DriveMotors.REAR_LEFT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.FORWARD);
     }};
 
     public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{

@@ -63,10 +63,11 @@ public class RobotManager {
      */
     public void readControllerInputs() {
         // Carousel
-        if (getButtonRelease(GamepadWrapper.DriverAction.START_STOP_CAROUSEL)) {
+        if (getButtonRelease(GamepadWrapper.DriverAction.RUN_CAROUSEL)) {
             switch (robot.desiredCarouselState) {
                 case STOPPED:
                     robot.desiredCarouselState = Robot.CarouselState.SPINNING;
+                    mechanismDriving.carouselStartTime = elapsedTime.milliseconds();
                     break;
                 case SPINNING:
                     robot.desiredCarouselState = Robot.CarouselState.STOPPED;
@@ -265,10 +266,13 @@ public class RobotManager {
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
 
+        int sleepTime = 0;
+        for (int interval : MechanismDriving.CAROUSEL_TIMES) {
+            sleepTime += interval;
+        }
         double startingTime = robot.elapsedTime.milliseconds();
+        while (robot.elapsedTime.milliseconds() - startingTime < sleepTime) {}
 
-        // Sleep for MechanismDriving.CAROUSEL_SPIN_TIME milliseconds.
-        while (robot.elapsedTime.milliseconds() - startingTime < MechanismDriving.CAROUSEL_SPIN_TIME) {}
         robot.desiredCarouselState = Robot.CarouselState.STOPPED;
         mechanismDriving.updateCarousel(robot);
     }
