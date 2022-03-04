@@ -133,7 +133,7 @@ public class Robot {
         }
         slidesLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slidesRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-g    }
+    }
 
     /** Returns the position of the robot.
      */
@@ -166,7 +166,7 @@ class RobotConfig {
 
     public static final Map<DriveMotors, DcMotor.Direction> DriveMotorsDirections = new HashMap<DriveMotors, DcMotor.Direction>() {{
         put(DriveMotors.FRONT_LEFT, DcMotor.Direction.REVERSE);
-       DriveMotors put(DriveMotors.REAR_LEFT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.REAR_LEFT, DcMotor.Direction.REVERSE);
         put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.FORWARD);
         put(DriveMotors.REAR_RIGHT, DcMotor.Direction.FORWARD);
     }};
