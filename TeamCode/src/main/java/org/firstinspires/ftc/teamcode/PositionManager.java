@@ -117,33 +117,17 @@ class EncoderPositioning {
         double theta = robot.positionManager.position.getRotation();
         double deltaPSumX = 0.0d, deltaPSumY = 0.0d;
 
-        String log = "";
 
         for (HashMap.Entry<RobotConfig.DriveMotors, Double> rollerAngle : RollerAngles.entrySet()) {
             int encoderCounts = Objects.requireNonNull(robot.driveMotors.get(rollerAngle.getKey())).getCurrentPosition();
             double force = rollerAngle.getValue();
 
-            double calcX = -encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
-            double calcY = -encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
-
-            deltaPSumX += calcX;
-            deltaPSumY += calcY;
-
-            log += WheelNames.get(rollerAngle.getKey()) + ": " + encoderCounts + ", x: " + calcX + ", y: " + calcY + "\n";
+            deltaPSumX = encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
+            deltaPSumY = encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
         }
+
 
         resetEncoders(robot);
-        log += "x: " + deltaPSumX + ", y: " + deltaPSumY + "\n\n";
-
-
-        try {
-            FileOutputStream fout = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/debugathon.txt", true);
-            fout.write(log.getBytes(StandardCharsets.UTF_8));
-            fout.close();
-        }
-        catch (Exception e) {}
-
-
         return new Position(MAGICAL_RATIO * deltaPSumX, MAGICAL_RATIO * deltaPSumY, 0.0);
 
 
