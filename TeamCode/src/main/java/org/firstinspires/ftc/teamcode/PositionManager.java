@@ -117,15 +117,13 @@ class EncoderPositioning {
         double theta = robot.positionManager.position.getRotation();
         double deltaPSumX = 0.0d, deltaPSumY = 0.0d;
 
-
         for (HashMap.Entry<RobotConfig.DriveMotors, Double> rollerAngle : RollerAngles.entrySet()) {
             int encoderCounts = Objects.requireNonNull(robot.driveMotors.get(rollerAngle.getKey())).getCurrentPosition();
             double force = rollerAngle.getValue();
 
-            deltaPSumX = encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
-            deltaPSumY = encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
+            deltaPSumX += -encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
+            deltaPSumY += -encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;
         }
-
 
         resetEncoders(robot);
         return new Position(MAGICAL_RATIO * deltaPSumX, MAGICAL_RATIO * deltaPSumY, 0.0);
