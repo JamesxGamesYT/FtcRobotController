@@ -257,6 +257,7 @@ class AutonPipeline extends OpenCvPipeline {
 //        }
 //
 
+//        int tapeComponents =
 
 
         // Determine the centroids of the tape regions

@@ -89,7 +89,7 @@ public class PositionManager {
  */
 class EncoderPositioning {
     static int ENCODER_COUNTS_PER_ROTATION = 280;
-    static double MAGICAL_FACTOR = (12.566 / 2) * .449;
+    static double MAGICAL_FACTOR = (12.566 / 2) * 0.449 * 1.2;
     static double MAGICAL_RATIO = MAGICAL_FACTOR / ENCODER_COUNTS_PER_ROTATION;
 
     static HashMap<RobotConfig.DriveMotors, Double> RollerAngles = new HashMap<RobotConfig.DriveMotors, Double>() {{
@@ -120,9 +120,6 @@ class EncoderPositioning {
         for (HashMap.Entry<RobotConfig.DriveMotors, Double> rollerAngle : RollerAngles.entrySet()) {
             int encoderCounts = Objects.requireNonNull(robot.driveMotors.get(rollerAngle.getKey())).getCurrentPosition();
             double force = rollerAngle.getValue();
-
-            if (rollerAngle.getKey() == RobotConfig.DriveMotors.FRONT_RIGHT || rollerAngle.getKey() == RobotConfig.DriveMotors.REAR_RIGHT) encoderCounts = -encoderCounts;
-//            theta -= Math.PI / 4.0;
 
             deltaPSumX += -encoderCounts * ((Math.cos(theta) * Math.cos(force)) - (Math.sin(theta) * Math.sin(force))) / 2.0;
             deltaPSumY += -encoderCounts * ((Math.sin(theta) * Math.cos(force)) + (Math.cos(theta) * Math.sin(force))) / 2.0;

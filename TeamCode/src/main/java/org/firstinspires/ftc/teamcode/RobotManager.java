@@ -263,6 +263,9 @@ public class RobotManager {
     /** Delivers a duck by spinning the carousel.
      */
     public void deliverDuck() {
+        robot.desiredCarouselState = Robot.CarouselState.STOPPED;
+        mechanismDriving.updateCarousel(robot);
+
         robot.desiredCarouselState = Robot.CarouselState.SPINNING;
         mechanismDriving.updateCarousel(robot);
 
@@ -270,6 +273,10 @@ public class RobotManager {
         for (int interval : MechanismDriving.CAROUSEL_TIMES) {
             sleepTime += interval;
         }
+
+        telemetry.addData("sleepTime", sleepTime);
+        telemetry.update();
+
         double startingTime = robot.elapsedTime.milliseconds();
         while (robot.elapsedTime.milliseconds() - startingTime < sleepTime) {}
 

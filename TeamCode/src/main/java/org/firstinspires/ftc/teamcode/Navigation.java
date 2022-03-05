@@ -33,7 +33,7 @@ public class Navigation
     static final double MIN_STRAFE_POWER = 0.7;
     static final double STRAFE_CORRECTION_POWER = 0.2;
     static final double MAX_ROTATION_POWER = 0.5;
-    static final double MIN_ROTATION_POWER = 0.2;
+    static final double MIN_ROTATION_POWER = 0.4;
     static final double ROTATION_CORRECTION_POWER = 0.2;
     // Accepted amounts of deviation between the robot's desired position and actual position.
     static final double EPSILON_LOC = 1.4;
@@ -222,7 +222,7 @@ public class Navigation
                 break;
         }
 
-        double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, -analogValues.gamepad1RightStickX);
+        double moveDirection = Math.atan2(analogValues.gamepad1LeftStickY, analogValues.gamepad1RightStickX);
         setDriveMotorPowers(moveDirection, strafePower, turn, robot, false);
     }
 
@@ -818,14 +818,17 @@ class AutonomousPaths {
     public static final Position allianceStorageUnit =
             new Position(new Point(19, -18, "POI alliance storage unit"), 0);
     public static final Position carousel =
-            new Position(new Point(4, -18, "POI carousel", Point.Action.CAROUSEL,
-                    Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 4);
+            new Position(new Point(4, -15, "POI carousel", Point.Action.CAROUSEL,
+                    Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 6);
     public static final Position warehouse =
             new Position(new Point(15, 60, "POI warehouse"), -Math.PI / 2);
 
     public static final Position out_from_carousel =
             new Position(new Point(
-                    carousel.getX() + 5, carousel.getY() + 3, "out from carousel"), -Math.PI / 4);
+                    carousel.getX() + 2, carousel.getY() + 3, "out from carousel"), -Math.PI / 6);
+                    //                   6,                      -11,
+
+
     public static final Position backed_up_from_ASH =
             new Position(new Point(
                     allianceShippingHub.getX() - 5, allianceShippingHub.getY(),

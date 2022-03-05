@@ -121,8 +121,8 @@ public class Robot {
 //            Objects.requireNonNull(driveMotors.get(motor)).setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
-        slidesLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        slidesRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        slidesLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        slidesRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         if(desiredSlidesState ==SlidesState.UNREADY) {//if the slides have yet to be initialised then reset the encoders for the slides and set the slide state to retracted
             slidesLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -165,10 +165,10 @@ class RobotConfig {
     }};
 
     public static final Map<DriveMotors, DcMotor.Direction> DriveMotorsDirections = new HashMap<DriveMotors, DcMotor.Direction>() {{
-        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.REVERSE);
-        put(DriveMotors.REAR_LEFT, DcMotor.Direction.REVERSE);
-        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.FORWARD);
-        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.FRONT_LEFT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.REAR_LEFT, DcMotor.Direction.FORWARD);
+        put(DriveMotors.FRONT_RIGHT, DcMotor.Direction.REVERSE);
+        put(DriveMotors.REAR_RIGHT, DcMotor.Direction.REVERSE);
     }};
 
     public static final Map<Servos, String> ServoNames = new HashMap<Servos, String>() {{
