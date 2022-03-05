@@ -7,7 +7,7 @@ public class MechanismDriving {
 
     private static int desiredSlidePosition;
 
-    public static final int RETRACTED_POS = 0, LEVEL1_POS = 775, LEVEL2_POS = 1950, LEVEL3_POS = 6000 / 2, CAPPING_POS = 3200;
+    public static final int RETRACTED_POS = 0, LEVEL1_POS = 800, LEVEL2_POS = 1950, LEVEL3_POS = 3500, CAPPING_POS = 4000;
     public static final double CLAW_CLOSED_POS = 0, CLAW_OPEN_POS = 1.0; //These are not final values
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
@@ -22,15 +22,7 @@ public class MechanismDriving {
 
     public static final int slidesAdjustmentSpeed = 2;
 
-    private double[] carouselPowers = CAROUSEL_POWERS;
-
-    MechanismDriving(RobotManager.AllianceColor allianceColor) {
-        if (allianceColor == RobotManager.AllianceColor.BLUE) {
-            for (int i = 0; i < carouselPowers.length; i++) {
-                carouselPowers[i] = -carouselPowers[i];
-            }
-        }
-    }
+    MechanismDriving() {}
 
     /** Sets the claw position to the robot's desired state.
      */
@@ -59,13 +51,13 @@ public class MechanismDriving {
             return;
         }
         if (robot.elapsedTime.milliseconds() - carouselStartTime < CAROUSEL_TIMES[carouselPowerIndex]) {
-            robot.carouselMotor.setPower(carouselPowers[carouselPowerIndex]);
+            robot.carouselMotor.setPower(CAROUSEL_POWERS[carouselPowerIndex]);
         }
         else {
             carouselStartTime = robot.elapsedTime.milliseconds();
             carouselPowerIndex++;
 
-            if (carouselPowerIndex == carouselPowers.length) {
+            if (carouselPowerIndex == CAROUSEL_POWERS.length) {
                 if (robot.desiredCarouselState == Robot.CarouselState.AUTO_SPIN) {
                     carouselPowerIndex = 0;
                 } else {
@@ -100,7 +92,7 @@ public class MechanismDriving {
     public boolean updateSlides(Robot robot) {
 
         if(Robot.desiredSlidesState != Robot.SlidesState.UNREADY){
-            // todo: arin, do we mean to have Robot with a capital R here?
+            // todo: arin, do we mean to have Robot with a capital R here? yes lol
             switch(Robot.desiredSlidesState){
                 case RETRACTED:
                     setSlidePosition(robot, RETRACTED_POS);

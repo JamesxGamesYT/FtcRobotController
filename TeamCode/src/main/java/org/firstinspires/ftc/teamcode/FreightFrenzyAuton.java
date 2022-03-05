@@ -31,6 +31,7 @@ public class FreightFrenzyAuton extends LinearOpMode {
         }
         while (!isStarted());
 
+        hubLevel = Robot.SlidesState.L3;
 
         robotManager.computerVision.stopStreaming();
 

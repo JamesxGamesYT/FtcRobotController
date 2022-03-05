@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -43,7 +44,7 @@ public class RobotManager {
 
         elapsedTime.reset();
         navigation = new Navigation(path, allianceColor, startingSide, movementMode);
-        mechanismDriving = new MechanismDriving(allianceColor);
+        mechanismDriving = new MechanismDriving();
 
         robot = new Robot(hardwareMap, telemetry, elapsedTime);
 
@@ -54,6 +55,10 @@ public class RobotManager {
         gamepads = new GamepadWrapper(gamepad1, gamepad2);
         previousStateGamepads = new GamepadWrapper();
         previousStateGamepads.copyGamepads(gamepads);
+
+        if (allianceColor == AllianceColor.BLUE) {
+            robot.carouselMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        }
     }
 
     // TELE-OP
@@ -322,7 +327,15 @@ public class RobotManager {
                 new Point(robot.getPosition().getX(), robot.getPosition().getY(), "POI startPos"),
                 robot.getPosition().getRotation());
 
-        double forwardDistance = navigation.CLAW_SIZE;
+        double forwardDistance = Navigation.CLAW_SIZE;
+        switch (level) {
+            case L2:
+                forwardDistance -= 3;
+                break;
+            case L3:
+                forwardDistance -= Navigation.CLAW_SIZE;
+                break;
+        }
 //        if (level == Robot.SlidesState.L1) {forwardDistance -= 0.75;}
 
         navigation.path.add(navigation.pathIndex,

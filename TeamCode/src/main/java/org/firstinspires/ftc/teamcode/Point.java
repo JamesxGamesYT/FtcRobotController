@@ -7,7 +7,7 @@ do not edit
 
 //a simple class that stores an x and Y value
 public class Point {
-    public enum Action {PRELOAD_BOX, CAROUSEL, NONE}
+    public enum Action {PRELOAD_BOX, CAROUSEL, RAISE_SLIDE_L1, NONE}
     protected double x;
     protected double y;
     protected Action action = Action.NONE;

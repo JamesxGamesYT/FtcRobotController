@@ -27,10 +27,10 @@ public class Navigation
     // ===============
     public enum MovementMode {FORWARD_ONLY, STRAFE}
 
-    static final double STRAFE_RAMP_DISTANCE = 6;  // Inches
+    static final double STRAFE_RAMP_DISTANCE = 3;  // Inches
     static final double ROTATION_RAMP_DISTANCE = Math.PI / 3;  // Radians
-    static final double MAX_STRAFE_POWER = 1.0;
-    static final double MIN_STRAFE_POWER = 0.7;
+    static final double MAX_STRAFE_POWER = 0.85;
+    static final double MIN_STRAFE_POWER = 0.4;
     static final double STRAFE_CORRECTION_POWER = 0.2;
     static final double MAX_ROTATION_POWER = 0.5;
     static final double MIN_ROTATION_POWER = 0.4;
@@ -42,22 +42,22 @@ public class Navigation
     static final int NUM_CHECK_FRAMES = 10;
 
     // Distance between starting locations on the warehouse side and the carousel side.
-    static final double DISTANCE_BETWEEN_START_POINTS = 40.0;
-    static final double RED_BARCODE_OFFSET = 1;
+    static final double DISTANCE_BETWEEN_START_POINTS = 35.25;
+    static final double RED_BARCODE_OFFSET = 0;
 
     // Distances between where the robot extends/retracts the linear slides and where it opens the claw.
-    static final double CLAW_SIZE = 6.9;
+    static final double CLAW_SIZE = 8.9;
 
     static final double FLOAT_EPSILON = 0.001;
 
-    public MovementMode movementMode = MovementMode.STRAFE;
+    public MovementMode movementMode;
 
     // TELEOP CONSTANTS
     // ================
     static final double MOVEMENT_MAX_POWER = 1.0;
     static final double ROTATION_POWER = 0.8;
     static final double FINE_MOVEMENT_SCALE_FACTOR = 0.5;
-    static final double ULTRA_FINE_MOVEMENT_SCALE_FACTOR = 0.1;
+    static final double ULTRA_FINE_MOVEMENT_SCALE_FACTOR = 0.25;
 
     // INSTANCE ATTRIBUTES
     // ===================
@@ -813,15 +813,15 @@ public class Navigation
 class AutonomousPaths {
     // Coordinates relative to starting location close to carousel.
     public static final Position allianceShippingHub =
-            new Position(new Point(15, 22, "POI shipping hub",
+            new Position(new Point(13, 20, "POI shipping hub",
                     Point.Action.PRELOAD_BOX, 0, 0), -Math.PI / 2);
     public static final Position allianceStorageUnit =
             new Position(new Point(19, -18, "POI alliance storage unit"), 0);
     public static final Position carousel =
-            new Position(new Point(4, -15, "POI carousel", Point.Action.CAROUSEL,
+            new Position(new Point(4, -13.5, "POI carousel", Point.Action.CAROUSEL,
                     Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 6);
     public static final Position warehouse =
-            new Position(new Point(15, 60, "POI warehouse"), -Math.PI / 2);
+            new Position(new Point(10, 50, "POI warehouse"), -Math.PI / 2);
 
     public static final Position out_from_carousel =
             new Position(new Point(
@@ -840,7 +840,7 @@ class AutonomousPaths {
     public static final Position warehouse_entrance =
             new Position(new Point(-3, warehouse.getY() - 11, "warehouse entrance"), -Math.PI / 2);
     public static final Position inside_warehouse =
-            new Position(new Point(-6, warehouse.getY(), "inside warehouse", Point.Action.NONE,
+            new Position(new Point(-6, warehouse.getY(), "inside warehouse", Point.Action.RAISE_SLIDE_L1,
                     Navigation.STRAFE_CORRECTION_POWER, 0.0), -Math.PI / 2);
 
     public static final ArrayList<Position> PARK_ASU = new ArrayList<>(Arrays.asList(
