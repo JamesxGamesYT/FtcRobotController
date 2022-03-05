@@ -7,7 +7,7 @@ public class MechanismDriving {
 
     private static int desiredSlidePosition;
 
-    public static final int RETRACTED_POS = 0, LEVEL1_POS = 1500, LEVEL2_POS = 3500, LEVEL3_POS = 6000, CAPPING_POS = 8000;
+    public static final int RETRACTED_POS = 0, LEVEL1_POS = 775, LEVEL2_POS = 1950, LEVEL3_POS = 6000 / 2, CAPPING_POS = 3200;
     public static final double CLAW_CLOSED_POS = 0, CLAW_OPEN_POS = 1.0; //These are not final values
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
@@ -39,12 +39,12 @@ public class MechanismDriving {
             case CLOSED:
                 robot.claw.setPosition(CLAW_CLOSED_POS);//closed
 //                robot.clawLEDs.setPower(0);
-                robot.clawIndicator.setPosition(1);
+                robot.clawIndicator.setPosition(0);
                 break;
             case OPEN:
                 robot.claw.setPosition(CLAW_OPEN_POS);//open
 //                robot.clawLEDs.setPower(1);
-                robot.clawIndicator.setPosition(0);
+                robot.clawIndicator.setPosition(1);
                 break;
         }
     }
@@ -55,6 +55,7 @@ public class MechanismDriving {
         if (robot.desiredCarouselState == Robot.CarouselState.STOPPED) {
             robot.carouselMotor.setPower(0.0);
             carouselPowerIndex = 0;
+            carouselStartTime = robot.elapsedTime.milliseconds();
             return;
         }
         if (robot.elapsedTime.milliseconds() - carouselStartTime < CAROUSEL_TIMES[carouselPowerIndex]) {
