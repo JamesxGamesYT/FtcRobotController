@@ -130,15 +130,16 @@ class AutonPipeline extends OpenCvPipeline {
     public Mat processFrame(Mat input) {
 //        return input;
 ////        if (first) {
-////            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
-////            first = false;
-////        }
-//
+//            saveMatToDiskFullPath(input, ComputerVision.DataDir + "/firstimage.png");
+//            first = false;
+//        }
+
 
         // Check if a barcode scan has been requested
         if (robot.barcodeScanState == Robot.BarcodeScanState.SCAN) {
             // Scan the barcode
-            Robot.BarcodeScanResult result = processBarcodeFrame(input);
+            input.copyTo(output);
+            Robot.BarcodeScanResult result = processBarcodeFrame(input, output);
 
             if (robot.numBarcodeAttempts % 5 == 0) {
                 saveMatToDiskFullPath(output, ComputerVision.DataDir + "/barcodeImage" + robot.numBarcodeAttempts + ".png");
@@ -191,7 +192,7 @@ class AutonPipeline extends OpenCvPipeline {
     final static int BarcodeCropRight = 30;
 
     // Define HSV scalars that represent ranges of color to be selected from the barcode image
-    final static Scalar[] BarcodeCapRange      = {new Scalar(121, 60, 50), new Scalar(162, 255, 255)};
+    final static Scalar[] BarcodeCapRange      = {new Scalar(23, 60, 50), new Scalar(78, 255, 255)};
     final static Scalar[] BarcodeTapeRangeBlue = {new Scalar(100, 100, 50), new Scalar(120, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed1 = {new Scalar(170, 100, 50), new Scalar(180, 255, 255)};
     final static Scalar[] BarcodeTapeRangeRed2 = {new Scalar(0,   100, 50), new Scalar(10,  255, 255)};
@@ -213,12 +214,31 @@ class AutonPipeline extends OpenCvPipeline {
     }
 
 
+    private static class BarcodeCentroid implements Comparable<BarcodeCentroid> {
+        BarcodeCentroid(int index, double centroidX) {
+            this.index = index;
+            this.centroidX = centroidX;
+        }
+
+        @Override
+        public int compareTo(BarcodeCentroid other) {
+            return Double.compare(this.centroidX, other.centroidX);
+        }
+
+        public int index;
+        public double centroidX;
+    };
+
+
+    public static int[] BarcodeFlags = {235, 415, 570};
+
+
     /**
      * @param input The current frame containing the barcode to be scanned
      * @return an integer in the interval [-1, 2], where -1 denotes no result, and 0-2 represent positions (in screen space) of the object of interest
      */
-    private Robot.BarcodeScanResult processBarcodeFrame(Mat input/*, Mat output*/) {
-        Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft - BarcodeCropRight));
+    private Robot.BarcodeScanResult processBarcodeFrame(Mat input, Mat output) {
+        Mat frame = input.submat(new Rect(0, BarcodeCropLeft, BarcodeCropTop, input.rows() - BarcodeCropLeft));
 
         // Convert input image to HSV space and perform basic blur
         Imgproc.cvtColor(frame, barcodeHsv, Imgproc.COLOR_RGB2HSV);
@@ -235,54 +255,81 @@ class AutonPipeline extends OpenCvPipeline {
         Core.bitwise_or(barcodeTapeRegionsRed1, barcodeTapeRegionsRed2, barcodeTapeRegions);
         Core.bitwise_or(barcodeTapeRegionsBlue, barcodeTapeRegions, barcodeTapeRegions);
 
-        // Visualize the detected areas with appropriately colored outlines
-//        ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-//        Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-//
-//        // Draw the detected areas to the output for visualization
-//        // TODO: Get rid of this for competition
-//
-//
-//        input.copyTo(output);
-//
-//        for (int idx = 0; idx < contours.size(); idx++) {
-//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
-//        }
-//
-//        contours.clear();
-//        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-//
-//        for (int idx = 0; idx < contours.size(); idx++) {
-//            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
-//        }
-//
 
-//        int tapeComponents =
+//         Visualize the detected areas with appropriately colored outlines
+        ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Imgproc.findContours(barcodeCapRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+        // Draw the detected areas to the output for visualization
+        // TODO: Get rid of this for competition
 
 
+        input.copyTo(output);
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Imgproc.drawContours(output, contours, idx, new Scalar(255, 255, 0), 6);
+        }
+
+        contours.clear();
+        Imgproc.findContours(barcodeTapeRegions, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+
+        for (int idx = 0; idx < contours.size(); idx++) {
+            Imgproc.drawContours(output, contours, idx, new Scalar(255, 0, 0), 6);
+        }
+
+//
+//        Imgproc.line(output, new org.opencv.core.Point(0, BarcodeFlags[0]), new org.opencv.core.Point(input.rows(), BarcodeFlags[0]), new Scalar(255, 0, 0));
+//        Imgproc.line(output, new org.opencv.core.Point(0, BarcodeFlags[1]), new org.opencv.core.Point(input.rows(), BarcodeFlags[1]), new Scalar(0, 255, 0));
+//        Imgproc.line(output, new org.opencv.core.Point(0, BarcodeFlags[2]), new org.opencv.core.Point(input.rows(), BarcodeFlags[2]), new Scalar(0, 0, 255));
+//
+//
+//        return Robot.BarcodeScanResult.CENTER;        return Robot.BarcodeScanResult.RIGHT;
+
+//
         // Determine the centroids of the tape regions
-        double[] tapeCentroidsX = new double[2];
         int tapeComponentsCount = Imgproc.connectedComponentsWithStats(barcodeTapeRegions, barcodeTapeLabels, barcodeTapeStats, barcodeTapeCentroids, 8);
 
-        // For now, we'll make sure that we're identifying only two non-cap tapes.
-        if (tapeComponentsCount != 3) return Robot.BarcodeScanResult.WRONG_TAPE;
-        for (int i = 1; i < tapeComponentsCount; i++) tapeCentroidsX[i - 1] = barcodeTapeCentroids.at(double.class, i, 1).getV();
+        // Get a sorted list of centroids
+        List<BarcodeCentroid> tapeCentroidsList = new ArrayList<BarcodeCentroid>();
+        for (int i = 1; i < tapeComponentsCount; i++) tapeCentroidsList.add(new BarcodeCentroid(i, barcodeTapeCentroids.at(double.class, i, 1).getV()));
 
-        // Make sure the centroids are listed in ascending order of X-coordinate (left-to-right, in screen space)
-        Arrays.sort(tapeCentroidsX);
+
+        if (tapeCentroidsList.size() > 3) {
+            Collections.sort(tapeCentroidsList);
+
+            if (allianceColor == RobotManager.AllianceColor.RED) Collections.reverse(tapeCentroidsList);
+            tapeCentroidsList = tapeCentroidsList.subList(0, 2);
+
+            if (allianceColor == RobotManager.AllianceColor.RED) Collections.reverse(tapeCentroidsList);
+            tapeComponentsCount = 3;
+        }
+
 
         // Determine the centroid of the cap region
         int capComponentsCount = Imgproc.connectedComponentsWithStats(barcodeCapRegions, barcodeCapLabels, barcodeCapStats, barcodeCapCentroids, 8);
         if (capComponentsCount != 2) return Robot.BarcodeScanResult.WRONG_CAPS;
 
         double capCentroidX = barcodeCapCentroids.at(double.class, 1, 1).getV();
-        double third = frame.rows() / 3.0;
 
-        return Robot.BarcodeScanResult.ResultFromValue((int) Math.floor(capCentroidX / third));
+        // For now, we'll make sure that we're identifying only two non-cap tapes.
+        if (tapeComponentsCount != 3) {
+            int closestIndex = 0;
+            double minDistance = input.rows();
 
-//        if (capCentroidX < tapeCentroidsX[0]) return Robot.BarcodeScanResult.LEFT;
-//        else if (capCentroidX < tapeCentroidsX[1]) return Robot.BarcodeScanResult.CENTER;
-//        return Robot.BarcodeScanResult.RIGHT;
+            for (int i = 0; i < BarcodeFlags.length; i++) {
+                double dist = Math.abs(capCentroidX - BarcodeFlags[i]);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIndex = i;
+                }
+            }
+
+            return Robot.BarcodeScanResult.ResultFromValue(closestIndex);
+        }
+
+        if (capCentroidX < tapeCentroidsList.get(0).centroidX) return Robot.BarcodeScanResult.LEFT;
+        else if (capCentroidX < tapeCentroidsList.get(1).centroidX) return Robot.BarcodeScanResult.CENTER;
+        return Robot.BarcodeScanResult.RIGHT;
     }
 
 
