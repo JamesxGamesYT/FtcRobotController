@@ -7,11 +7,11 @@ public class MechanismDriving {
 
     private static int desiredSlidePosition;
 
-    public static final int RETRACTED_POS = 0, LEVEL1_POS = 800, LEVEL2_POS = 1950, LEVEL3_POS = 3500, CAPPING_POS = 4000;
+    public static final int RETRACTED_POS = 0, LEVEL1_POS = 700, LEVEL2_POS = 1850, LEVEL3_POS = 3500, CAPPING_POS = 4000;
     public static final double CLAW_CLOSED_POS = 0, CLAW_OPEN_POS = 1.0; //These are not final values
     // How long it takes for the claw servo to be guaranteed to have moved to its new position.
     public static final long CLAW_SERVO_TIME = 500;
-    public static final int EPSILON = 30;  // slide encoder position tolerances
+    public static final int EPSILON = 50;  // slide encoder position tolerances
     double slideRampDownDist=1000, maxSpeedCoefficient =0.8, reducedSpeedCoefficient =0.7;
 
     public static final double[] CAROUSEL_POWERS = {.625, .75, 0};
@@ -114,8 +114,8 @@ public class MechanismDriving {
             double mainSpeed,reducedSpeed;//"ramp" the motor speeds down based on how far away from the destination the motors are
             mainSpeed= maxSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
             reducedSpeed= reducedSpeedCoefficient *Range.clip(Math.abs(desiredSlidePosition - robot.slidesRight.getCurrentPosition())/slideRampDownDist, 0.1, 1);
-            mainSpeed=Range.clip(mainSpeed,0.05,1);//limit the max speed to 1 and the min speed to 0.05
-            reducedSpeed=Range.clip(reducedSpeed,0.04,1);
+            mainSpeed=Range.clip(mainSpeed,0.4, 1);//limit the max speed to 1 and the min speed to 0.05
+            reducedSpeed=Range.clip(reducedSpeed,0.3,1);
 
             // If the current position is less than desired position then move it up
             if (desiredSlidePosition - robot.slidesRight.getCurrentPosition() > EPSILON) {

@@ -329,19 +329,25 @@ public class RobotManager {
 
         double forwardDistance = Navigation.CLAW_SIZE;
         switch (level) {
-            case L2:
+            case L1:
                 forwardDistance -= 3;
                 break;
+            case L2:
+                forwardDistance -= 4;
+                break;
             case L3:
-                forwardDistance -= Navigation.CLAW_SIZE;
+                forwardDistance -= 7;
                 break;
         }
 //        if (level == Robot.SlidesState.L1) {forwardDistance -= 0.75;}
 
-        navigation.path.add(navigation.pathIndex,
-                new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff",
-                        Point.Action.NONE, 0.4, 0.0), startPos.getRotation()));
-        travelToNextPOI();
+        if (forwardDistance > 0) {
+            navigation.path.add(navigation.pathIndex,
+                    new Position(new Point(startPos.getX() + forwardDistance, startPos.getY(), "POI dropoff",
+                            Point.Action.NONE, 0.4, 0.0), startPos.getRotation()));
+
+            travelToNextPOI();
+        }
 
         openClaw();
 

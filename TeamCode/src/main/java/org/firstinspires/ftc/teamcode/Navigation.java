@@ -29,9 +29,9 @@ public class Navigation
 
     static final double STRAFE_RAMP_DISTANCE = 3;  // Inches
     static final double ROTATION_RAMP_DISTANCE = Math.PI / 3;  // Radians
-    static final double MAX_STRAFE_POWER = 0.85;
-    static final double MIN_STRAFE_POWER = 0.4;
-    static final double STRAFE_CORRECTION_POWER = 0.2;
+    static final double MAX_STRAFE_POWER = 0.95;
+    static final double MIN_STRAFE_POWER = 0.5;
+    static final double STRAFE_CORRECTION_POWER = 0.3;
     static final double MAX_ROTATION_POWER = 0.5;
     static final double MIN_ROTATION_POWER = 0.4;
     static final double ROTATION_CORRECTION_POWER = 0.2;
@@ -813,7 +813,7 @@ public class Navigation
 class AutonomousPaths {
     // Coordinates relative to starting location close to carousel.
     public static final Position allianceShippingHub =
-            new Position(new Point(13, 20, "POI shipping hub",
+            new Position(new Point(11, 20, "POI shipping hub",
                     Point.Action.PRELOAD_BOX, 0, 0), -Math.PI / 2);
     public static final Position allianceStorageUnit =
             new Position(new Point(19, -18, "POI alliance storage unit"), 0);
@@ -821,7 +821,7 @@ class AutonomousPaths {
             new Position(new Point(4, -13.5, "POI carousel", Point.Action.CAROUSEL,
                     Navigation.STRAFE_CORRECTION_POWER, Navigation.ROTATION_CORRECTION_POWER), -Math.PI / 6);
     public static final Position warehouse =
-            new Position(new Point(10, 50, "POI warehouse"), -Math.PI / 2);
+            new Position(new Point(10, 50, "POI warehouse"), 0);
 
     public static final Position out_from_carousel =
             new Position(new Point(
@@ -838,10 +838,10 @@ class AutonomousPaths {
                     allianceShippingHub.getX() - 5, allianceStorageUnit.getY(),
                     "lined up with storage unit"), -Math.PI / 2);
     public static final Position warehouse_entrance =
-            new Position(new Point(-3, warehouse.getY() - 11, "warehouse entrance"), -Math.PI / 2);
+            new Position(new Point(-3, warehouse.getY() - 11, "warehouse entrance"), 0);
     public static final Position inside_warehouse =
             new Position(new Point(-6, warehouse.getY(), "inside warehouse", Point.Action.RAISE_SLIDE_L1,
-                    Navigation.STRAFE_CORRECTION_POWER, 0.0), -Math.PI / 2);
+                    Navigation.STRAFE_CORRECTION_POWER, 0.0), 0);
 
     public static final ArrayList<Position> PARK_ASU = new ArrayList<>(Arrays.asList(
             new Position(new Point(10, allianceStorageUnit.getY(), "near storage unit"), 0),
@@ -897,8 +897,7 @@ class AutonomousPaths {
     ));
     public static final ArrayList<Position> PRELOAD_BOX_AND_PARK_WAREHOUSE = new ArrayList<>(Arrays.asList(
             allianceShippingHub,
-            new Position(new Point(backed_up_from_ASH.getX(), backed_up_from_ASH.getY(), "backed up from ASH"),
-                    -Math.PI / 2),
+            new Position(new Point(backed_up_from_ASH.getX(), backed_up_from_ASH.getY(), "backed up from ASH"), 0),
             warehouse_entrance,
             inside_warehouse,
             warehouse
